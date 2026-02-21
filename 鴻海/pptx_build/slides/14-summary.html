@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html { background: #F4F5F7; }
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #F4F5F7;
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  color: #1f2937;
+}
+.slide {
+  box-sizing: border-box;
+  width: 720pt;
+  height: 405pt;
+  padding: 16pt 20pt;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.theme-1 { background: #F4F5F7; }
+.theme-2 { background: #FFF7ED; }
+.theme-3 { background: #EFF6FF; }
+.theme-4 { background: #F0FDF4; }
+.kicker {
+  margin: 0;
+  font-size: 9pt;
+  color: #9a3412;
+  text-transform: uppercase;
+  letter-spacing: 0.8pt;
+  font-weight: bold;
+}
+.title {
+  margin: 0;
+  font-size: 22pt;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.subtitle {
+  margin: 0;
+  font-size: 11pt;
+  line-height: 1.3;
+  color: #334155;
+}
+.section-title {
+  margin: 0;
+  font-size: 13pt;
+  color: #1d4ed8;
+}
+.two-col {
+  display: flex;
+  gap: 8pt;
+  flex: 1;
+  min-height: 0;
+}
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+  min-height: 0;
+}
+.card {
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 6pt;
+  padding: 7pt 8pt;
+}
+.card h3 {
+  margin: 0 0 3pt 0;
+  font-size: 12pt;
+  color: #111827;
+}
+.card p {
+  margin: 0;
+  font-size: 9.6pt;
+  line-height: 1.28;
+}
+ul {
+  margin: 0;
+  padding-left: 14pt;
+}
+li {
+  margin: 1pt 0;
+  font-size: 9.6pt;
+  line-height: 1.26;
+}
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+  flex-wrap: wrap;
+}
+.pipe {
+  background: #ffffff;
+  border: 1pt solid #9ca3af;
+  border-radius: 6pt;
+  padding: 4pt 6pt;
+  min-width: 94pt;
+}
+.pipe p {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+}
+.arrow {
+  margin: 0;
+  font-size: 11pt;
+  color: #6b7280;
+  font-weight: bold;
+}
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+.row {
+  display: flex;
+  gap: 3pt;
+}
+.cell {
+  flex: 1;
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 4pt;
+  padding: 3pt 4pt;
+}
+.cell.head {
+  background: #111827;
+  color: #ffffff;
+}
+.cell p {
+  margin: 0;
+  font-size: 8.2pt;
+  line-height: 1.2;
+}
+.code {
+  background: #0f172a;
+  border-radius: 6pt;
+  padding: 6pt;
+}
+.code p {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 7.8pt;
+  line-height: 1.18;
+  color: #e2e8f0;
+}
+.small {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+  color: #475569;
+}
+.footer {
+  margin-top: auto;
+  font-size: 8.6pt;
+  color: #64748b;
+}
+</style>
+</head>
+<body>
+<div class="slide theme-2">
+
+<p class="kicker">Slide 14</p>
+<h1 class="title">12. 總結與未來展望</h1>
+<div class="two-col">
+  <div class="col">
+    <div class="card">
+      <h3>主題一結論（LLM + Graph DB）</h3>
+      <ul>
+        <li>Neo4j + Cypher 對知識圖譜 QA 最快落地</li>
+        <li>本機 Ollama（deepseek / gpt-oss / gemma3）可快速切換驗證</li>
+        <li>未來可升級 GraphRAG（向量 + 圖遍歷）</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>主題二結論（OpenClaw）</h3>
+      <ul>
+        <li>原始碼已有企業級安全元件基礎</li>
+        <li>高風險在技能供應鏈與預設配置鬆散</li>
+        <li>建議四層防禦 + sandbox 預設啟用</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>下一步</h3>
+      <ul>
+        <li>技能簽章與版本治理</li>
+        <li>行為監控與異常回滾</li>
+        <li>多 Agent 分層權限設計</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html { background: #F3F4F6; }
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #F3F4F6;
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  color: #1F2937;
+}
+.slide {
+  box-sizing: border-box;
+  width: 720pt;
+  height: 405pt;
+  padding: 18pt 22pt;
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.theme-a { background: #F3F4F6; }
+.theme-b { background: #FFF8EF; }
+.theme-c { background: #EFF6FF; }
+.theme-d { background: #F0FDF4; }
+.kicker {
+  margin: 0;
+  font-size: 10pt;
+  font-weight: bold;
+  color: #9A3412;
+  text-transform: uppercase;
+  letter-spacing: 1pt;
+}
+.title {
+  margin: 0;
+  font-size: 24pt;
+  line-height: 1.2;
+  color: #111827;
+}
+.subtitle {
+  margin: 0;
+  font-size: 12pt;
+  line-height: 1.35;
+  color: #374151;
+}
+.two-col {
+  display: flex;
+  flex: 1;
+  gap: 10pt;
+  min-height: 0;
+}
+.col {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.card {
+  background: #FFFFFF;
+  border: 1.2pt solid #D1D5DB;
+  border-radius: 8pt;
+  padding: 8pt 10pt;
+}
+.card h3 {
+  margin: 0 0 4pt 0;
+  font-size: 13pt;
+  color: #111827;
+}
+.card p {
+  margin: 0;
+  font-size: 10.5pt;
+  line-height: 1.35;
+}
+ul {
+  margin: 0;
+  padding-left: 15pt;
+}
+li {
+  margin: 2pt 0;
+  font-size: 10.5pt;
+  line-height: 1.3;
+}
+.section-title {
+  margin: 0 0 4pt 0;
+  font-size: 14pt;
+  color: #1E3A8A;
+}
+.small {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+  color: #4B5563;
+}
+.kpi-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7pt;
+}
+.kpi {
+  width: 48%;
+  background: #111827;
+  color: #FFFFFF;
+  border-radius: 7pt;
+  padding: 6pt;
+  box-sizing: border-box;
+}
+.kpi p {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+.kpi .v {
+  font-size: 14pt;
+  font-weight: bold;
+}
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 6pt;
+  flex-wrap: wrap;
+}
+.pipe-box {
+  background: #FFFFFF;
+  border: 1.2pt solid #9CA3AF;
+  border-radius: 7pt;
+  padding: 5pt 7pt;
+  min-width: 110pt;
+}
+.pipe-box p {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+.arrow {
+  margin: 0;
+  font-size: 12pt;
+  color: #6B7280;
+  font-weight: bold;
+}
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4pt;
+}
+.row {
+  display: flex;
+  gap: 4pt;
+}
+.cell {
+  flex: 1;
+  background: #FFFFFF;
+  border: 1pt solid #D1D5DB;
+  border-radius: 5pt;
+  padding: 4pt 5pt;
+  box-sizing: border-box;
+}
+.cell.head {
+  background: #1F2937;
+  color: #FFFFFF;
+}
+.cell p {
+  margin: 0;
+  font-size: 9pt;
+  line-height: 1.2;
+}
+.code {
+  background: #0F172A;
+  color: #E2E8F0;
+  border-radius: 6pt;
+  padding: 6pt;
+}
+.code p {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 8.4pt;
+  line-height: 1.23;
+}
+.footer {
+  margin-top: auto;
+  font-size: 9pt;
+  color: #6B7280;
+}
+</style>
+</head>
+<body>
+<div class="slide theme-a">
+
+<p class="kicker">Slide 12</p>
+<h1 class="title">Graph DB 選型比較：Neo4j vs Memgraph vs Amazon Neptune</h1>
+<div class="matrix">
+  <div class="row">
+    <div class="cell head"><p>比較面向</p></div>
+    <div class="cell head"><p>Neo4j</p></div>
+    <div class="cell head"><p>Memgraph</p></div>
+    <div class="cell head"><p>Amazon Neptune</p></div>
+  </div>
+  <div class="row">
+    <div class="cell"><p>查詢語言</p></div>
+    <div class="cell"><p>Cypher 生態成熟</p></div>
+    <div class="cell"><p>Cypher 相容</p></div>
+    <div class="cell"><p>Gremlin / openCypher / SPARQL</p></div>
+  </div>
+  <div class="row">
+    <div class="cell"><p>上手速度</p></div>
+    <div class="cell"><p>快，文件與範例多</p></div>
+    <div class="cell"><p>快，偏即時分析場景</p></div>
+    <div class="cell"><p>AWS 環境整合佳但門檻高</p></div>
+  </div>
+  <div class="row">
+    <div class="cell"><p>本題適配度</p></div>
+    <div class="cell"><p>最佳：教學與原型最穩</p></div>
+    <div class="cell"><p>可行：需額外調校部署</p></div>
+    <div class="cell"><p>可行：較偏雲端正式環境</p></div>
+  </div>
+  <div class="row">
+    <div class="cell"><p>成本/維運</p></div>
+    <div class="cell"><p>社群版可單機快速驗證</p></div>
+    <div class="cell"><p>同級，需熟悉運維細節</p></div>
+    <div class="cell"><p>託管便利但成本較高</p></div>
+  </div>
+</div>
+<div class="card">
+  <p class="small"><b>結論：</b>本次以 Neo4j 為主，因為 Cypher 教學資源、工具鏈整合與原型迭代速度最符合題目需求。</p>
+</div>
+
+</div>
+</body>
+</html>

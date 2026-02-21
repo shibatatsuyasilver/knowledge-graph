@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專案問題與解決方案狀態追蹤 (Project Issues &amp; Solutions Status)</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --bg-color: #f8f9fa;
+            --text-color: #333;
+            --border-color: #e9ecef;
+            --white: #ffffff;
+            --success-color: #2ecc71;
+            --warning-color: #f1c40f;
+            --danger-color: #e74c3c;
+            --info-color: #95a5a6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--bg-color);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 30px;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            background: var(--white);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .sidebar h3 {
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .nav-link {
+            display: block;
+            color: var(--text-color);
+            text-decoration: none;
+            padding: 8px 0;
+            font-size: 0.95em;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-color);
+        }
+
+        .nav-link.sub-link {
+            padding-left: 15px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            border-bottom: 3px solid var(--accent-color);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-top: 40px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.4em;
+            margin-top: 30px;
+            color: var(--secondary-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 0 0 1px var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: #f1f3f5;
+            color: var(--secondary-color);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Status Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge.done {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #27ae60;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+
+        .badge.pending {
+            background-color: rgba(241, 196, 15, 0.15);
+            color: #d35400;
+            border: 1px solid rgba(241, 196, 15, 0.3);
+        }
+
+        .badge.paused {
+            background-color: rgba(149, 165, 166, 0.15);
+            color: #7f8c8d;
+            border: 1px solid rgba(149, 165, 166, 0.3);
+        }
+
+        /* Code Blocks */
+        code {
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            background-color: #f1f3f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+            color: #c7254e;
+        }
+
+        .mermaid {
+            margin: 20px 0;
+            padding: 10px;
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        /* Blockquotes */
+        blockquote {
+            border-left: 4px solid var(--accent-color);
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+            color: #555;
+        }
+
+        /* Links */
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h3>目錄 (Table of Contents)</h3>
+            <nav>
+                <a href="#section-1" class="nav-link">1. 目前問題追蹤</a>
+                <a href="#section-2" class="nav-link">2. 開源 LLM 模型佈署</a>
+                <a href="#section-2-1" class="nav-link sub-link">(1) 選擇的開源 LLM 模型</a>
+                <a href="#section-2-2" class="nav-link sub-link">(2) 部署方式</a>
+                <a href="#section-2-3" class="nav-link sub-link">(3) 部署遇到的問題與解決</a>
+                <a href="#section-3" class="nav-link">3. Domain Knowledge Graph</a>
+                <a href="#section-3-step" class="nav-link sub-link">步驟說明</a>
+                <a href="#section-3-0" class="nav-link sub-link">(0) 實作對應</a>
+                <a href="#section-3-1" class="nav-link sub-link">(1) 利用 LLM 建立 KG</a>
+                <a href="#section-3-2" class="nav-link sub-link">(2) 使用者問題轉 Graph DB (NL2Cypher)</a>
+                <a href="#section-3-3" class="nav-link sub-link">(3) 選擇 Neo4j 的原因</a>
+                <a href="#section-4" class="nav-link">4. OpenClaw 架構與技能安全分析</a>
+                <a href="#section-4-1" class="nav-link sub-link">(1) 系統架構與主要組件</a>
+                <a href="#section-4-2" class="nav-link sub-link">(2) 安全風險（3 大類 10 項）</a>
+                <a href="#section-4-3" class="nav-link sub-link">(3) 技能安全審查機制</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>專案問題與解決方案狀態追蹤 (Project Issues &amp; Solutions Status)</h1>
+
+            <section id="section-1">
+                <h2>1. 目前問題追蹤 (Current Issues Tracking)</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30%">問題 (Problem)</th>
+                                <th style="width: 50%">解法 (Solution)</th>
+                                <th style="width: 20%">狀態 (Status)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Chat 打到錯誤 upstream（/api/chat 404）</strong></td>
+                                <td>改成共用 LLM 抽象層，支援 openai-compatible / ollama / gemini，由環境變數切換。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>llm_client.py</code>, <code>logic.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Gemini 金鑰未生效（400 INVALID_ARGUMENT）</strong></td>
+                                <td>統一讀取 .env.local、補文件與範例 env，明確要求 GEMINI_API_KEY。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>.env.local.example</code>, <code>README.md</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>抽取常出現 JSON 破損/&lt;think&gt; 導致 parse fail</strong></td>
+                                <td>抽取加 5 次重試、JSON 修復 prompt、提高輸出 token 上限。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>前端長時間只顯示 Processing...</strong></td>
+                                <td>Text/File/URL 改 async job + polling，顯示 chunk 進度與狀態。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>main.py</code>, <code>BuildKG.tsx</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>長文本導致記憶體壓力（OOM 風險）</strong></td>
+                                <td>Ingest 端改為先切 chunk 再逐塊抽取（provider-aware token/char budget），並支援 <code>chunk_limit</code> 限流。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>backend/logic.py</code>, <code>backend/main.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>KG 回答太生硬、常帶「根據知識圖譜」前綴</strong></td>
+                                <td>/api/query 改成先查 rows，再用 QA LLM 重寫答案，失敗才 fallback。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>logic.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>財報問答抓不到資料（抽取 ontology 不足）</strong></td>
+                                <td>新增 FinancialMetric/FiscalPeriod 與 HAS_FINANCIAL_METRIC/FOR_PERIOD，並保留財報屬性。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>財報 Cypher 會出現「硬編碼假資料」</strong></td>
+                                <td>加守門，禁止常值偽造；財報問題強制使用財報關係路徑，必要時走 deterministic fallback。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>nl2cypher.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>財報關係曾發生跨季度誤連（Q2 metric 連到 Q3）</strong></td>
+                                <td>FOR_PERIOD 加一致性檢查，不一致直接丟棄。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>MoM/YoY 問題觸發 Cypher syntax error（500）</strong></td>
+                                <td>1. 擴充財報偵測詞（mom/yoy/月增/年增）<br>2. 新增 Cypher 語法守門（攔截 label {function(...)} 類型）<br>3. 重試失敗時回可解釋答案而不是 500</td>
+                                <td><span class="badge pending">🚧 待實作</span><br>(建議優先修復)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>一句多問（例如「董事長 + 創辦人」）</strong></td>
+                                <td>多意圖拆解成多 Cypher 再合併答案。</td>
+                                <td><span class="badge paused">⏸️ 目前刻意不處理</span><br>(暫緩)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>實體漏抽問題</strong></td>
+                                <td>Gemini 走兩階段抽取：先盤點 entity 比對 KG 補齊，再第二輪抽 relation。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code>, <code>GEMINI_TWO_PASS_EXTRACTION=1</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>OpenClaw Skill 安全審查覆蓋不足</strong></td>
+                                <td>目前僅有 Regex 靜態檢查（<code>skill_audit.ts</code>）；需補 AST 分析、沙箱動態測試、來源簽章與權限審批。</td>
+                                <td><span class="badge pending">🚧 待實作</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>OpenClaw 權限模型粒度不足</strong></td>
+                                <td>導入 capability-based 權限（檔案/網路/命令/外部 API 分離授權），高風險權限需雙重確認。</td>
+                                <td><span class="badge pending">🚧 待實作</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>OpenClaw 機敏憑證治理不足</strong></td>
+                                <td>第三方 API Token 改由密鑰管理與靜態加密保存，補 token 輪替、審計與外洩告警。</td>
+                                <td><span class="badge pending">🚧 待實作</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>OpenClaw Prompt Injection 風險</strong></td>
+                                <td>對 Skill 回傳內容加 trusted/untrusted 標記、模板化包裝與指令隔離，阻斷「工具輸出覆蓋系統指令」。</td>
+                                <td><span class="badge pending">🚧 待實作</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="section-2">
+                <h2>2. 開源 LLM 模型佈署詳細說明</h2>
+
+                <div id="section-2-1">
+                    <h3>(1) 選擇的開源 LLM 模型</h3>
+                    <p>本專案採用 <strong>Hybrid 模式</strong>，主要使用 <strong>Ollama (DeepSeek R1 / Qwen 3 / Ministral 3)</strong> 作為本地開源模型，並支援切換至 <strong>Gemini 3 Pro (Preview)</strong>（或相容新版本）以獲得更高品質的知識抽取。</p>
+                    
+                    <ul>
+                        <li><strong>選擇模型</strong>: <code>deepseek-r1:8b</code> / <code>qwen3</code> / <code>ministral-3:14b</code> (透過 Ollama) 或 <code>gemini-3-pro-preview</code>。</li>
+                        <li><strong>優點 (Pros)</strong>:
+                            <ul>
+                                <li><strong>DeepSeek R1 / Qwen 3</strong>: 支援 <strong>Chain of Thought (CoT)</strong> 思維鏈，邏輯推理能力顯著增強，適合處理複雜指令，同時保有本地部署的隱私優勢與無 API 成本。</li>
+                                <li><strong>Ministral 3 (14B)</strong>: 在 <strong>指令遵守</strong> 與 <strong>結構化輸出</strong> 表現穩定，特別適合 <strong>NL2Cypher</strong> 任務（可降低 Cypher 生成偏題與格式漂移）。</li>
+                                <li><strong>Gemini 3 Pro</strong>: 擁有超長 Context Window (<strong>1,048,576 input tokens</strong>) 與強大的邏輯推理能力，對於複雜的實體關係抽取 (NER/RE) 準確率通常優於小參數模型。</li>
+                            </ul>
+                        </li>
+                        <li><strong>缺點 (Cons)</strong>:
+                            <ul>
+                                <li><strong>DeepSeek R1 / Qwen 3</strong>: 在啟用 thinking 或輸出約束不足時，可能混入思考內容/註釋而導致 JSON 解析失敗 (Parse Fail)；且 CoT 可能增加推論時間。需搭配 <code>think=false</code>/<code>hidethinking</code> 與後處理保護。</li>
+                                <li><strong>Gemini 3 Pro</strong>: 依賴網路，有 API Rate Limit 限制與成本，且存在數據傳輸隱私考量。</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h4>官方 Benchmark 參考（截至 2026-02-15）</h4>
+                    <blockquote>註：以下為官方模型卡/官方頁面公布的成績，不同推論框架、量化版本、sampling 設定下，實測結果可能浮動。</blockquote>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>模型</th>
+                                    <th>官方測試指標</th>
+                                    <th>分數</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>deepseek-r1:8b</code>（Ollama 對應 <code>DeepSeek-R1-0528-Qwen3-8B</code>）</td>
+                                    <td>AIME24 / AIME25 / GPQA-Diamond / LiveCodeBench</td>
+                                    <td><strong>86.0 / 76.3 / 61.1 / 60.5</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>qwen3:8b</code>（Thinking, bf16）</td>
+                                    <td>LiveBench / GPQA / MMLU-Redux / AIME24</td>
+                                    <td><strong>67.1 / 62.0 / 87.5 / 76.0</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>qwen3:8b</code>（Non-Thinking, bf16）</td>
+                                    <td>LiveBench / GPQA / MMLU-Redux</td>
+                                    <td><strong>53.5 / 39.3 / 79.5</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>ministral-3:14b</code>（Reasoning）</td>
+                                    <td>AIME25 / AIME24 / GPQA-Diamond / LiveCodeBench</td>
+                                    <td><strong>85.0 / 89.8 / 71.2 / 64.6</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>ministral-3:14b</code>（Instruct）</td>
+                                    <td>Arena Hard / WildBench / MATH Maj@1 / MM MTBench</td>
+                                    <td><strong>55.1 / 68.5 / 90.4 / 8.49</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>gemini-3-pro-preview</code></td>
+                                    <td>Humanity's Last Exam / GPQA-Diamond / AIME 2025 / MMMU-Pro</td>
+                                    <td><strong>37.5 / 91.9 / 95.0 / 81.0</strong></td>
+                                </tr>
+                                <tr>
+                                    <td><code>gemini-3-pro-preview</code></td>
+                                    <td>Token limits</td>
+                                    <td><strong>Input 1,048,576 / Output 65,536</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>資料來源（官方）</strong></p>
+                    <ol>
+                        <li>DeepSeek 模型卡：<a href="https://huggingface.co/deepseek-ai/DeepSeek-R1-0528" target="_blank">https://huggingface.co/deepseek-ai/DeepSeek-R1-0528</a></li>
+                        <li>Qwen3 8B 模型卡：<a href="https://huggingface.co/Qwen/Qwen3-8B-AWQ" target="_blank">https://huggingface.co/Qwen/Qwen3-8B-AWQ</a></li>
+                        <li>Ministral 3 14B 模型卡：<a href="https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512" target="_blank">https://huggingface.co/mistralai/Ministral-3-14B-Instruct-2512</a></li>
+                        <li>Gemini 3 Pro benchmark: <a href="https://deepmind.google/technologies/gemini/pro/" target="_blank">https://deepmind.google/technologies/gemini/pro/</a></li>
+                        <li>Gemini 3 Pro token limits: <a href="https://ai.google.dev/gemini-api/docs/models/gemini" target="_blank">https://ai.google.dev/gemini-api/docs/models/gemini</a></li>
+                    </ol>
+
+                    <p><strong>解讀方式（對應你的任務）</strong></p>
+                    <ul>
+                        <li>NER/RE：可優先參考 GPQA、AIME、HLE 這類推理/知識密集指標，作為「複雜關係抽取能力」的近似代理。</li>
+                        <li>NL2Cypher：可優先參考 Arena Hard、WildBench、MM MTBench 與模型是否原生支援 function calling / JSON outputs，作為「指令遵守 + 結構化輸出」的近似代理。</li>
+                        <li>目前沒有單一官方 benchmark 可以直接等同 NER/RE 或 NL2Cypher，仍建議保留專案內部回歸測試集作最終依據。</li>
+                    </ul>
+                </div>
+
+                <div id="section-2-2">
+                    <h3>(2) 部署方式</h3>
+                    <p>使用 <strong>Docker Container</strong> 進行微服務化部署：</p>
+                    <ol>
+                        <li><strong>Ollama Service</strong>: 使用官方 <code>ollama/ollama</code> Docker 映像檔，掛載 GPU (如支援) 進行本地推論。</li>
+                        <li><strong>API Wrapper</strong>: 開發 <code>llm_deploy.py</code> (基於 FastAPI)，作為統一人工智慧介面層 (<code>llm_client.py</code>)。
+                            <ul>
+                                <li>此層負責處理不同 Provider (Ollama/OpenAI/Gemini) 的 API 差異。</li>
+                                <li>透過環境變數 (<code>LLM_PROVIDER</code>) 動態切換後端模型，無需修改程式碼。</li>
+                            </ul>
+                        </li>
+                        <li><strong>Orchestration</strong>: 使用 <code>docker-compose.llmkg.yml</code> 定義服務依賴與網絡。</li>
+                    </ol>
+                </div>
+
+                <div id="section-2-3">
+                    <h3>(3) 部署遇到的問題與解決</h3>
+                    <ul>
+                        <li><strong>問題 1: JSON 格式破損 (Malformed JSON)</strong>
+                            <ul>
+                                <li><strong>狀況</strong>: 開源模型 (DeepSeek R1 / Qwen 3) 在特定設定下可能輸出思考內容、不完整 JSON 或 Markdown 註釋，導致 <code>json.loads</code> 失敗。</li>
+                                <li><strong>解決</strong>: 在 <code>kg_builder.py</code> 實作 <strong>Retry &amp; Repair Loop</strong>。優先透過模型參數關閉/隱藏 thinking，再於解析失敗時回傳錯誤給 LLM 要求修正 JSON，最多重試 5 次。</li>
+                            </ul>
+                        </li>
+                        <li><strong>問題 2: 回應超時 (Timeout)</strong>
+                            <ul>
+                                <li><strong>狀況</strong>: 處理長文本財報時，LLM 生成時間過長導致 HTTP 504 Gateway Timeout。</li>
+                                <li><strong>解決</strong>: 前端改為 <strong>Async Job + Polling</strong> 機制。上傳文件後回傳 Job ID，前端每隔幾秒查詢進度，避免長連接斷開。</li>
+                            </ul>
+                        </li>
+                        <li><strong>問題 3: 思維鏈 (Chain of Thought) 干擾</strong>
+                            <ul>
+                                <li><strong>狀況</strong>: 部分模型在 thinking 模式下可能輸出額外推理內容，干擾 JSON 結構。</li>
+                                <li><strong>解決</strong>: 先用模型參數關閉/隱藏 thinking（<code>think=false</code> 或 <code>hidethinking</code>），並在 Prompt 禁止輸出思考過程；後處理 Regex 清洗作為最後保險。</li>
+                            </ul>
+                        </li>
+                        <li><strong>問題 4: 長文件造成記憶體壓力（OOM 風險）</strong>
+                            <ul>
+                                <li><strong>狀況</strong>: 單次把整份長文件丟入抽取流程，會放大 token/記憶體負載，在本地機或容器資源有限時容易不穩定。</li>
+                                <li><strong>解決</strong>: 在 <code>backend/logic.py</code> 將 Text/File/URL ingest 改為 <strong>chunk-first pipeline</strong>：
+                                    <ul>
+                                        <li>先依 provider 做切塊：Gemini 預設 token budget，其他 provider 預設 char budget（可由 <code>CHUNK_SIZE_MODE</code> 強制切換）。</li>
+                                        <li>對超長段落做二次切分（token overflow segment split），避免單塊超過上限。</li>
+                                        <li>逐 chunk 抽取並寫入 KG，搭配 <code>chunk_limit</code>/<code>INGEST_CHUNK_LIMIT</code> 控制單次處理量，降低 OOM 與長請求失敗率。</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="section-3">
+                <h2>3. Domain Knowledge Graph 建立詳細說明</h2>
+
+                <div id="section-3-step">
+                    <h3>步驟說明</h3>
+                    <ul>
+                        <li><strong>數據來源</strong>: 企業財務報告 (Financial Reports) 與新聞稿 (範例：鴻海、台積電)。</li>
+                        <li><strong>Graph DB</strong>: 選擇 <strong>Neo4j (Community Edition v5)</strong>。</li>
+                        <li><strong>建置流程</strong>: 使用 <code>kg_builder.py</code> 進行自動化建置。</li>
+                        <li><strong>大檔處理策略</strong>: 透過 <code>backend/logic.py</code> 先做 chunking（token/char budget），再逐塊呼叫 <code>kg_builder.py</code> 抽取與 upsert，避免單次大上下文造成 OOM。</li>
+                    </ul>
+                </div>
+
+                <div id="section-3-0">
+                    <h3>(0) 實作對應：實體/關係抽取與 Neo4j 寫入</h3>
+                    <ul>
+                        <li><strong>抽取框架</strong>: 本專案不是使用傳統 NER/RE 套件（如 spaCy stanza）做規則式抽取，而是採用 <code>kg_builder.py</code> 的 <strong>LLM JSON 抽取流程</strong>。</li>
+                        <li><strong>LLM 呼叫層</strong>: 使用自建 <code>llm_client.py</code>（底層套件為 <code>requests</code>）統一呼叫 <code>openai-compatible / ollama / gemini</code>，再由 Prompt 約束輸出固定 JSON 結構。</li>
+                        <li><strong>抽取策略</strong>:
+                            <ul>
+                                <li>預設 Single-pass：一次輸出 <code>entities + relations</code>。</li>
+                                <li>Gemini 可啟用 Two-pass（<code>GEMINI_TWO_PASS_EXTRACTION=1</code>）：先實體盤點，再以 seed entities 抽關係，並先補齊 KG 缺漏實體後再做第二階段關係抽取。</li>
+                                <li>解析失敗時有 Retry &amp; Repair（最多 5 次）以修復 JSON。</li>
+                            </ul>
+                        </li>
+                        <li><strong>抽取後清洗 (Post-processing)</strong>:
+                            <ul>
+                                <li>依白名單限制 entity/relation type（schema constraints）。</li>
+                                <li>做 alias/canonical name 合併與模糊比對，降低同實體多寫法問題。</li>
+                                <li>檢查關係方向與財報季度一致性（例如 <code>FOR_PERIOD</code> 不允許跨季度誤連）。</li>
+                            </ul>
+                        </li>
+                        <li><strong>Neo4j 寫入方式</strong>（<code>neo4j</code> Python driver）:
+                            <ol>
+                                <li><code>_ensure_constraints()</code>：建立唯一鍵與索引（<code>Entity.name</code> unique、<code>normalizedName</code> index）。</li>
+                                <li><code>_create_entity()</code>：使用 <code>MERGE</code> upsert 節點，節點同時帶有具體 label（如 <code>:Organization</code>）與共通 <code>:Entity</code>。</li>
+                                <li><code>_create_relation()</code>：使用 <code>MERGE (a)-[:REL]-&gt;(b)</code> upsert 關係。</li>
+                                <li><code>populate_graph()</code>：逐筆寫入 entities/relations，回傳統計（upsert 數、drop 數、json retries）。</li>
+                            </ol>
+                        </li>
+                        <li><strong>流程邊界說明</strong>: <code>GraphCypherQAChain</code> 屬於 <strong>NL2Cypher 查詢階段</strong>（<code>nl2cypher.py</code>），不是實體/關係抽取階段。</li>
+                    </ul>
+                </div>
+
+                <div id="section-3-1">
+                    <h3>(1) 利用 LLM 建立 Knowledge Graph</h3>
+                    <ul>
+                        <li><strong>方法</strong>: 採用 <strong>Two-Pass Extraction (兩階段抽取法)</strong>。
+                            <ul>
+                                <li><strong>Phase 1 (Entity Inventory)</strong>: 先讓 LLM 掃描全文，列出所有實體 (Entities)，進行標準化 (Canonicalization)。</li>
+                                <li><strong>Phase 2 (Relation Extraction)</strong>: 將第一階段的實體清單作為 Context 餵給 LLM，要求其找出實體間的關係 (Relations)。</li>
+                            </ul>
+                        </li>
+                        <li><strong>遇到的問題與解決</strong>:
+                            <ul>
+                                <li><strong>實體歧義 (Entity Ambiguity)</strong>: 同一公司有多種寫法 (e.g., "鴻海", "Hon Hai", "Foxconn")。
+                                    <ul>
+                                        <li><strong>解決</strong>: 實作 <code>_resolve_entity_reference</code> 與 <code>SequenceMatcher</code> 模糊比對，將別名映射到單一標準名稱 (Canonical Name)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>幻覺關係 (Hallucinated Relations)</strong>: LLM 創造不存在的關係類型。
+                                    <ul>
+                                        <li><strong>解決</strong>: 設定 <strong>Schema Constraints (Ontology)</strong>，僅允許特定的 Node Labels (e.g., <code>Organization</code>, <code>Person</code>) 與 Relation Types (e.g., <code>FOUNDED_BY</code>, <code>SUPPLIES_TO</code>)，過濾掉不符合 Schema 的輸出。</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="section-3-2">
+                    <h3>(2) 使用者問題轉 Graph DB 查詢 (NL2Cypher)</h3>
+                    <ul>
+                        <li><strong>方法</strong>: <code>nl2cypher.py</code> 採 <strong>雙路徑策略</strong>：
+                            <ul>
+                                <li><strong>Path A (LangChain)</strong>: 使用 <code>GraphCypherQAChain + Neo4jGraph</code> 直接將自然語言轉 Cypher（需安裝 <code>langchain</code>/<code>langchain-community</code>，且目前實作限制 <code>LLM_PROVIDER=ollama</code>）。</li>
+                                <li><strong>Path B (Manual)</strong>: 使用 <strong>Ministral 3 (14B)</strong> 搭配 <strong>Schema-Aware Prompting</strong> 與修復重試（self-correction）流程。</li>
+                                <li>若 LangChain 依賴未安裝或 provider 不符，會自動 fallback 到 Manual 路徑，確保查詢流程不中斷。</li>
+                                <li>Manual 路徑會將 Graph Schema (節點類型、關係、屬性) 注入 Prompt，並用 Few-Shot Examples 引導 Cypher 生成。</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h4>使用 <code>GraphCypherQAChain</code> 的好處（官方文件對應）</h4>
+                    <ul>
+                        <li><strong>端到端流程內建</strong>：可直接完成「自然語言問題 -> 產生 Cypher -> 查 Neo4j -> 生成答案」，減少自行串接 prompt/executor/answerer 的樣板程式。</li>
+                        <li><strong>Schema 導向，降低亂生查詢</strong>：官方整合文件示範以圖譜 schema 生成 Cypher，且可 <code>refresh_schema()</code>；<code>enhanced_schema=True</code> 會自動掃描樣本值與分佈資訊，讓生成更貼近實際資料。</li>
+                        <li><strong>可觀測性高，便於除錯</strong>：<code>return_intermediate_steps=True</code> 可拿到「生成的 Cypher + 查詢 context」，方便追蹤錯誤與建立稽核紀錄。</li>
+                        <li><strong>結果可控，避免過量回傳</strong>：<code>top_k</code> 可限制回傳筆數（官方預設 10），<code>return_direct=True</code> 可直接拿資料列，方便下游 API/前端自行格式化。</li>
+                        <li><strong>可客製 Cypher 生成品質</strong>：可透過 <code>cypher_prompt</code> 注入 few-shot 範例；亦可分離 <code>cypher_llm</code> 與 <code>qa_llm</code>，分別優化「查詢生成」與「答案敘述」。</li>
+                        <li><strong>可限制 schema 子集，減少誤查</strong>：<code>include_types</code> / <code>exclude_types</code> 可在生成階段排除特定節點或關係，縮小查詢空間。</li>
+                        <li><strong>可做關係方向校正</strong>：<code>validate_cypher=True</code> 可驗證並修正關係方向，降低因方向錯誤導致的空結果或錯誤查詢。</li>
+                        <li><strong>可用 function/tool response 強化答案貼地性</strong>：<code>use_function_response=True</code> 會以工具輸出方式提供資料庫 context，官方文件明確指出可提升答案準確性與相關性（需模型支援 function calling）。</li>
+                    </ul>
+
+                    <p><strong>官方來源（LangChain）</strong></p>
+                    <ol>
+                        <li>Neo4j integration：<a href="https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher" target="_blank">https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher</a></li>
+                        <li>GraphCypherQAChain API Reference：<a href="https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html" target="_blank">https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html</a></li>
+                        <li>LangChain Security：<a href="https://docs.langchain.com/oss/python/security-policy" target="_blank">https://docs.langchain.com/oss/python/security-policy</a></li>
+                    </ol>
+
+                    <blockquote>安全註記（官方）：<code>GraphCypherQAChain</code> 需明確 <code>allow_dangerous_requests=True</code> 才可執行，且官方要求資料庫帳號必須使用最小權限（narrowly-scoped credentials）。</blockquote>
+
+                    <ul>
+                        <li><strong>遇到的問題與解決</strong>:
+                            <ul>
+                                <li><strong>語法錯誤 (Syntax Error)</strong>: 生成的 Cypher 無法執行。
+                                    <ul>
+                                        <li><strong>解決</strong>: 實作 <strong>Self-Correction Loop</strong>。捕捉 Neo4j 錯誤訊息，將錯誤回傳給 LLM 要求修正 (Retry up to 3 times)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>語意不清</strong>: 使用者問「董事長」但 Schema 只有 <code>CHAIRED_BY</code> 關係。
+                                    <ul>
+                                        <li><strong>解決</strong>: 在 System Prompt 中加入 <strong>Semantic Mapping Rules</strong> (e.g., "董事長" maps to <code>CHAIRED_BY</code> relationship)。</li>
+                                    </ul>
+                                </li>
+                                <li><strong>財報數據造假</strong>: LLM 傾向直接生成數字而非查詢資料庫。
+                                    <ul>
+                                        <li><strong>解決</strong>: 加入 <strong>Guardrails</strong>，檢測 Cypher 是否包含 <code>AS revenue</code> 等硬編碼常數，若發現則強制使用預定義的 Template Query 查詢真實路徑。</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div id="section-3-3">
+                    <h3>(3) 選擇 Neo4j 的原因與比較</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>圖資料庫 (Graph DB)</th>
+                                    <th>特點與優勢 (Pros)</th>
+                                    <th>劣勢與限制 (Cons)</th>
+                                    <th>本專案適用性分析 (Verdict)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Neo4j</strong> (本專案採用)</td>
+                                    <td>1. <strong>成熟度高</strong>：市場佔有率最高，社群資源最豐富。<br>2. <strong>查詢語言</strong>：Cypher 直觀且類似 SQL，易於 LLM 學習與生成。<br>3. <strong>視覺化強</strong>：內建 Neo4j Browser 與 Bloom，方便除錯。</td>
+                                    <td>大規模分散式運算需企業版支援；寫入吞吐量在極端場景下可能不如專門的分散式圖資料庫。</td>
+                                    <td><strong>最佳選擇</strong><br>適合本專案的中小型規模，Docker 部署簡單，且 Cypher 對 LLM 最友善。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TigerGraph</strong></td>
+                                    <td><strong>分散式運算強</strong>：適合超大規模 (TB級) 數據分析。</td>
+                                    <td><strong>學習曲線陡</strong>：GSQL 較複雜。<br><strong>社群版限制</strong>：功能與限制較多。</td>
+                                    <td><strong>不適合</strong><br>本專案規模未達 TB 級，且 Neo4j 對於中小型規模更易於上手與部署。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ArangoDB</strong></td>
+                                    <td><strong>多模資料庫 (Multi-model)</strong>：同時支援 Document, Key-Value, Graph，靈活性高。</td>
+                                    <td><strong>非原生圖資料庫</strong>：在純圖演算法與深度遍歷效能上通常不如原生的 Neo4j。</td>
+                                    <td><strong>不適合</strong><br>本專案專注於複雜關係鏈查詢，原生圖資料庫 (Native Graph DB) 較為合適。</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>NebulaGraph</strong></td>
+                                    <td><strong>寫入吞吐量高</strong>：針對海量數據設計的開源分佈式圖資料庫。</td>
+                                    <td><strong>部署複雜</strong>：在單機開發環境的輕量級部署上，配置較 Neo4j 繁瑣。</td>
+                                    <td><strong>備選</strong><br>Docker 版的 Neo4j 配置較為簡單，符合目前快速開發需求。</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <section id="section-4">
+                <h2>4. OpenClaw 系統架構與技能安全分析</h2>
+
+                <div id="section-4-1">
+                    <h3>(1) OpenClaw 系統架構與主要組件</h3>
+                    <p>以下依 <code>ARCHITECTURE.md</code> 彙整：</p>
+                    <ul>
+                        <li><strong>Gateway Server (<code>src/gateway</code>)</strong>：
+                            <ul>
+                                <li>以微核心架構為中樞，負責配置載入、Plugin 掛載、HTTP/WebSocket 服務、事件廣播與子服務生命週期。</li>
+                                <li>內含 Discovery、Tailscale、Exec Approval Manager 等關鍵能力。</li>
+                            </ul>
+                        </li>
+                        <li><strong>Channel System (<code>src/channels</code>)</strong>：
+                            <ul>
+                                <li>將 WhatsApp / Telegram / Discord / Slack 等異質訊息標準化，統一輸入事件格式。</li>
+                            </ul>
+                        </li>
+                        <li><strong>Auto-reply Engine (<code>src/auto-reply</code>)</strong>：
+                            <ul>
+                                <li>負責訊息路由、Session 管理、模型選擇、ReAct 工具迴圈執行與最終回覆生成。</li>
+                            </ul>
+                        </li>
+                        <li><strong>Plugin / Skill 生態 (<code>extensions/</code>, <code>skills/</code>)</strong>：
+                            <ul>
+                                <li>透過外掛擴充 Channel、Tools、CLI 指令與 HTTP Routes，是平台擴展性核心。</li>
+                            </ul>
+                        </li>
+                        <li><strong>基礎設施層 (<code>src/cron</code>, <code>src/media</code>)</strong>：
+                            <ul>
+                                <li>提供排程、媒體轉換、短期檔案服務與清理機制。</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <p><strong>資料流（Data Flow，引用 <code>ARCHITECTURE.md</code>）</strong></p>
+
+                    <h4>4.1 訊息處理流程</h4>
+                    <div class="mermaid">sequenceDiagram
+    participant User
+    participant ChannelPlugin as Channel Plugin
+    participant Gateway
+    participant Dispatcher
+    participant AgentRunner
+    participant LLM
+
+    User->>ChannelPlugin: 發送訊息
+    ChannelPlugin->>Gateway: 標準化訊息 (Normalized Event)
+    Gateway->>Dispatcher: dispatchInboundMessage()
+
+    note over Dispatcher: Security Check (Command Gating)
+
+    Dispatcher->>Dispatcher: 建立 MsgContext
+    Dispatcher->>AgentRunner: 觸發 Agent 執行
+
+    loop Thinking Process
+        AgentRunner->>LLM: 發送 Prompt + Context
+        LLM-->>AgentRunner: 回傳 Thought / Tool Call
+        opt Tool Execution
+            AgentRunner->>Gateway: 執行工具 (e.g., search, query)
+            Gateway-->>AgentRunner: 回傳 Tool Result
+        end
+    end
+
+    AgentRunner-->>Dispatcher: 生成最終回覆 (Payload)
+    Dispatcher->>ChannelPlugin: 發送回覆
+    ChannelPlugin->>User: 顯示訊息
+</div>
+
+                    <h4>4.2 Agent 思考過程詳解 (Agent Execution Loop)</h4>
+                    <p>Agent 的執行邏輯位於 <code>src/auto-reply/reply/agent-runner.ts</code> 與 <code>agent-runner-execution.ts</code>，其核心流程如下：</p>
+                    <ol>
+                        <li><strong>上下文準備 (Context Prep)</strong>：
+                            <ul>
+                                <li>從 Session Store 載入對話歷史。</li>
+                                <li>注入系統提示詞 (System Prompt) 與當前可用工具 (Tools)。</li>
+                            </ul>
+                        </li>
+                        <li><strong>權限檢查 (Security)</strong>：
+                            <ul>
+                                <li><strong>Command Gating</strong>：檢查發送者是否在允許清單 (Allowlist) 中，以決定是否執行敏感指令。</li>
+                                <li><strong>Access Groups</strong>：支援群組層級的權限管理。</li>
+                            </ul>
+                        </li>
+                        <li><strong>模型調用 (Model Invocation)</strong>：
+                            <ul>
+                                <li>將上下文發送至配置的 LLM (OpenAI, Anthropic 等)。</li>
+                                <li>若配置了 Fallback，當主要模型失敗時會自動切換至備援模型。</li>
+                            </ul>
+                        </li>
+                        <li><strong>推理與工具 (Reasoning &amp; Tools)</strong>：
+                            <ul>
+                                <li><strong>Thinking</strong>：Agent 產生思考過程 (CoT)。</li>
+                                <li><strong>Action</strong>：若 Agent 決定使用工具，系統會攔截 Tool Call，執行對應的 TypeScript 函數，並將結果 (Observation) 附加回對話歷史。</li>
+                            </ul>
+                        </li>
+                        <li><strong>串流回應 (Streaming)</strong>：
+                            <ul>
+                                <li>支援 <strong>Block Streaming</strong>，即時將 Agent 的部分思考或回應推送給使用者，減少等待感。</li>
+                                <li>處理 <strong>Typing Indicators</strong>，在 Agent 思考或執行工具時顯示「正在輸入...」。</li>
+                            </ul>
+                        </li>
+                        <li><strong>記憶體管理 (Memory Management)</strong>：
+                            <ul>
+                                <li>執行後自動檢查 Context Window，必要時觸發 <strong>Compaction</strong>（摘要/壓縮歷史紀錄）。</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <h4>4.3 媒體處理管道 (Media Pipeline)</h4>
+                    <p>位於 <code>src/media/</code>，負責處理圖片、音訊與影片檔案。</p>
+                    <ul>
+                        <li><strong>暫存伺服器 (Ephemeral Server)</strong>：啟動一個 Express Server 提供本地媒體檔案的 HTTP 存取。</li>
+                        <li><strong>生命週期管理</strong>：上傳的媒體檔案預設有 TTL (Time-To-Live，例如 2 分鐘)，過期後會由 <code>cleanOldMedia</code> 定期清理，確保磁碟空間不被佔用。</li>
+                        <li><strong>MIME 偵測</strong>：使用 <code>detectMime</code> 自動識別檔案類型。</li>
+                    </ul>
+                </div>
+
+                <div id="section-4-2">
+                    <h3>(2) OpenClaw 安全風險（3 大類 10 項）</h3>
+
+                    <h4>A. Skill 生態系風險（5 項，最高優先）</h4>
+                    <ol>
+                        <li><strong>任意程式碼執行 (RCE)</strong>：Skill 透過 <code>eval</code> / shell pipe / <code>child_process</code> 執行惡意指令。</li>
+                        <li><strong>路徑遍歷 (Path Traversal)</strong>：惡意路徑（如 <code>../../etc/passwd</code>）讀取超出授權範圍檔案。</li>
+                        <li><strong>資料外洩 (Exfiltration)</strong>：Skill 讀取本機敏感檔後透過網路上傳到外部端點。</li>
+                        <li><strong>供應鏈攻擊 (Supply Chain Poisoning)</strong>：惡意 Skill 偽裝實用工具混入生態。</li>
+                        <li><strong>Prompt Injection via Skill Output</strong>：Skill 輸出夾帶惡意指令，誘導 Agent 覆寫安全邊界。</li>
+                    </ol>
+
+                    <h4>B. 執行環境風險（3 項）</h4>
+                    <ol start="6">
+                        <li><strong>沙箱逃逸 (Sandbox Escape)</strong>：vm/容器隔離不足時，惡意程式突破執行邊界。</li>
+                        <li><strong>過度高權限執行</strong>：Skill 直接取得過大系統權限（檔案、網路、命令同時開放）。</li>
+                        <li><strong>聊天訊息注入向量</strong>：外部訊息直接拼接到高權限工具 prompt/命令，造成間接注入。</li>
+                    </ol>
+
+                    <h4>C. 系統整合與治理風險（2 項）</h4>
+                    <ol start="9">
+                        <li><strong>權限粒度不足</strong>：缺少 capability 級別授權，無法最小權限化。</li>
+                        <li><strong>Token/Secrets 管理不足</strong>：第三方 API Token 若未加密、未輪替、缺稽核，外洩風險高。</li>
+                    </ol>
+
+                    <p><strong>現況觀察（本 repo）</strong>：</p>
+                    <ul>
+                        <li>已有 <code>genai_project/openclaw/security/skill_audit.ts</code>，可抓到 <code>curl|bash</code>、<code>eval</code>、<code>sudo</code>、<code>elevated:true</code> 等高風險模式。</li>
+                        <li>目前屬於 <strong>靜態 Regex 基線檢查</strong>，尚未覆蓋 AST 行為分析、沙箱動態驗證、來源簽章與完整權限政策。</li>
+                    </ul>
+                </div>
+
+                <div id="section-4-3">
+                    <h3>(3) 技能安全審查機制設計（建議落地版）</h3>
+
+                    <h4>3.1 四階段審查總覽（上架前）</h4>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>名稱</th>
+                                    <th>核心方法</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td><strong>Manifest Audit</strong></td>
+                                    <td>必要欄位驗證、權限白名單比對、sandbox 強制限制</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td><strong>Static Analysis</strong></td>
+                                    <td>危險 API Regex/規則掃描 + 混淆偵測（長行、Hex/Unicode 跳脫）</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td><strong>Sandbox Trial</strong></td>
+                                    <td>受控執行、網路攔截、系統呼叫監控、資源上限</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td><strong>Signature Verification</strong></td>
+                                    <td><code>SHA-256(manifest + entrypoint)</code> + 發布者公鑰（RSA/等效）驗證</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>決策邏輯</strong></p>
+                    <ul>
+                        <li>有 <code>CRITICAL/ERROR</code>：自動拒絕。</li>
+                        <li>有 <code>HIGH/WARN</code>：轉人工複審。</li>
+                        <li>全通過且簽章有效：允許上架。</li>
+                    </ul>
+
+                    <h4>3.2 Phase 1：Manifest Audit（清單審查）</h4>
+                    <p>先審查 Skill 的 <code>skill.json</code>（自我聲明），不合規直接擋下，不進下一關。</p>
+
+                    <p><strong>必要欄位驗證</strong></p>
+                    <pre><code class="language-json">{
+  "name": "file_summarizer",
+  "version": "1.0.0",
+  "author": "demo-author",
+  "permissions": ["fs.read.whitelist"],
+  "entrypoint": "index.js",
+  "sandbox": {
+    "exec": false,
+    "network": false,
+    "fs_read": ["/home/user/documents"],
+    "fs_write": []
+  }
+}</code></pre>
+
+                    <p><strong>權限白名單比對</strong></p>
+                    <ul>
+                        <li>允許：<code>system.time</code>、<code>fs.read.whitelist</code>、<code>network.outbound.allowlist</code></li>
+                        <li>拒絕：<code>system.root</code>、<code>fs.read.*</code>、<code>exec.shell</code></li>
+                    </ul>
+
+                    <p><strong>Sandbox 強制規則</strong></p>
+                    <ul>
+                        <li><code>sandbox.exec=true</code>：直接 <code>CRITICAL</code>（拒絕）。</li>
+                        <li><code>sandbox.network=true</code> 但未宣告對應網路權限：<code>ERROR</code>（拒絕）。</li>
+                        <li><code>fs_read/fs_write</code> 必須是明確白名單路徑。</li>
+                    </ul>
+
+                    <h4>3.3 Phase 2：Static Analysis（靜態掃描）</h4>
+                    <p>不執行程式，直接掃描原始碼模式。</p>
+
+                    <p><strong>危險 API 風險分級</strong></p>
+                    <ul>
+                        <li><code>CRITICAL</code>：<code>child_process</code>、<code>exec()</code>、<code>execSync</code>、<code>spawn()</code>、<code>eval()</code>、<code>new Function()</code></li>
+                        <li><code>HIGH</code>：未授權網路呼叫（<code>http/https/fetch</code>）、檔案破壞操作（<code>fs.writeFile/fs.unlink/fs.rmdir</code>）</li>
+                        <li><code>MEDIUM</code>：<code>process.env</code>、<code>process.exit()</code>、可疑解碼（<code>Buffer.from(base64)</code>）</li>
+                        <li><code>LOW</code>：Hex/Unicode 跳脫字串、過度混淆痕跡</li>
+                    </ul>
+
+                    <p><strong>混淆偵測</strong></p>
+                    <ul>
+                        <li>單行超過 500 字元觸發警示（常見於混淆或惡意 payload）。</li>
+                        <li>偵測 <code>\xNN</code>、<code>\uNNNN</code> 大量跳脫字元。</li>
+                    </ul>
+
+                    <p><strong>限制說明（需搭配 Phase 3）</strong></p>
+                    <pre><code class="language-javascript">const mod = "child" + "_" + "process";
+require(mod).exec("rm -rf /");</code></pre>
+                    <p>上述動態組字可能繞過純字串規則，因此需進入沙箱動態驗證。</p>
+
+                    <h4>3.4 Phase 3：Sandbox Trial（沙箱試跑）</h4>
+                    <p>在隔離環境實際執行 Skill，驗證行為是否與宣告一致。</p>
+
+                    <p><strong>隔離層級（由弱到強）</strong></p>
+                    <ul>
+                        <li>Node.js <code>vm</code>（不建議單獨依賴，歷史上有逃逸風險）</li>
+                        <li>gVisor（syscall 層攔截）</li>
+                        <li>Firecracker microVM（高隔離）</li>
+                    </ul>
+
+                    <p><strong>試跑監控</strong></p>
+                    <ul>
+                        <li>網路：DNS/TCP 連線紀錄，未授權外聯立即標記。</li>
+                        <li>檔案：<code>open/read/write</code> 存取是否超出白名單。</li>
+                        <li>程序：禁止 <code>fork/exec</code>；CPU &gt; 5 秒或記憶體 &gt; 128 MB 即終止。</li>
+                        <li>行為一致性：以 mock 輸入執行，檢查輸出是否符合 manifest schema。</li>
+                    </ul>
+
+                    <pre><code class="language-javascript">const result = await skill.run(
+  { filepath: "/home/user/documents/test.txt" },
+  { permissions: mockPermissions, logger: mockLogger }
+);
+validateAgainstSchema(result, skill.manifest.schema.output);</code></pre>
+
+                    <h4>3.5 Phase 4：Signature Verification（數位簽章驗證）</h4>
+                    <p>確保「通過審查的內容」在發布與安裝過程中未被竄改。</p>
+
+                    <p><strong>發布端</strong></p>
+                    <ol>
+                        <li>對 <code>manifest + entrypoint</code> 做 SHA-256。</li>
+                        <li>用發布者私鑰簽章，產生 <code>skill.sig</code>。</li>
+                    </ol>
+
+                    <p><strong>平台驗證端</strong></p>
+                    <ol>
+                        <li>對收到的 <code>manifest + entrypoint</code> 重新計算 SHA-256。</li>
+                        <li>用註冊公鑰驗證簽章。</li>
+                        <li>不一致即拒絕上架/安裝。</li>
+                    </ol>
+
+                    <h4>3.6 兩個 Skill Plugin（落地示例）</h4>
+                    <ol>
+                        <li><strong><code>system_info</code></strong>：查詢系統時間、時區、hostname；<code>network=false</code>、<code>exec=false</code>，並在執行時以 <code>context.permissions.require()</code> 再做 runtime gate。</li>
+                        <li><strong><code>file_summarizer</code></strong>：讀取白名單目錄文字檔，包含五層防護（null byte 防護、<code>path.resolve()</code> 正規化、白名單目錄比對、副檔名白名單、1MB 大小限制）。</li>
+                    </ol>
+
+                    <h4>3.7 縱深防禦總結</h4>
+                    <p><code>Phase 1 -&gt; Phase 2 -&gt; Phase 3 -&gt; Phase 4</code> 分別處理宣告合規、靜態風險、動態行為與完整性驗證。任一階段命中 <code>CRITICAL/ERROR</code> 即中止流程，降低惡意 Skill 進入生態系機率。</p>
+                </div>
+            </section>
+        </main>
+    </div>
+<script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: "default",
+        securityLevel: "strict",
+        fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
+    });
+</script>
+</body>
+</html>

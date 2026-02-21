@@ -1,0 +1,48 @@
+dataset:
+  path: genai_project/llm_kg/benchmark/datasets/kgqa_zh_tw_100_v1.jsonl
+  language: zh-tw
+  total_questions: 100
+  source_ratio:
+    graph_seed: 30
+    gemini_synth: 70
+  question_type_distribution:
+    fact: 25
+    relation: 25
+    multi_hop: 20
+    comparison: 10
+    count: 10
+    boolean: 10
+
+builder:
+  random_seed: 42
+  use_gemini_labeling: true
+  allow_gemini_fallback: true
+  gemini_model: gemini-3-pro-preview
+  gemini_timeout_seconds: 60
+  gemini_max_retries: 3
+  gemini_backoff_seconds: 1.5
+  gemini_rate_limit_seconds: 0.4
+
+benchmark:
+  provider: ollama
+  models:
+    - deepseek-r1:8b
+    - gemma3:12b
+  runs_per_model: 3
+  run_output_root: genai_project/llm_kg/benchmark/runs
+  reset_graph_per_question: true
+
+neo4j:
+  uri: bolt://localhost:7687
+  user: neo4j
+  password: password
+
+llm:
+  openai_base_url: http://localhost:8080/v1
+  openai_api_key: ""
+  ollama_base_url: http://localhost:11434
+  timeout_seconds: 180
+  temperature: 0.0
+  max_tokens: 2048
+  extraction_max_tokens: 8192
+  nl2cypher_max_tokens: 1024

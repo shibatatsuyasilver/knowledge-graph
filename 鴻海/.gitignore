@@ -1,0 +1,17 @@
+# Local-only secrets for this workspace
+.env.local
+.env.*.local
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Frontend build artifacts
+frontend/dist/
+frontend/tsconfig.tsbuildinfo
+
+# OS and editor artifacts
+.DS_Store
+.qoder/

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html { background: #F4F5F7; }
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #F4F5F7;
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  color: #1f2937;
+}
+.slide {
+  box-sizing: border-box;
+  width: 720pt;
+  height: 405pt;
+  padding: 16pt 20pt;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.theme-1 { background: #F4F5F7; }
+.theme-2 { background: #FFF7ED; }
+.theme-3 { background: #EFF6FF; }
+.theme-4 { background: #F0FDF4; }
+.kicker {
+  margin: 0;
+  font-size: 9pt;
+  color: #9a3412;
+  text-transform: uppercase;
+  letter-spacing: 0.8pt;
+  font-weight: bold;
+}
+.title {
+  margin: 0;
+  font-size: 22pt;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.subtitle {
+  margin: 0;
+  font-size: 11pt;
+  line-height: 1.3;
+  color: #334155;
+}
+.section-title {
+  margin: 0;
+  font-size: 13pt;
+  color: #1d4ed8;
+}
+.two-col {
+  display: flex;
+  gap: 8pt;
+  flex: 1;
+  min-height: 0;
+}
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+  min-height: 0;
+}
+.card {
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 6pt;
+  padding: 7pt 8pt;
+}
+.card h3 {
+  margin: 0 0 3pt 0;
+  font-size: 12pt;
+  color: #111827;
+}
+.card p {
+  margin: 0;
+  font-size: 9.6pt;
+  line-height: 1.28;
+}
+ul {
+  margin: 0;
+  padding-left: 14pt;
+}
+li {
+  margin: 1pt 0;
+  font-size: 9.6pt;
+  line-height: 1.26;
+}
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+  flex-wrap: wrap;
+}
+.pipe {
+  background: #ffffff;
+  border: 1pt solid #9ca3af;
+  border-radius: 6pt;
+  padding: 4pt 6pt;
+  min-width: 94pt;
+}
+.pipe p {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+}
+.arrow {
+  margin: 0;
+  font-size: 11pt;
+  color: #6b7280;
+  font-weight: bold;
+}
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+.row {
+  display: flex;
+  gap: 3pt;
+}
+.cell {
+  flex: 1;
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 4pt;
+  padding: 3pt 4pt;
+}
+.cell.head {
+  background: #111827;
+  color: #ffffff;
+}
+.cell p {
+  margin: 0;
+  font-size: 8.2pt;
+  line-height: 1.2;
+}
+.code {
+  background: #0f172a;
+  border-radius: 6pt;
+  padding: 6pt;
+}
+.code p {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 7.8pt;
+  line-height: 1.18;
+  color: #e2e8f0;
+}
+.small {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+  color: #475569;
+}
+.footer {
+  margin-top: auto;
+  font-size: 8.6pt;
+  color: #64748b;
+}
+</style>
+</head>
+<body>
+<div class="slide theme-4">
+
+<p class="kicker">Slide 9</p>
+<h1 class="title">7. OpenClaw 平台架構解析（基於原始碼）</h1>
+<div class="card">
+  <div class="pipeline">
+    <div class="pipe"><p>openclaw.mjs</p><p>CLI 入口</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>entry.ts</p><p>Runtime setup</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>gateway/server.impl.ts</p><p>核心路由服務</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>channels / agents / plugins / cron</p><p>功能模組</p></div>
+  </div>
+</div>
+<div class="two-col">
+  <div class="col">
+    <div class="card">
+      <h3>核心元件</h3>
+      <ul>
+        <li>Gateway：WebSocket + HTTP + lifecycle</li>
+        <li>Channels：多平台訊息標準化</li>
+        <li>Agents：session/model/sandbox 管理</li>
+        <li>Plugins/Skills：工具與能力擴充</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>程式碼觀察重點</h3>
+      <ul>
+        <li>協定版本化（request/response/event frame）</li>
+        <li>通道能力抽象（polls/reactions/media）</li>
+        <li>plugin registry 含 tool/channel/provider/hook</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

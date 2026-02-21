@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html { background: #F3F4F6; }
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #F3F4F6;
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  color: #1F2937;
+}
+.slide {
+  box-sizing: border-box;
+  width: 720pt;
+  height: 405pt;
+  padding: 18pt 22pt;
+  display: flex;
+  flex-direction: column;
+  gap: 10pt;
+}
+.theme-a { background: #F3F4F6; }
+.theme-b { background: #FFF8EF; }
+.theme-c { background: #EFF6FF; }
+.theme-d { background: #F0FDF4; }
+.kicker {
+  margin: 0;
+  font-size: 10pt;
+  font-weight: bold;
+  color: #9A3412;
+  text-transform: uppercase;
+  letter-spacing: 1pt;
+}
+.title {
+  margin: 0;
+  font-size: 24pt;
+  line-height: 1.2;
+  color: #111827;
+}
+.subtitle {
+  margin: 0;
+  font-size: 12pt;
+  line-height: 1.35;
+  color: #374151;
+}
+.two-col {
+  display: flex;
+  flex: 1;
+  gap: 10pt;
+  min-height: 0;
+}
+.col {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.card {
+  background: #FFFFFF;
+  border: 1.2pt solid #D1D5DB;
+  border-radius: 8pt;
+  padding: 8pt 10pt;
+}
+.card h3 {
+  margin: 0 0 4pt 0;
+  font-size: 13pt;
+  color: #111827;
+}
+.card p {
+  margin: 0;
+  font-size: 10.5pt;
+  line-height: 1.35;
+}
+ul {
+  margin: 0;
+  padding-left: 15pt;
+}
+li {
+  margin: 2pt 0;
+  font-size: 10.5pt;
+  line-height: 1.3;
+}
+.section-title {
+  margin: 0 0 4pt 0;
+  font-size: 14pt;
+  color: #1E3A8A;
+}
+.small {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+  color: #4B5563;
+}
+.kpi-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7pt;
+}
+.kpi {
+  width: 48%;
+  background: #111827;
+  color: #FFFFFF;
+  border-radius: 7pt;
+  padding: 6pt;
+  box-sizing: border-box;
+}
+.kpi p {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+.kpi .v {
+  font-size: 14pt;
+  font-weight: bold;
+}
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 6pt;
+  flex-wrap: wrap;
+}
+.pipe-box {
+  background: #FFFFFF;
+  border: 1.2pt solid #9CA3AF;
+  border-radius: 7pt;
+  padding: 5pt 7pt;
+  min-width: 110pt;
+}
+.pipe-box p {
+  margin: 0;
+  font-size: 9.5pt;
+  line-height: 1.25;
+}
+.arrow {
+  margin: 0;
+  font-size: 12pt;
+  color: #6B7280;
+  font-weight: bold;
+}
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 4pt;
+}
+.row {
+  display: flex;
+  gap: 4pt;
+}
+.cell {
+  flex: 1;
+  background: #FFFFFF;
+  border: 1pt solid #D1D5DB;
+  border-radius: 5pt;
+  padding: 4pt 5pt;
+  box-sizing: border-box;
+}
+.cell.head {
+  background: #1F2937;
+  color: #FFFFFF;
+}
+.cell p {
+  margin: 0;
+  font-size: 9pt;
+  line-height: 1.2;
+}
+.code {
+  background: #0F172A;
+  color: #E2E8F0;
+  border-radius: 6pt;
+  padding: 6pt;
+}
+.code p {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 8.4pt;
+  line-height: 1.23;
+}
+.footer {
+  margin-top: auto;
+  font-size: 9pt;
+  color: #6B7280;
+}
+</style>
+</head>
+<body>
+<div class="slide theme-d">
+
+<p class="kicker">Slide 14</p>
+<h1 class="title">OpenClaw 技能生態風險與安全審查機制</h1>
+<div class="two-col">
+  <div class="col">
+    <div class="card">
+      <h3>已知風險面</h3>
+      <ul>
+        <li>Plugin/skill 皆可能取得主機執行權限</li>
+        <li>npm install 時的 lifecycle script 供應鏈風險</li>
+        <li>開放 DM/群組 + 工具啟用時的 prompt injection</li>
+        <li>技能檔案被篡改（watcher 熱更新）</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>審查策略核心</h3>
+      <p>以「最小權限 + 可驗證 + 可追溯」為原則，避免惡意 skill 在未審核下執行。</p>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>技能安全審查流程（6階段）</h3>
+      <ul>
+        <li>1. 提交：含 manifest、schema、來源資訊</li>
+        <li>2. 靜態掃描：危險 API / shell / network 規則</li>
+        <li>3. 行為沙箱：受限檔案與工具白名單</li>
+        <li>4. 人工簽核：安全 reviewer + 風險分級</li>
+        <li>5. 簽章發布：版本鎖定 + 哈希校驗</li>
+        <li>6. 監控回滾：異常行為告警與快速停用</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

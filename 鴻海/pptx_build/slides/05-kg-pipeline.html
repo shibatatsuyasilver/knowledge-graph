@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+html { background: #F4F5F7; }
+body {
+  width: 720pt;
+  height: 405pt;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #F4F5F7;
+  font-family: "Trebuchet MS", "Arial", sans-serif;
+  color: #1f2937;
+}
+.slide {
+  box-sizing: border-box;
+  width: 720pt;
+  height: 405pt;
+  padding: 16pt 20pt;
+  display: flex;
+  flex-direction: column;
+  gap: 8pt;
+}
+.theme-1 { background: #F4F5F7; }
+.theme-2 { background: #FFF7ED; }
+.theme-3 { background: #EFF6FF; }
+.theme-4 { background: #F0FDF4; }
+.kicker {
+  margin: 0;
+  font-size: 9pt;
+  color: #9a3412;
+  text-transform: uppercase;
+  letter-spacing: 0.8pt;
+  font-weight: bold;
+}
+.title {
+  margin: 0;
+  font-size: 22pt;
+  line-height: 1.2;
+  color: #0f172a;
+}
+.subtitle {
+  margin: 0;
+  font-size: 11pt;
+  line-height: 1.3;
+  color: #334155;
+}
+.section-title {
+  margin: 0;
+  font-size: 13pt;
+  color: #1d4ed8;
+}
+.two-col {
+  display: flex;
+  gap: 8pt;
+  flex: 1;
+  min-height: 0;
+}
+.col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7pt;
+  min-height: 0;
+}
+.card {
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 6pt;
+  padding: 7pt 8pt;
+}
+.card h3 {
+  margin: 0 0 3pt 0;
+  font-size: 12pt;
+  color: #111827;
+}
+.card p {
+  margin: 0;
+  font-size: 9.6pt;
+  line-height: 1.28;
+}
+ul {
+  margin: 0;
+  padding-left: 14pt;
+}
+li {
+  margin: 1pt 0;
+  font-size: 9.6pt;
+  line-height: 1.26;
+}
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 5pt;
+  flex-wrap: wrap;
+}
+.pipe {
+  background: #ffffff;
+  border: 1pt solid #9ca3af;
+  border-radius: 6pt;
+  padding: 4pt 6pt;
+  min-width: 94pt;
+}
+.pipe p {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+}
+.arrow {
+  margin: 0;
+  font-size: 11pt;
+  color: #6b7280;
+  font-weight: bold;
+}
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 3pt;
+}
+.row {
+  display: flex;
+  gap: 3pt;
+}
+.cell {
+  flex: 1;
+  background: #ffffff;
+  border: 1pt solid #d1d5db;
+  border-radius: 4pt;
+  padding: 3pt 4pt;
+}
+.cell.head {
+  background: #111827;
+  color: #ffffff;
+}
+.cell p {
+  margin: 0;
+  font-size: 8.2pt;
+  line-height: 1.2;
+}
+.code {
+  background: #0f172a;
+  border-radius: 6pt;
+  padding: 6pt;
+}
+.code p {
+  margin: 0;
+  font-family: "Courier New", monospace;
+  font-size: 7.8pt;
+  line-height: 1.18;
+  color: #e2e8f0;
+}
+.small {
+  margin: 0;
+  font-size: 8.8pt;
+  line-height: 1.2;
+  color: #475569;
+}
+.footer {
+  margin-top: auto;
+  font-size: 8.6pt;
+  color: #64748b;
+}
+</style>
+</head>
+<body>
+<div class="slide theme-4">
+
+<p class="kicker">Slide 5</p>
+<h1 class="title">3. 領域知識圖譜建構流程（台灣半導體）</h1>
+<div class="card">
+  <div class="pipeline">
+    <div class="pipe"><p>資料下載</p><p>新聞/公司介紹</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>前處理</p><p>清洗/斷句/chunk</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>LLM 抽取</p><p>Entity + Relation</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>三元組驗證</p><p>(S,P,O)</p></div>
+    <p class="arrow">→</p>
+    <div class="pipe"><p>Neo4j 寫入</p><p>MERGE 去重</p></div>
+  </div>
+</div>
+<div class="two-col">
+  <div class="col">
+    <div class="card">
+      <h3>資料品質挑戰</h3>
+      <ul>
+        <li>輸出格式不穩：加 JSON schema 約束</li>
+        <li>實體別名不一致：台積電/TSMC 正規化</li>
+        <li>關係類型發散：預定義關係字典</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card">
+      <h3>超長來源文章處理（避免記憶體爆量）</h3>
+      <ul>
+        <li>HTML 清洗後再分塊：chunk_text(max_chars=900, min_chars=120)</li>
+        <li>每塊產生 chunk_id=sha1(source_url|text) 去重</li>
+        <li>逐 chunk 呼叫 LLM（不把整篇一次塞進 context）</li>
+        <li>受限 num_ctx/num_predict，降低 OOM 與 timeout 風險</li>
+        <li>單頁失敗記錄 failed_urls，其餘頁面繼續處理</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
