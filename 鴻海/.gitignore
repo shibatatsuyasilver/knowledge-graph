@@ -19,3 +19,6 @@ frontend/tsconfig.tsbuildinfo
 # Presentation files
 *.ppt
 *.pptx
+
+# Temporary source documents
+tmp_sources/
