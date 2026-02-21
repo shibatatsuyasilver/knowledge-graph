@@ -15,3 +15,7 @@ frontend/tsconfig.tsbuildinfo
 # OS and editor artifacts
 .DS_Store
 .qoder/
+
+# Presentation files
+*.ppt
+*.pptx
