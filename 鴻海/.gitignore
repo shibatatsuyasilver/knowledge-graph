@@ -22,3 +22,6 @@ frontend/tsconfig.tsbuildinfo
 
 # Temporary source documents
 tmp_sources/
+
+# PPTX build workspace
+pptx_build/
