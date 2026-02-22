@@ -27,7 +27,7 @@ project_root = os.path.abspath(os.path.join(current_dir, "..", ".."))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from genai_project.llm_kg import llm_client
+from backend.llm_kg import llm_client
 
 
 APP_TITLE = "KG Chatbot Prototype API"

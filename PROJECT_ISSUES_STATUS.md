@@ -4,18 +4,18 @@
 
 | 問題 (Problem) | 解法 (Solution) | 狀態 (Status) |
 | :--- | :--- | :--- |
-| **Chat 打到錯誤 upstream（/api/chat 404）** | 改成共用 LLM 抽象層，支援 openai-compatible / ollama / gemini，由環境變數切換。 | ✅ 已完成 (`llm_client.py`, `logic.py`) |
+| **Chat 打到錯誤 upstream（/api/chat 404）** | 改成共用 LLM 抽象層，支援 openai-compatible / ollama / gemini，由環境變數切換。 | ✅ 已完成 (`backend/llm_kg/llm_client.py`, `backend/logic.py`) |
 | **Gemini 金鑰未生效（400 INVALID_ARGUMENT）** | 統一讀取 .env.local、補文件與範例 env，明確要求 GEMINI_API_KEY。 | ✅ 已完成 (`.env.local.example`, `README.md`) |
-| **抽取常出現 JSON 破損/<think> 導致 parse fail** | 抽取加 5 次重試、JSON 修復 prompt、提高輸出 token 上限。 | ✅ 已完成 (`kg_builder.py`) |
-| **前端長時間只顯示 Processing...** | Text/File/URL 改 async job + polling，顯示 chunk 進度與狀態。 | ✅ 已完成 (`main.py`, `BuildKG.tsx`) |
+| **抽取常出現 JSON 破損/<think> 導致 parse fail** | 抽取加 5 次重試、JSON 修復 prompt、提高輸出 token 上限。 | ✅ 已完成 (`backend/llm_kg/kg_builder.py`) |
+| **前端長時間只顯示 Processing...** | Text/File/URL 改 async job + polling，顯示 chunk 進度與狀態。 | ✅ 已完成 (`backend/main.py`, `frontend/src/components/BuildKG.tsx`) |
 | **長文本導致記憶體壓力（OOM 風險）** | Ingest 端改為先切 chunk 再逐塊抽取（provider-aware token/char budget），並支援 `chunk_limit` 限流。 | ✅ 已完成 (`backend/logic.py`, `backend/main.py`) |
-| **KG 回答太生硬、常帶「根據知識圖譜」前綴** | /api/query 改成先查 rows，再用 QA LLM 重寫答案，失敗才 fallback。 | ✅ 已完成 (`logic.py`) |
-| **財報問答抓不到資料（抽取 ontology 不足）** | 新增 FinancialMetric/FiscalPeriod 與 HAS_FINANCIAL_METRIC/FOR_PERIOD，並保留財報屬性。 | ✅ 已完成 (`kg_builder.py`) |
-| **財報 Cypher 會出現「硬編碼假資料」** | 加守門，禁止常值偽造；財報問題強制使用財報關係路徑，必要時走 deterministic fallback。 | ✅ 已完成 (`nl2cypher.py`) |
-| **財報關係曾發生跨季度誤連（Q2 metric 連到 Q3）** | FOR_PERIOD 加一致性檢查，不一致直接丟棄。 | ✅ 已完成 (`kg_builder.py`) |
+| **KG 回答太生硬、常帶「根據知識圖譜」前綴** | /api/query 改成先查 rows，再用 QA LLM 重寫答案，失敗才 fallback。 | ✅ 已完成 (`backend/logic.py`) |
+| **財報問答抓不到資料（抽取 ontology 不足）** | 新增 FinancialMetric/FiscalPeriod 與 HAS_FINANCIAL_METRIC/FOR_PERIOD，並保留財報屬性。 | ✅ 已完成 (`backend/llm_kg/kg_builder.py`) |
+| **財報 Cypher 會出現「硬編碼假資料」** | 加守門，禁止常值偽造；財報問題強制使用財報關係路徑，必要時走 deterministic fallback。 | ✅ 已完成 (`backend/llm_kg/nl2cypher.py`) |
+| **財報關係曾發生跨季度誤連（Q2 metric 連到 Q3）** | FOR_PERIOD 加一致性檢查，不一致直接丟棄。 | ✅ 已完成 (`backend/llm_kg/kg_builder.py`) |
 | **MoM/YoY 問題觸發 Cypher syntax error（500）** | 1. 擴充財報偵測詞（mom/yoy/月增/年增）<br>2. 新增 Cypher 語法守門（攔截 label {function(...)} 類型）<br>3. 重試失敗時回可解釋答案而不是 500 | 🚧 待實作 (建議優先修復) |
 | **一句多問（例如「董事長 + 創辦人」）** | 多意圖拆解成多 Cypher 再合併答案。 | ⏸️ 目前刻意不處理 (暫緩) |
-| **實體漏抽問題** | Gemini 走兩階段抽取：先盤點 entity 比對 KG 補齊，再第二輪抽 relation。 | ✅ 已完成 (`kg_builder.py`, `GEMINI_TWO_PASS_EXTRACTION=1`) |
+| **實體漏抽問題** | Gemini 走兩階段抽取：先盤點 entity 比對 KG 補齊，再第二輪抽 relation。 | ✅ 已完成 (`backend/llm_kg/kg_builder.py`, `GEMINI_TWO_PASS_EXTRACTION=1`) |
 | **OpenClaw Skill 安全審查覆蓋不足** | 目前僅有 Regex 靜態檢查（`skill_audit.ts`）；需補 AST 分析、沙箱動態測試、來源簽章與權限審批。 | 🚧 待實作 |
 | **OpenClaw 權限模型粒度不足** | 導入 capability-based 權限（檔案/網路/命令/外部 API 分離授權），高風險權限需雙重確認。 | 🚧 待實作 |
 | **OpenClaw 機敏憑證治理不足** | 第三方 API Token 改由密鑰管理與靜態加密保存，補 token 輪替、審計與外洩告警。 | 🚧 待實作 |
@@ -65,15 +65,15 @@
 ### (2) 部署方式
 使用 **Docker Container** 進行微服務化部署：
 1.  **Ollama Service**: 使用官方 `ollama/ollama` Docker 映像檔，掛載 GPU (如支援) 進行本地推論。
-2.  **API Wrapper**: 開發 `llm_deploy.py` (基於 FastAPI)，作為統一人工智慧介面層 (`llm_client.py`)。
+2.  **API Wrapper**: 開發 `backend/llm_kg/llm_deploy.py` (基於 FastAPI)，作為統一人工智慧介面層 (`backend/llm_kg/llm_client.py`)。
     *   此層負責處理不同 Provider (Ollama/OpenAI/Gemini) 的 API 差異。
     *   透過環境變數 (`LLM_PROVIDER`) 動態切換後端模型，無需修改程式碼。
-3.  **Orchestration**: 使用 `docker-compose.llmkg.yml` 定義服務依賴與網絡。
+3.  **Orchestration**: 使用 `backend/llm_kg/docker-compose.llmkg.yml` 定義服務依賴與網絡。
 
 ### (3) 部署遇到的問題與解決
 *   **問題 1: JSON 格式破損 (Malformed JSON)**
     *   **狀況**: 開源模型 (DeepSeek R1 / Qwen 3) 在特定設定下可能輸出思考內容、不完整 JSON 或 Markdown 註釋，導致 `json.loads` 失敗。
-    *   **解決**: 在 `kg_builder.py` 實作 **Retry & Repair Loop**。優先透過模型參數關閉/隱藏 thinking，再於解析失敗時回傳錯誤給 LLM 要求修正 JSON，最多重試 5 次。
+    *   **解決**: 在 `backend/llm_kg/kg_builder.py` 實作 **Retry & Repair Loop**。優先透過模型參數關閉/隱藏 thinking，再於解析失敗時回傳錯誤給 LLM 要求修正 JSON，最多重試 5 次。
 *   **問題 2: 回應超時 (Timeout)**
     *   **狀況**: 處理長文本財報時，LLM 生成時間過長導致 HTTP 504 Gateway Timeout。
     *   **解決**: 前端改為 **Async Job + Polling** 機制。上傳文件後回傳 Job ID，前端每隔幾秒查詢進度，避免長連接斷開。
@@ -94,12 +94,12 @@
 ### 步驟說明
 *   **數據來源**: 企業財務報告 (Financial Reports) 與新聞稿 (範例：鴻海、台積電)。
 *   **Graph DB**: 選擇 **Neo4j (Community Edition v5)**。
-*   **建置流程**: 使用 `kg_builder.py` 進行自動化建置。
-*   **大檔處理策略**: 透過 `backend/logic.py` 先做 chunking（token/char budget），再逐塊呼叫 `kg_builder.py` 抽取與 upsert，避免單次大上下文造成 OOM。
+*   **建置流程**: 使用 `backend/llm_kg/kg_builder.py` 進行自動化建置。
+*   **大檔處理策略**: 透過 `backend/logic.py` 先做 chunking（token/char budget），再逐塊呼叫 `backend/llm_kg/kg_builder.py` 抽取與 upsert，避免單次大上下文造成 OOM。
 
 ### (0) 實作對應：實體/關係抽取與 Neo4j 寫入
-*   **抽取框架**: 本專案不是使用傳統 NER/RE 套件（如 spaCy stanza）做規則式抽取，而是採用 `kg_builder.py` 的 **LLM JSON 抽取流程**。
-*   **LLM 呼叫層**: 使用自建 `llm_client.py`（底層套件為 `requests`）統一呼叫 `openai-compatible / ollama / gemini`，再由 Prompt 約束輸出固定 JSON 結構。
+*   **抽取框架**: 本專案不是使用傳統 NER/RE 套件（如 spaCy stanza）做規則式抽取，而是採用 `backend/llm_kg/kg_builder.py` 的 **LLM JSON 抽取流程**。
+*   **LLM 呼叫層**: 使用自建 `backend/llm_kg/llm_client.py`（底層套件為 `requests`）統一呼叫 `openai-compatible / ollama / gemini`，再由 Prompt 約束輸出固定 JSON 結構。
 *   **抽取策略**:
     *   預設 Single-pass：一次輸出 `entities + relations`。
     *   Gemini 可啟用 Two-pass（`GEMINI_TWO_PASS_EXTRACTION=1`）：先實體盤點，再以 seed entities 抽關係，並先補齊 KG 缺漏實體後再做第二階段關係抽取。
@@ -113,7 +113,7 @@
     2. `_create_entity()`：使用 `MERGE` upsert 節點，節點同時帶有具體 label（如 `:Organization`）與共通 `:Entity`。
     3. `_create_relation()`：使用 `MERGE (a)-[:REL]->(b)` upsert 關係。
     4. `populate_graph()`：逐筆寫入 entities/relations，回傳統計（upsert 數、drop 數、json retries）。
-*   **流程邊界說明**: `GraphCypherQAChain` 屬於 **NL2Cypher 查詢階段**（`nl2cypher.py`），不是實體/關係抽取階段。
+*   **流程邊界說明**: `GraphCypherQAChain` 屬於 **NL2Cypher 查詢階段**（`backend/llm_kg/nl2cypher.py`），不是實體/關係抽取階段。
 
 ### (1) 利用 LLM 建立 Knowledge Graph
 *   **方法**: 採用 **Two-Pass Extraction (兩階段抽取法)**。
@@ -126,7 +126,7 @@
         *   **解決**: 設定 **Schema Constraints (Ontology)**，僅允許特定的 Node Labels (e.g., `Organization`, `Person`) 與 Relation Types (e.g., `FOUNDED_BY`, `SUPPLIES_TO`)，過濾掉不符合 Schema 的輸出。
 
 ### (2) 使用者問題轉 Graph DB 查詢 (NL2Cypher)
-*   **方法**: `nl2cypher.py` 採 **雙路徑策略**：
+*   **方法**: `backend/llm_kg/nl2cypher.py` 採 **雙路徑策略**：
     *   **Path A (LangChain)**: 使用 `GraphCypherQAChain + Neo4jGraph` 直接將自然語言轉 Cypher（需安裝 `langchain`/`langchain-community`，且目前實作限制 `LLM_PROVIDER=ollama`）。
     *   **Path B (Manual)**: 使用 **Ministral 3 (14B)** 搭配 **Schema-Aware Prompting** 與修復重試（self-correction）流程。
     *   若 LangChain 依賴未安裝或 provider 不符，會自動 fallback 到 Manual 路徑，確保查詢流程不中斷。
@@ -395,3 +395,231 @@ validateAgainstSchema(result, skill.manifest.schema.output);
 
 `Phase 1 -> Phase 2 -> Phase 3 -> Phase 4` 分別處理「宣告合規、靜態風險、動態行為、完整性驗證」。  
 任一階段命中 `CRITICAL/ERROR` 即中止流程，降低惡意 Skill 進入生態系機率。
+
+---
+
+## 5. OpenClaw 自訂 Skill Plugin 與自動化 Agent 實作說明
+
+### (1) 自訂 OpenClaw Skill Plugin（`todo-helper`）
+
+已實作全新 plugin：`extensions/todo-helper/`，提供三個工具能力：
+
+1. `local_time({ timezone? })`
+   * 回傳本地或指定時區時間（ISO、local string、epoch）。
+2. `read_and_summarize({ path, maxBytes?, maxSentences? })`
+   * 在 allowlist 路徑內讀取檔案並回傳摘要（可關閉）。
+3. `read_todo_snapshot({ path?, includeCompleted?, lookaheadHours? })`
+   * 讀取 Todo 快照 JSON，驗證欄位，並分類：
+     * `overdue`（逾期）
+     * `dueToday`（今日到期）
+     * `upcoming`（即將到期）
+     * `noDueDate`（未設定到期）
+   * 另含 stale 檢查，避免 agent 使用過舊資料。
+
+相關檔案：
+* `extensions/todo-helper/index.ts`
+* `extensions/todo-helper/openclaw.plugin.json`
+* `extensions/todo-helper/skills/todo-sync/SKILL.md`
+* `extensions/todo-helper/skills/todo-notify/SKILL.md`
+
+### (2) 自動化 Agent 工作流程（至少兩個 skill）
+
+本實作使用 **3 個 skill**（符合「兩個以上 skill」要求）：
+1. `todo-sync`
+2. `organize-files`
+3. `todo-notify`
+
+排程：每日 `09:00`（本地時區）啟動，流程如下：
+
+1. **todo-sync**
+   * 先呼叫 `local_time`，再呼叫 `read_todo_snapshot` 取得最新待辦狀態。
+   * 做逾期 / 今日 / 即將到期分類，並檢查 snapshot 是否 stale。
+2. **organize-files**
+   * 整理指定資料夾（例如 `~/Downloads`），輸出搬移/整理結果。
+3. **todo-notify**
+   * 生成可直接發送的提醒內容（包含下一步行動）。
+   * 送到 `last route`（最近互動通道）。
+
+#### 詳細設定步驟（實際可執行）
+
+1. **準備 To-do snapshot 檔案（資料來源）**
+   * 在 To-do 前端連接 snapshot 檔，建議使用：
+     * Host 路徑：`/Users/silver/.openclaw/workspace/openclaw-data/todo-snapshot.json`
+   * 說明：Gateway 容器內對應路徑會是：
+     * Container 路徑：`/home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json`
+
+2. **設定 `todo-helper` plugin config**
+   * 在 `~/.openclaw/openclaw.json` 確認：
+   * `allowedRoots` 包含 `/home/node/.openclaw/workspace/openclaw-data`
+   * `defaultSnapshotPath` 設為 `/home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json`
+
+   ```json
+   {
+     "plugins": {
+       "entries": {
+         "todo-helper": {
+           "enabled": true,
+           "config": {
+             "allowedRoots": [
+               "/home/node/.openclaw/workspace/openclaw-data",
+               "/home/node/.openclaw/workspace/automation-demo"
+             ],
+             "defaultSnapshotPath": "/home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json",
+             "maxReadBytes": 262144,
+             "staleMinutes": 180,
+             "enableReadSummary": true
+           }
+         }
+       }
+     }
+   }
+   ```
+
+   * 套用設定：
+
+   ```bash
+   cd /Users/silver/Documents/openclaw-main
+   docker compose restart openclaw-gateway
+   ```
+
+3. **建立/更新 cron job（固定 skill 順序）**
+
+   ```bash
+   AUTOMATION_MESSAGE=$(cat <<'PROMPT'
+   You are executing a cron automation verification run.
+
+   Mandatory requirements (do not skip):
+   1) Read /app/extensions/todo-helper/skills/todo-sync/SKILL.md.
+   2) Call local_time exactly once.
+   3) Call read_todo_snapshot exactly once with:
+      /home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json
+   4) Read /app/extensions/todo-helper/skills/organize-files/SKILL.md.
+   5) Use exec to organize /home/node/.openclaw/workspace/automation-demo/inbox:
+      - documents: *.pdf, *.docx
+      - images: *.jpg, *.png
+      - top-level files only (maxdepth 1)
+   6) Read /app/extensions/todo-helper/skills/todo-notify/SKILL.md.
+
+   Final output headings:
+   Time
+   Snapshot Health
+   Priority Focus
+   Upcoming
+   File Organization
+   Next Step
+   PROMPT
+   )
+
+   cd /Users/silver/Documents/openclaw-main
+   docker compose run --rm openclaw-cli cron add \
+     --name "verify-todo-workflow" \
+     --cron "0 9 * * *" \
+     --session isolated \
+     --message "$AUTOMATION_MESSAGE" \
+     --deliver \
+     --channel last \
+     --best-effort-deliver
+   ```
+
+   * 若 job 已存在，改用：
+
+   ```bash
+   docker compose run --rm openclaw-cli cron edit <jobId> \
+     --message "$AUTOMATION_MESSAGE" \
+     --deliver \
+     --channel last \
+     --best-effort-deliver
+   ```
+
+4. **手動觸發與驗證（含 log 取證）**
+
+   ```bash
+   cd /Users/silver/Documents/openclaw-main
+   docker compose run --rm openclaw-cli cron list
+   docker compose run --rm openclaw-cli cron run <jobId> --force --timeout 180000
+   docker compose run --rm openclaw-cli cron runs --id <jobId> --limit 5
+   ```
+
+   ```bash
+   docker compose exec openclaw-gateway sh -lc '
+   S=$(ls -t /home/node/.openclaw/agents/main/sessions/*.jsonl | head -n 1)
+   echo "$S"
+   grep -n "todo-sync\|organize-files\|todo-notify\|local_time\|read_todo_snapshot\|\"name\":\"exec\"" "$S" | sed -n "1,120p"
+   '
+   ```
+
+5. **驗收重點**
+   * session log 可看到 `todo-sync -> organize-files -> todo-notify` 對應讀取/工具呼叫。
+   * `read_todo_snapshot` 使用的是 `openclaw-data/todo-snapshot.json` 路徑。
+   * `organize-files` 只整理 top-level 的目標副檔名檔案。
+   * 重跑後檔案結構維持不變（idempotent）。
+   * 若未設定 `--to` recipient，`cron runs` 可能顯示 `Delivery skipped`，此時以 session log 驗證流程是否完整執行。
+
+錯誤分支設計：
+* 若 snapshot 讀取失敗或 stale，回覆必含「失敗原因 + 修復建議」。
+
+完整流程與命令展示文件：
+* `docs/automation/todo-web-agent-workflow.md`
+
+### (3) To-do 前端作為自動化資料來源
+
+To-do 專案（`/Users/silver/Documents/To-do`，compose 服務 `todo-app`）負責輸出 snapshot：
+* CRUD、優先級、標籤、到期時間、篩選。
+* 使用 `localStorage` 保存本地資料。
+* 透過 File System Access API 連接 `todo-snapshot.json` 後，待辦變更即自動同步。
+
+---
+
+## 6. 附件：如何啟動（Frontend + OpenClaw + Docker）
+
+### (1) 啟動 OpenClaw Gateway（Docker）
+
+```bash
+cd /Users/silver/Documents/openclaw-main
+docker compose up -d openclaw-gateway
+docker compose ps openclaw-gateway
+```
+
+### (2) 開啟 Control UI（帶 Token）
+
+```bash
+cd /Users/silver/Documents/openclaw-main
+source .env
+open "http://127.0.0.1:18789/?token=$OPENCLAW_GATEWAY_TOKEN"
+```
+
+若出現 `pairing required`：
+
+```bash
+docker compose exec openclaw-gateway node dist/index.mjs devices list --json
+docker compose exec openclaw-gateway node dist/index.mjs devices approve <requestId> --json
+```
+
+### (3) 啟動 To-do 前端
+
+```bash
+cd /Users/silver/Documents/To-do
+docker compose up -d --build todo-app
+docker compose ps todo-app
+```
+
+瀏覽器開啟：`http://localhost:8080`
+（To-do 專案 compose 服務：`todo-app`，定義於 `/Users/silver/Documents/To-do/docker-compose.yml`）
+
+### (4) 安裝與啟用 `todo-helper` plugin
+
+```bash
+cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli plugins install ./extensions/todo-helper
+docker compose run --rm openclaw-cli plugins enable todo-helper
+docker compose restart openclaw-gateway
+```
+
+### (5) 驗證排程流程（手動觸發）
+
+```bash
+cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli cron list
+docker compose run --rm openclaw-cli cron run <jobId> --force
+docker compose run --rm openclaw-cli cron runs --id <jobId> --limit 20
+```

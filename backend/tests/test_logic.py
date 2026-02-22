@@ -14,10 +14,16 @@ BASE_STATS = {
 
 
 def _fake_chunks(url: str) -> list[logic.Chunk]:
+    """提供 `_fake_chunks` 測試替身以模擬外部依賴或固定回傳。
+    此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+    """
     return [logic.Chunk(chunk_id="c1", text="example chunk", source_url=url, title="Example")]
 
 
 def _fake_build_result(url: str) -> dict:
+    """提供 `_fake_build_result` 測試替身以模擬外部依賴或固定回傳。
+    此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+    """
     return {
         "stats": dict(BASE_STATS),
         "summary": [{"chunk_id": "c1", "entities": 2, "relations": 1, "source_url": url}],
@@ -38,6 +44,9 @@ def _fake_build_result(url: str) -> dict:
 
 
 def test_chunk_text_uses_token_budget_for_gemini(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_chunk_text_uses_token_budget_for_gemini` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(logic, "CHUNK_SIZE_MODE", "provider")
     monkeypatch.setattr(logic, "DEFAULT_TOKEN_CHUNK_SIZE", 5)
     monkeypatch.setattr(logic, "DEFAULT_TOKEN_CHUNK_MIN_SIZE", 1)
@@ -57,6 +66,9 @@ def test_chunk_text_uses_token_budget_for_gemini(monkeypatch: pytest.MonkeyPatch
 
 
 def test_process_keyword_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_process_keyword_success` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -91,6 +103,9 @@ def test_process_keyword_success(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_process_keyword_no_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_process_keyword_no_results` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(logic, "_search_keyword_urls", lambda keyword, max_results, language: [])
 
     with pytest.raises(ValueError, match="No results found"):
@@ -105,10 +120,16 @@ def test_process_keyword_no_results(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_process_keyword_partial_failures(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_process_keyword_partial_failures` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     urls = ["https://ok.example.com/1", "https://bad.example.com/2"]
     monkeypatch.setattr(logic, "_search_keyword_urls", lambda keyword, max_results, language: urls)
 
     def fake_process_url(url: str, extraction_provider: str | None = None) -> list[logic.Chunk]:
+        """提供 `fake_process_url` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         if "bad" in url:
             raise ValueError("fetch failed")
         return _fake_chunks(url)
@@ -140,6 +161,9 @@ def test_process_keyword_partial_failures(monkeypatch: pytest.MonkeyPatch) -> No
 
 
 def test_process_keyword_forwards_chunk_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_process_keyword_forwards_chunk_limit` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -157,6 +181,9 @@ def test_process_keyword_forwards_chunk_limit(monkeypatch: pytest.MonkeyPatch) -
     captured: dict = {}
 
     def fake_build(chunks, uri, user, pwd, chunk_limit=None, extraction_provider=None, extraction_model=None):
+        """提供 `fake_build` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         captured["chunk_limit"] = chunk_limit
         captured["chunk_count"] = len(chunks)
         captured["extraction_provider"] = extraction_provider
@@ -211,6 +238,9 @@ def test_process_keyword_forwards_chunk_limit(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_process_keyword_emits_progress_updates(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_process_keyword_emits_progress_updates` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -235,6 +265,9 @@ def test_process_keyword_emits_progress_updates(monkeypatch: pytest.MonkeyPatch)
         extraction_model=None,
         progress_callback=None,
     ):
+        """提供 `fake_build` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         if progress_callback:
             progress_callback(
                 {
@@ -314,14 +347,26 @@ def test_process_keyword_emits_progress_updates(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_search_keyword_urls_falls_back_to_html` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     class EmptyDDGS:
         def __enter__(self):
+            """建立並回傳 context manager 進入階段所需資源。
+            此方法在 `with` 區塊開始時執行，並維持既有回傳物件與行為契約。
+            """
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            """負責 context manager 離開階段的清理與收尾作業。
+            此方法會依目前例外傳入參數完成資源釋放，並保持既有錯誤傳遞語意。
+            """
             return False
 
         def text(self, *args, **kwargs):
+            """執行 `text` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return []
 
     class FakeResponse:
@@ -335,9 +380,15 @@ def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch)
         """
 
         def raise_for_status(self):
+            """執行 `raise_for_status` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return None
 
     def fake_get(url, params=None, timeout=None, headers=None):
+        """提供 `fake_get` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         assert url == "https://html.duckduckgo.com/html/"
         assert params["q"] == "鴻海"
         return FakeResponse()
@@ -351,27 +402,48 @@ def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_search_keyword_urls_falls_back_to_wikipedia_api` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     class EmptyDDGS:
         def __enter__(self):
+            """建立並回傳 context manager 進入階段所需資源。
+            此方法在 `with` 區塊開始時執行，並維持既有回傳物件與行為契約。
+            """
             return self
 
         def __exit__(self, exc_type, exc, tb):
+            """負責 context manager 離開階段的清理與收尾作業。
+            此方法會依目前例外傳入參數完成資源釋放，並保持既有錯誤傳遞語意。
+            """
             return False
 
         def text(self, *args, **kwargs):
+            """執行 `text` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return []
 
     class HtmlChallengeResponse:
         text = "<html><body>challenge</body></html>"
 
         def raise_for_status(self):
+            """執行 `raise_for_status` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return None
 
     class WikiResponse:
         def raise_for_status(self):
+            """執行 `raise_for_status` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return None
 
         def json(self):
+            """執行 `json` 的主要流程。
+            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """
             return {
                 "query": {
                     "search": [
@@ -382,6 +454,9 @@ def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.Mon
             }
 
     def fake_get(url, params=None, timeout=None, headers=None):
+        """提供 `fake_get` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         if url == "https://html.duckduckgo.com/html/":
             return HtmlChallengeResponse()
         if url == "https://zh.wikipedia.org/w/api.php":
@@ -401,8 +476,17 @@ def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.Mon
 
 
 def test_query_kg_returns_answer_text(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_query_kg_returns_answer_text` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     def fake_loader():
+        """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         def fake_answer_with_manual_prompt(question: str):
+            """提供 `fake_answer_with_manual_prompt` 測試替身以模擬外部依賴或固定回傳。
+            此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+            """
             return {
                 "question": question,
                 "cypher": "MATCH (n) RETURN n.name AS partner LIMIT 1",
@@ -423,8 +507,17 @@ def test_query_kg_returns_answer_text(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_query_kg_handles_empty_rows(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_query_kg_handles_empty_rows` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     def fake_loader():
+        """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         def fake_answer_with_manual_prompt(question: str):
+            """提供 `fake_answer_with_manual_prompt` 測試替身以模擬外部依賴或固定回傳。
+            此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+            """
             return {
                 "question": question,
                 "cypher": "MATCH (n) WHERE false RETURN n",
@@ -444,8 +537,17 @@ def test_query_kg_handles_empty_rows(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_query_kg_prefers_qa_llm(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_query_kg_prefers_qa_llm` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     def fake_loader():
+        """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         def fake_answer_with_manual_prompt(question: str):
+            """提供 `fake_answer_with_manual_prompt` 測試替身以模擬外部依賴或固定回傳。
+            此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+            """
             return {
                 "question": question,
                 "cypher": "MATCH (o:Organization)-[:CHAIRED_BY]->(p:Person) RETURN p.name AS name",
@@ -466,8 +568,17 @@ def test_query_kg_prefers_qa_llm(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_query_kg_fallback_when_qa_llm_fails` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     def fake_loader():
+        """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
+        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+        """
         def fake_answer_with_manual_prompt(question: str):
+            """提供 `fake_answer_with_manual_prompt` 測試替身以模擬外部依賴或固定回傳。
+            此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
+            """
             return {
                 "question": question,
                 "cypher": "MATCH (o:Organization)-[:CHAIRED_BY]->(p:Person) RETURN p.name AS name",
@@ -481,6 +592,9 @@ def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(logic, "_kg_qa_use_llm", lambda: True)
 
     def raise_chat(**_kwargs):
+        """執行 `raise_chat` 的主要流程。
+        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """
         raise RuntimeError("llm down")
 
     monkeypatch.setattr(logic.llm_client, "chat_text", raise_chat)
@@ -491,7 +605,41 @@ def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
     assert result["answer_source"] == "template_fallback"
 
 
+def test_query_kg_fallback_hides_metadata_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 fallback 回覆不暴露技術欄位，且語氣不使用「我查到」模板。"""
+    def fake_loader():
+        """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。"""
+        def fake_answer_with_manual_prompt(question: str):
+            """提供 `fake_answer_with_manual_prompt` 測試替身以模擬外部依賴或固定回傳。"""
+            return {
+                "question": question,
+                "cypher": "MATCH (o:Organization)-[:FOUNDED_BY]->(p:Person) RETURN p.name AS 創辦人, p.name AS 正規化名稱",
+                "rows": [{"創辦人": "郭台銘", "正規化名稱": "郭台銘"}],
+                "attempt": 1,
+            }
+
+        return object, fake_answer_with_manual_prompt
+
+    monkeypatch.setattr(logic, "_load_kg_modules", fake_loader)
+    monkeypatch.setattr(logic, "_kg_qa_use_llm", lambda: True)
+
+    def raise_chat(**_kwargs):
+        raise RuntimeError("llm down")
+
+    monkeypatch.setattr(logic.llm_client, "chat_text", raise_chat)
+
+    result = logic.query_kg("誰是鴻海創辦人")
+
+    assert result["answer_source"] == "template_fallback"
+    assert "郭台銘" in result["answer"]
+    assert "正規化名稱" not in result["answer"]
+    assert "我查到" not in result["answer"]
+
+
 def test_chat_general_uses_shared_llm_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 `test_chat_general_uses_shared_llm_client` 所描述情境是否符合預期行為。
+    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
+    """
     monkeypatch.setattr(
         logic.llm_client,
         "chat_text",

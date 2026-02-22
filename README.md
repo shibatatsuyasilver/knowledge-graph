@@ -67,7 +67,7 @@ uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ### 5) Run one-command real-model E2E
 
 ```bash
-uv run bash genai_project/llm_kg/run_e2e_mlx_local.sh
+uv run bash backend/llm_kg/run_e2e_mlx_local.sh
 ```
 
 ## Environment variables (primary interface)
@@ -195,28 +195,28 @@ ollama run deepseek-r1:8b
 
 Benchmark config:
 
-- `/Users/silver/Documents/鴻海/genai_project/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml`
+- `/Users/silver/Documents/鴻海/backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml`
 
 Dataset build (30 graph seed + 70 gemini synth):
 
 ```bash
 export GEMINI_API_KEY=...
-uv run python -m genai_project.llm_kg.benchmark.dataset_builder \
-  --config genai_project/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
+uv run python -m backend.llm_kg.benchmark.dataset_builder \
+  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
 ```
 
 Benchmark run (2 models x 3 runs):
 
 ```bash
-uv run python -m genai_project.llm_kg.benchmark.runner \
-  --config genai_project/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
+uv run python -m backend.llm_kg.benchmark.runner \
+  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
 ```
 
 Generate report for a run:
 
 ```bash
-uv run python -m genai_project.llm_kg.benchmark.reporter \
-  --run-dir genai_project/llm_kg/benchmark/runs/<timestamp>
+uv run python -m backend.llm_kg.benchmark.reporter \
+  --run-dir backend/llm_kg/benchmark/runs/<timestamp>
 ```
 
 Artifacts per run:
@@ -233,7 +233,7 @@ Use this to audit finance extraction hit-rate on `reports_honhai_20260213.txt`:
 
 ```bash
 export GEMINI_API_KEY=...
-uv run python -m genai_project.llm_kg.benchmark.audit_report_extraction \
+uv run python -m backend.llm_kg.benchmark.audit_report_extraction \
   --input /Users/silver/Documents/鴻海/reports_honhai_20260213.txt \
   --provider gemini \
   --model gemini-3-pro-preview \
@@ -242,4 +242,4 @@ uv run python -m genai_project.llm_kg.benchmark.audit_report_extraction \
 
 Output:
 
-- `genai_project/llm_kg/benchmark/runs/<timestamp>/report_extraction_audit.json`
+- `backend/llm_kg/benchmark/runs/<timestamp>/report_extraction_audit.json`

@@ -3,20 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專案問題與解決方案狀態追蹤 (Project Issues &amp; Solutions Status)</title>
+    <title>專案問題與解決方案狀態追蹤 (Project Issues & Solutions Status)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            --bg-color: #f8f9fa;
-            --text-color: #333;
-            --border-color: #e9ecef;
-            --white: #ffffff;
-            --success-color: #2ecc71;
-            --warning-color: #f1c40f;
-            --danger-color: #e74c3c;
-            --info-color: #95a5a6;
+            /* Color Palette */
+            --primary-color: #2563eb;       /* Modern Blue */
+            --primary-dark: #1e40af;
+            --secondary-color: #475569;     /* Slate Gray */
+            --bg-color: #f8fafc;            /* Light Grayish Blue */
+            --card-bg: #ffffff;
+            --text-color: #1e293b;          /* Dark Slate */
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            
+            /* Status Colors */
+            --success-bg: #dcfce7;
+            --success-text: #166534;
+            --warning-bg: #fef9c3;
+            --warning-text: #854d0e;
+            --danger-bg: #fee2e2;
+            --danger-text: #991b1b;
+            --info-bg: #e0f2fe;
+            --info-text: #075985;
+            --neutral-bg: #f1f5f9;
+            --neutral-text: #475569;
+
+            /* Spacing & Layout */
+            --container-width: 100%;
+            --sidebar-width: 280px;
+            --border-radius: 12px;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            
+            /* Typography */
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            --font-zh: 'Noto Sans TC', sans-serif;
         }
 
         * {
@@ -25,227 +49,426 @@
             padding: 0;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            font-family: var(--font-main);
             line-height: 1.6;
             color: var(--text-color);
             background-color: var(--bg-color);
-            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 30px;
-        }
-
-        /* Sidebar Navigation */
-        .sidebar {
-            position: sticky;
-            top: 20px;
-            height: fit-content;
-            background: var(--white);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .sidebar h3 {
-            margin-bottom: 15px;
-            font-size: 1.1em;
-            color: var(--secondary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-
-        .nav-link {
-            display: block;
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-zh), var(--font-main);
             color: var(--text-color);
-            text-decoration: none;
-            padding: 8px 0;
-            font-size: 0.95em;
-            transition: color 0.2s;
-        }
-
-        .nav-link:hover {
-            color: var(--accent-color);
-        }
-
-        .nav-link.sub-link {
-            padding-left: 15px;
-            font-size: 0.9em;
-            color: #666;
-        }
-
-        /* Main Content */
-        .main-content {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        h1, h2, h3, h4 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75em;
+            font-weight: 700;
             line-height: 1.3;
         }
 
         h1 {
-            font-size: 2.2em;
-            border-bottom: 3px solid var(--accent-color);
-            padding-bottom: 15px;
-            margin-bottom: 30px;
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
         }
 
         h2 {
-            font-size: 1.8em;
-            margin-top: 40px;
-            padding-bottom: 10px;
+            font-size: 1.5rem;
+            margin-top: 0; /* Reset margin for card context */
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
             border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        h2::before {
+            content: '';
+            display: block;
+            width: 6px;
+            height: 24px;
+            background-color: var(--primary-color);
+            border-radius: 4px;
         }
 
         h3 {
-            font-size: 1.4em;
-            margin-top: 30px;
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
             color: var(--secondary-color);
+        }
+        
+        h4 {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-top: 1.25rem;
         }
 
         p {
             margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+        
+        strong {
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        /* Layout */
+        .container {
+            max-width: var(--container-width);
+            margin: 0;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: var(--sidebar-width) 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            grid-column: 1;
+            position: sticky;
+            top: 2rem;
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar h3 {
+            font-size: 1.1rem;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .nav-link {
+            display: block;
+            color: var(--secondary-color);
+            text-decoration: none;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.25rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            background-color: var(--neutral-bg);
+            color: var(--primary-color);
+        }
+        
+        .nav-link:active, .nav-link:focus {
+             background-color: var(--info-bg);
+             color: var(--primary-dark);
+             border-left-color: var(--primary-color);
+        }
+
+        .nav-link.sub-link {
+            padding-left: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        
+        .nav-link.sub-link:hover {
+            color: var(--text-color);
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-column: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        section {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        section:hover {
+            box-shadow: var(--shadow-md);
         }
 
         /* Tables */
         .table-wrapper {
             overflow-x: auto;
-            margin: 20px 0;
+            margin: 1.5rem 0;
             border-radius: 8px;
-            box-shadow: 0 0 0 1px var(--border-color);
+            border: 1px solid var(--border-color);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: var(--white);
+            font-size: 0.95rem;
         }
 
         th, td {
-            padding: 12px 15px;
+            padding: 1rem 1.25rem;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
         }
 
         th {
-            background-color: #f1f3f5;
+            background-color: var(--neutral-bg);
             color: var(--secondary-color);
             font-weight: 600;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
         }
 
-        tr:nth-child(even) {
-            background-color: #f8f9fa;
+        tr:last-child td {
+            border-bottom: none;
         }
 
-        tr:hover {
-            background-color: #e9ecef;
+        tr:hover td {
+            background-color: var(--bg-color);
         }
 
-        /* Status Badges */
+        /* Badges */
         .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.8rem;
+            font-weight: 600;
+            line-height: 1;
             white-space: nowrap;
         }
 
         .badge.done {
-            background-color: rgba(46, 204, 113, 0.15);
-            color: #27ae60;
-            border: 1px solid rgba(46, 204, 113, 0.3);
+            background-color: var(--success-bg);
+            color: var(--success-text);
         }
 
         .badge.pending {
-            background-color: rgba(241, 196, 15, 0.15);
-            color: #d35400;
-            border: 1px solid rgba(241, 196, 15, 0.3);
+            background-color: var(--warning-bg);
+            color: var(--warning-text);
         }
 
         .badge.paused {
-            background-color: rgba(149, 165, 166, 0.15);
-            color: #7f8c8d;
-            border: 1px solid rgba(149, 165, 166, 0.3);
+            background-color: var(--neutral-bg);
+            color: var(--neutral-text);
         }
-
-        /* Code Blocks */
+        
+        /* Code & Pre */
         code {
-            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
-            background-color: #f1f3f5;
-            padding: 2px 5px;
-            border-radius: 3px;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            background-color: var(--neutral-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
             font-size: 0.9em;
-            color: #c7254e;
+            color: var(--primary-dark);
+            border: 1px solid var(--border-color);
         }
 
+        pre {
+            background-color: #1e293b; /* Dark theme for code blocks */
+            color: #f8fafc;
+            padding: 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+            border: none;
+            font-size: inherit;
+        }
+
+        /* Mermaid Diagrams */
         .mermaid {
-            margin: 20px 0;
-            padding: 10px;
-            background: var(--white);
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--neutral-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow-x: auto;
+            overflow-y: hidden;
+            display: block;
+        }
+
+        /* Section-3 detailed KG diagrams: keep natural SVG size and allow horizontal scroll */
+        #section-3-4 .mermaid > svg {
+            display: block;
+            max-width: none !important;
+            width: auto !important;
+            height: auto !important;
+            margin: 0 auto;
+        }
+
+        /* Collapsible Diagram Containers */
+        .diagram-collapsible {
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .diagram-collapsible-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--neutral-bg);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s ease;
+        }
+
+        .diagram-collapsible-header:hover {
+            background: var(--border-color);
+        }
+
+        .diagram-collapsible-header .toggle-icon {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+            flex-shrink: 0;
+            width: 1rem;
+            text-align: center;
+        }
+
+        .diagram-collapsible-header h4 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .diagram-collapsible-content {
+            display: none;
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .diagram-collapsible.open .diagram-collapsible-content {
+            display: block;
+        }
+
+        .diagram-collapsible-content .mermaid {
+            margin-top: 0;
+        }
+
+        .diagram-collapsible-content p {
+            margin-top: 1rem;
+            margin-bottom: 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
         }
 
         /* Lists */
         ul, ol {
-            margin-left: 20px;
-            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary-color);
         }
 
         li {
-            margin-bottom: 5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        li::marker {
+            color: var(--primary-color);
         }
 
         /* Blockquotes */
         blockquote {
-            border-left: 4px solid var(--accent-color);
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin: 20px 0;
+            border-left: 4px solid var(--primary-color);
+            background-color: var(--info-bg);
+            color: var(--info-text);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
             font-style: italic;
-            color: #555;
+        }
+        
+        blockquote p {
+            margin-bottom: 0;
+            color: inherit;
         }
 
         /* Links */
         a {
-            color: var(--accent-color);
+            color: var(--primary-color);
             text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
         }
 
         a:hover {
+            color: var(--primary-dark);
             text-decoration: underline;
         }
+        
+        /* Utility */
+        .text-sm {
+            font-size: 0.875rem;
+        }
 
-        /* Mobile Responsive */
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 240px 1fr;
+                padding: 1.5rem;
+                gap: 1.5rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .container {
                 grid-template-columns: 1fr;
+                padding: 1rem;
             }
 
             .sidebar {
+                grid-column: 1;
                 position: static;
-                margin-bottom: 20px;
+                margin-bottom: 1.5rem;
+                max-height: none;
             }
-
+            
             .main-content {
-                padding: 20px;
+                grid-column: 1;
+            }
+            
+            section {
+                padding: 1.5rem;
             }
 
             h1 {
-                font-size: 1.8em;
+                font-size: 1.75rem;
+            }
+            
+            h2 {
+                font-size: 1.35rem;
             }
         }
     </style>
@@ -255,6 +478,7 @@
         <aside class="sidebar">
             <h3>目錄 (Table of Contents)</h3>
             <nav>
+                <a href="#intro" class="nav-link">專案概覽</a>
                 <a href="#section-1" class="nav-link">1. 目前問題追蹤</a>
                 <a href="#section-2" class="nav-link">2. 開源 LLM 模型佈署</a>
                 <a href="#section-2-1" class="nav-link sub-link">(1) 選擇的開源 LLM 模型</a>
@@ -266,15 +490,23 @@
                 <a href="#section-3-1" class="nav-link sub-link">(1) 利用 LLM 建立 KG</a>
                 <a href="#section-3-2" class="nav-link sub-link">(2) 使用者問題轉 Graph DB (NL2Cypher)</a>
                 <a href="#section-3-3" class="nav-link sub-link">(3) 選擇 Neo4j 的原因</a>
+                <a href="#section-3-4" class="nav-link sub-link">(4) 詳細流程圖</a>
                 <a href="#section-4" class="nav-link">4. OpenClaw 架構與技能安全分析</a>
                 <a href="#section-4-1" class="nav-link sub-link">(1) 系統架構與主要組件</a>
                 <a href="#section-4-2" class="nav-link sub-link">(2) 安全風險（3 大類 10 項）</a>
                 <a href="#section-4-3" class="nav-link sub-link">(3) 技能安全審查機制</a>
+                <a href="#section-5" class="nav-link">5. OpenClaw Skill Plugin 與 Agent</a>
+                <a href="#section-5-1" class="nav-link sub-link">(1) 自訂 Plugin</a>
+                <a href="#section-5-2" class="nav-link sub-link">(2) 多 Skill 自動化流程</a>
+                <a href="#section-6" class="nav-link">6. 附件：如何啟動</a>
             </nav>
         </aside>
 
         <main class="main-content">
-            <h1>專案問題與解決方案狀態追蹤 (Project Issues &amp; Solutions Status)</h1>
+            <section id="intro">
+                <h1>專案問題與解決方案狀態追蹤 (Project Issues & Solutions Status)</h1>
+                <p>本文件旨在記錄 OpenClaw 專案開發過程中的關鍵問題、解決方案、架構決策以及未來規劃。</p>
+            </section>
 
             <section id="section-1">
                 <h2>1. 目前問題追蹤 (Current Issues Tracking)</h2>
@@ -289,49 +521,39 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><strong>Chat 打到錯誤 upstream（/api/chat 404）</strong></td>
-                                <td>改成共用 LLM 抽象層，支援 openai-compatible / ollama / gemini，由環境變數切換。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>llm_client.py</code>, <code>logic.py</code></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Gemini 金鑰未生效（400 INVALID_ARGUMENT）</strong></td>
-                                <td>統一讀取 .env.local、補文件與範例 env，明確要求 GEMINI_API_KEY。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>.env.local.example</code>, <code>README.md</code></td>
-                            </tr>
-                            <tr>
-                                <td><strong>抽取常出現 JSON 破損/&lt;think&gt; 導致 parse fail</strong></td>
+                                <td><strong>抽取常出現 JSON 破損/<think> 導致 parse fail</strong></td>
                                 <td>抽取加 5 次重試、JSON 修復 prompt、提高輸出 token 上限。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/kg_builder.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>前端長時間只顯示 Processing...</strong></td>
                                 <td>Text/File/URL 改 async job + polling，顯示 chunk 進度與狀態。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>main.py</code>, <code>BuildKG.tsx</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/main.py</code>, <code class="text-sm">frontend/src/components/BuildKG.tsx</code></td>
                             </tr>
                             <tr>
                                 <td><strong>長文本導致記憶體壓力（OOM 風險）</strong></td>
                                 <td>Ingest 端改為先切 chunk 再逐塊抽取（provider-aware token/char budget），並支援 <code>chunk_limit</code> 限流。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>backend/logic.py</code>, <code>backend/main.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/logic.py</code>, <code class="text-sm">backend/main.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>KG 回答太生硬、常帶「根據知識圖譜」前綴</strong></td>
                                 <td>/api/query 改成先查 rows，再用 QA LLM 重寫答案，失敗才 fallback。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>logic.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/logic.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>財報問答抓不到資料（抽取 ontology 不足）</strong></td>
                                 <td>新增 FinancialMetric/FiscalPeriod 與 HAS_FINANCIAL_METRIC/FOR_PERIOD，並保留財報屬性。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/kg_builder.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>財報 Cypher 會出現「硬編碼假資料」</strong></td>
                                 <td>加守門，禁止常值偽造；財報問題強制使用財報關係路徑，必要時走 deterministic fallback。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>nl2cypher.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/nl2cypher.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>財報關係曾發生跨季度誤連（Q2 metric 連到 Q3）</strong></td>
                                 <td>FOR_PERIOD 加一致性檢查，不一致直接丟棄。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/kg_builder.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>MoM/YoY 問題觸發 Cypher syntax error（500）</strong></td>
@@ -346,7 +568,7 @@
                             <tr>
                                 <td><strong>實體漏抽問題</strong></td>
                                 <td>Gemini 走兩階段抽取：先盤點 entity 比對 KG 補齊，再第二輪抽 relation。</td>
-                                <td><span class="badge done">✅ 已完成</span><br><code>kg_builder.py</code>, <code>GEMINI_TWO_PASS_EXTRACTION=1</code></td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/kg_builder.py</code>, <code class="text-sm">GEMINI_TWO_PASS_EXTRACTION=1</code></td>
                             </tr>
                             <tr>
                                 <td><strong>OpenClaw Skill 安全審查覆蓋不足</strong></td>
@@ -471,13 +693,13 @@
                     <p>使用 <strong>Docker Container</strong> 進行微服務化部署：</p>
                     <ol>
                         <li><strong>Ollama Service</strong>: 使用官方 <code>ollama/ollama</code> Docker 映像檔，掛載 GPU (如支援) 進行本地推論。</li>
-                        <li><strong>API Wrapper</strong>: 開發 <code>llm_deploy.py</code> (基於 FastAPI)，作為統一人工智慧介面層 (<code>llm_client.py</code>)。
+                        <li><strong>API Wrapper</strong>: 開發 <code>backend/llm_kg/llm_deploy.py</code> (基於 FastAPI)，作為統一人工智慧介面層 (<code>backend/llm_kg/llm_client.py</code>)。
                             <ul>
                                 <li>此層負責處理不同 Provider (Ollama/OpenAI/Gemini) 的 API 差異。</li>
                                 <li>透過環境變數 (<code>LLM_PROVIDER</code>) 動態切換後端模型，無需修改程式碼。</li>
                             </ul>
                         </li>
-                        <li><strong>Orchestration</strong>: 使用 <code>docker-compose.llmkg.yml</code> 定義服務依賴與網絡。</li>
+                        <li><strong>Orchestration</strong>: 使用 <code>backend/llm_kg/docker-compose.llmkg.yml</code> 定義服務依賴與網絡。</li>
                     </ol>
                 </div>
 
@@ -487,7 +709,7 @@
                         <li><strong>問題 1: JSON 格式破損 (Malformed JSON)</strong>
                             <ul>
                                 <li><strong>狀況</strong>: 開源模型 (DeepSeek R1 / Qwen 3) 在特定設定下可能輸出思考內容、不完整 JSON 或 Markdown 註釋，導致 <code>json.loads</code> 失敗。</li>
-                                <li><strong>解決</strong>: 在 <code>kg_builder.py</code> 實作 <strong>Retry &amp; Repair Loop</strong>。優先透過模型參數關閉/隱藏 thinking，再於解析失敗時回傳錯誤給 LLM 要求修正 JSON，最多重試 5 次。</li>
+                                <li><strong>解決</strong>: 在 <code>backend/llm_kg/kg_builder.py</code> 實作 <strong>Retry & Repair Loop</strong>。優先透過模型參數關閉/隱藏 thinking，再於解析失敗時回傳錯誤給 LLM 要求修正 JSON，最多重試 5 次。</li>
                             </ul>
                         </li>
                         <li><strong>問題 2: 回應超時 (Timeout)</strong>
@@ -526,21 +748,21 @@
                     <ul>
                         <li><strong>數據來源</strong>: 企業財務報告 (Financial Reports) 與新聞稿 (範例：鴻海、台積電)。</li>
                         <li><strong>Graph DB</strong>: 選擇 <strong>Neo4j (Community Edition v5)</strong>。</li>
-                        <li><strong>建置流程</strong>: 使用 <code>kg_builder.py</code> 進行自動化建置。</li>
-                        <li><strong>大檔處理策略</strong>: 透過 <code>backend/logic.py</code> 先做 chunking（token/char budget），再逐塊呼叫 <code>kg_builder.py</code> 抽取與 upsert，避免單次大上下文造成 OOM。</li>
+                        <li><strong>建置流程</strong>: 使用 <code>backend/llm_kg/kg_builder.py</code> 進行自動化建置。</li>
+                        <li><strong>大檔處理策略</strong>: 透過 <code>backend/logic.py</code> 先做 chunking（token/char budget），再逐塊呼叫 <code>backend/llm_kg/kg_builder.py</code> 抽取與 upsert，避免單次大上下文造成 OOM。</li>
                     </ul>
                 </div>
 
                 <div id="section-3-0">
                     <h3>(0) 實作對應：實體/關係抽取與 Neo4j 寫入</h3>
                     <ul>
-                        <li><strong>抽取框架</strong>: 本專案不是使用傳統 NER/RE 套件（如 spaCy stanza）做規則式抽取，而是採用 <code>kg_builder.py</code> 的 <strong>LLM JSON 抽取流程</strong>。</li>
-                        <li><strong>LLM 呼叫層</strong>: 使用自建 <code>llm_client.py</code>（底層套件為 <code>requests</code>）統一呼叫 <code>openai-compatible / ollama / gemini</code>，再由 Prompt 約束輸出固定 JSON 結構。</li>
+                        <li><strong>抽取框架</strong>: 本專案不是使用傳統 NER/RE 套件（如 spaCy stanza）做規則式抽取，而是採用 <code>backend/llm_kg/kg_builder.py</code> 的 <strong>LLM JSON 抽取流程</strong>。</li>
+                        <li><strong>LLM 呼叫層</strong>: 使用自建 <code>backend/llm_kg/llm_client.py</code>（底層套件為 <code>requests</code>）統一呼叫 <code>openai-compatible / ollama / gemini</code>，再由 Prompt 約束輸出固定 JSON 結構。</li>
                         <li><strong>抽取策略</strong>:
                             <ul>
                                 <li>預設 Single-pass：一次輸出 <code>entities + relations</code>。</li>
                                 <li>Gemini 可啟用 Two-pass（<code>GEMINI_TWO_PASS_EXTRACTION=1</code>）：先實體盤點，再以 seed entities 抽關係，並先補齊 KG 缺漏實體後再做第二階段關係抽取。</li>
-                                <li>解析失敗時有 Retry &amp; Repair（最多 5 次）以修復 JSON。</li>
+                                <li>解析失敗時有 Retry & Repair（最多 5 次）以修復 JSON。</li>
                             </ul>
                         </li>
                         <li><strong>抽取後清洗 (Post-processing)</strong>:
@@ -554,11 +776,11 @@
                             <ol>
                                 <li><code>_ensure_constraints()</code>：建立唯一鍵與索引（<code>Entity.name</code> unique、<code>normalizedName</code> index）。</li>
                                 <li><code>_create_entity()</code>：使用 <code>MERGE</code> upsert 節點，節點同時帶有具體 label（如 <code>:Organization</code>）與共通 <code>:Entity</code>。</li>
-                                <li><code>_create_relation()</code>：使用 <code>MERGE (a)-[:REL]-&gt;(b)</code> upsert 關係。</li>
+                                <li><code>_create_relation()</code>：使用 <code>MERGE (a)-[:REL]->(b)</code> upsert 關係。</li>
                                 <li><code>populate_graph()</code>：逐筆寫入 entities/relations，回傳統計（upsert 數、drop 數、json retries）。</li>
                             </ol>
                         </li>
-                        <li><strong>流程邊界說明</strong>: <code>GraphCypherQAChain</code> 屬於 <strong>NL2Cypher 查詢階段</strong>（<code>nl2cypher.py</code>），不是實體/關係抽取階段。</li>
+                        <li><strong>流程邊界說明</strong>: <code>GraphCypherQAChain</code> 屬於 <strong>NL2Cypher 查詢階段</strong>（<code>backend/llm_kg/nl2cypher.py</code>），不是實體/關係抽取階段。</li>
                     </ul>
                 </div>
 
@@ -583,6 +805,24 @@
                                         <li><strong>解決</strong>: 設定 <strong>Schema Constraints (Ontology)</strong>，僅允許特定的 Node Labels (e.g., <code>Organization</code>, <code>Person</code>) 與 Relation Types (e.g., <code>FOUNDED_BY</code>, <code>SUPPLIES_TO</code>)，過濾掉不符合 Schema 的輸出。</li>
                                     </ul>
                                 </li>
+                                <li><strong>關係白名單（Schema Constraints）策略評估</strong>:
+                                    <ul>
+                                        <li><strong>好處 (Pros)</strong>:
+                                            <ul>
+                                                <li><strong>提高準確率 (Precision)</strong>：可直接過濾不在本體中的關係類型，降低 LLM 幻覺關係進入 KG 的機率。</li>
+                                                <li><strong>查詢穩定性更高</strong>：NL2Cypher 僅需面對有限且已定義的關係集合，較不易出現語意漂移與錯查。</li>
+                                                <li><strong>治理與測試成本可控</strong>：關係集合固定後，回歸測試、監控指標（如 <code>dropped_relations</code>）與稽核流程更容易落地。</li>
+                                            </ul>
+                                        </li>
+                                        <li><strong>缺點 (Cons)</strong>:
+                                            <ul>
+                                                <li><strong>召回率 (Recall) 下降</strong>：新出現或長尾關係可能被直接丟棄，造成知識覆蓋不足。</li>
+                                                <li><strong>維護成本上升</strong>：每次新增業務語意都需同步調整 ontology/prompt/測試，版本演進速度較慢。</li>
+                                                <li><strong>探索能力受限</strong>：系統偏向既有關係，較不利於早期發掘新關聯；建議搭配候選關係暫存池作補強。</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
                             </ul>
                         </li>
                     </ul>
@@ -591,7 +831,7 @@
                 <div id="section-3-2">
                     <h3>(2) 使用者問題轉 Graph DB 查詢 (NL2Cypher)</h3>
                     <ul>
-                        <li><strong>方法</strong>: <code>nl2cypher.py</code> 採 <strong>雙路徑策略</strong>：
+                        <li><strong>方法</strong>: <code>backend/llm_kg/nl2cypher.py</code> 採 <strong>雙路徑策略</strong>：
                             <ul>
                                 <li><strong>Path A (LangChain)</strong>: 使用 <code>GraphCypherQAChain + Neo4jGraph</code> 直接將自然語言轉 Cypher（需安裝 <code>langchain</code>/<code>langchain-community</code>，且目前實作限制 <code>LLM_PROVIDER=ollama</code>）。</li>
                                 <li><strong>Path B (Manual)</strong>: 使用 <strong>Ministral 3 (14B)</strong> 搭配 <strong>Schema-Aware Prompting</strong> 與修復重試（self-correction）流程。</li>
@@ -686,13 +926,613 @@
                         </table>
                     </div>
                 </div>
+
+                <div id="section-3-4">
+                    <h3>(4) 詳細流程圖（建圖 + 查詢全流程）</h3>
+                    <p>以下以四張分層流程圖，對應目前實作中的函式與關鍵環境變數，完整展示 Domain KG 從 ingest 到 query 的執行路徑與守門邏輯（點擊標題展開查看）。</p>
+
+                    <!-- 圖 A：Domain KG 建圖主流程 -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 A：Domain KG 建圖主流程（Ingest -> Chunk -> Extract -> Sanitize -> Upsert）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    subgraph API["API 入口 (backend/main.py)"]
+        A1["POST /api/process_text(_async)"]
+        A2["POST /api/process_url(_async)"]
+        A3["POST /api/process_keyword(_async)"]
+    end
+
+    subgraph INGEST["Ingest 與切塊 (backend/logic.py)"]
+        B1["logic.process_text_to_kg / process_url_to_kg / process_keyword_to_kg"]
+        B2["chunk_text (provider-aware token/char budget)"]
+        B3["_resolve_chunk_limit (chunk_limit or INGEST_CHUNK_LIMIT)"]
+        B4["build_kg_from_chunks (iterate chunk_progress)"]
+    end
+
+    subgraph EXTRACT["抽取與清洗 (backend/llm_kg/kg_builder.py)"]
+        C1["KnowledgeGraphBuilder.extract_entities_relations"]
+        C2{"GEMINI_TWO_PASS_EXTRACTION and provider=gemini?"}
+        C3["Single-pass relation prompt"]
+        C4["Two-pass: Phase-1 entity inventory -> prefill missing -> Phase-2 relation extraction"]
+        C5["_extract_json_with_retry (EXTRACTION_JSON_MODE / EXTRACTION_MAX_JSON_RETRIES / EXTRACTION_NUM_PREDICT)"]
+        C6["_sanitize_extraction (ALLOWED_ENTITY_TYPES / ALLOWED_RELATION_TYPES / RELATION_DIRECTION_RULES / ENTITY_RESOLVE_THRESHOLD / FOR_PERIOD consistency)"]
+    end
+
+    subgraph UPSERT["Neo4j Upsert (backend/llm_kg/kg_builder.py)"]
+        D1["populate_graph"]
+        D2["_ensure_constraints (Entity.name unique / normalizedName index)"]
+        D3["_create_entity (MERGE node + aliases + props)"]
+        D4["_create_relation (MERGE relation)"]
+    end
+
+    E1["輸出: stats + summary + chunk_progress + json_retries + dropped_relations"]
+    ENV1["Env: CHUNK_SIZE_MODE / CHUNK_SIZE_TOKENS / CHUNK_MIN_TOKENS / INGEST_CHUNK_LIMIT / EXTRACTION_JSON_MODE / EXTRACTION_MAX_JSON_RETRIES / EXTRACTION_NUM_PREDICT"]
+    ENV2["Env: GEMINI_TWO_PASS_EXTRACTION"]
+
+    A1 --> B1
+    A2 --> B1
+    A3 --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 --> C1
+    C1 --> C2
+    C2 -- "No" --> C3
+    C2 -- "Yes" --> C4
+    C3 --> C5
+    C4 --> C5
+    C5 --> C6
+    C6 --> D1
+    D1 --> D2
+    D1 --> D3
+    D1 --> D4
+    D2 --> E1
+    D3 --> E1
+    D4 --> E1
+    ENV1 -.->|controls| B2
+    ENV1 -.->|controls| C5
+    ENV2 -.->|controls| C2
+</div>
+                            <p>圖 A 釐清了每個 API 請求如何經過切塊、重試抽取、schema 清洗與 Neo4j upsert，並把輸出指標（`json_retries`、`dropped_relations`）和上游 env 控制點連在同一張圖上，方便排障與容量規劃。</p>
+                            <h5>圖 A 函式作用詳解</h5>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>函式</th>
+                                            <th>檔案</th>
+                                            <th>主要作用</th>
+                                            <th>關鍵輸入 / 輸出</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>process_text_to_kg</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>文字建圖入口；負責前置參數整理、切塊與呼叫建圖主流程。</td>
+                                            <td>In: raw text；Out: <code>stats/summary/chunk_progress</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>process_url_to_kg</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>URL 建圖入口；抓取網頁內容後導入相同的切塊與抽取鏈路。</td>
+                                            <td>In: URL；Out: 同建圖統計結果</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>process_keyword_to_kg</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>關鍵字入口；整合多來源內容並聚合 chunk 與抽取結果。</td>
+                                            <td>In: keyword；Out: 聚合後 stats 與來源狀態</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>chunk_text</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>依 provider/token/char 規則切塊，控制抽取上下文大小與噪音。</td>
+                                            <td>In: text + chunk policy；Out: <code>List[Chunk]</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_resolve_chunk_limit</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>整合 request 參數與 <code>INGEST_CHUNK_LIMIT</code>，決定單次處理上限。</td>
+                                            <td>In: request chunk_limit + env；Out: effective limit</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>build_kg_from_chunks</code></td>
+                                            <td><code>backend/logic.py</code></td>
+                                            <td>逐 chunk 觸發抽取與寫入，累計 chunk_progress 與錯誤統計。</td>
+                                            <td>In: chunk list；Out: aggregate <code>stats</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>extract_entities_relations</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>抽取核心；根據設定走 single-pass 或 two-pass 並回傳實體/關係。</td>
+                                            <td>In: chunk text；Out: <code>entities + relations + meta</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_extract_json_with_retry</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>封裝 LLM JSON 抽取與修復重試，避免壞 JSON 直接中斷流程。</td>
+                                            <td>In: prompt + retry policy；Out: valid payload / raise error</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_sanitize_extraction</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>套用 schema 與財務期間守門，清理不合法或方向錯誤的關係。</td>
+                                            <td>In: raw entities/relations；Out: sanitized result</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>populate_graph</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>將清洗後結果寫入 Neo4j，協調 constraints、節點與關係 upsert。</td>
+                                            <td>In: sanitized extraction；Out: upsert stats</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_ensure_constraints</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>確保實體唯一鍵與索引存在，避免重複節點與慢查詢。</td>
+                                            <td>In: graph handle；Out: constraint/index ready</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_create_entity</code> / <code>_create_relation</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>最終 MERGE 層：寫入節點屬性、別名與關係邊。</td>
+                                            <td>In: normalized entity/relation；Out: merged node/edge</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 B：抽取核心主流程 -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 B：抽取核心主流程（Two-pass / Single-pass + Sanitization）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    X0["extract_entities_relations entry"] --> X1{"GEMINI_TWO_PASS_EXTRACTION and provider=gemini?"}
+    X1 -- "Yes" --> X2["Phase-1 prompt: entity inventory"]
+    X2 --> X4["_extract_json_with_retry (phase1)"]
+    X4 --> X5["_fetch_existing_entity_keys"]
+    X5 --> X6["_prefill_missing_entities"]
+    X6 --> X7["Phase-2 prompt with seed entities"]
+    X7 --> X8["_extract_json_with_retry (phase2)"]
+
+    X1 -- "No" --> X3["Single-pass prompt: entities + relations"]
+    X3 --> X9["_extract_json_with_retry (single pass)"]
+
+    X4 -.->|internal loop detail| CREF["圖 C 展開: Retry and Repair loop"]
+    X8 -.->|internal loop detail| CREF
+    X9 -.->|internal loop detail| CREF
+    Y0 --> Y1["Alias canonicalization (_name_variants / _best_match / ENTITY_RESOLVE_THRESHOLD)"]
+    Y1 --> Y2["Relation validation (ALLOWED_RELATION_TYPES / RELATION_DIRECTION_RULES / reverse-if-possible)"]
+    Y2 --> Y3["Financial guard (FOR_PERIOD mismatch drop / infer metric period)"]
+    Y3 --> Y4["Output: entities + relations + meta(two_pass, json_retries, merged_entities, dropped_relations)"]
+    X8 --> Y0["_sanitize_extraction"]
+    X9 --> Y0
+</div>
+                            <p>圖 B 只保留抽取核心主幹，先看 two-pass/single-pass 分流，再看 sanitize 與最終輸出。重試細節獨立到圖 C，閱讀順序會更直覺。</p>
+                            <h5>圖 B 函式作用詳解</h5>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>函式</th>
+                                            <th>檔案</th>
+                                            <th>主要作用</th>
+                                            <th>在圖中的位置</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>extract_entities_relations</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>抽取主控制器；決定走 two-pass 或 single-pass，並負責最後組裝輸出。</td>
+                                            <td><code>X0 -> X1</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_extract_json_with_retry</code> (phase1/phase2/single)</td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>在三個抽取時機點執行 LLM 請求，確保回傳可用 JSON。</td>
+                                            <td><code>X4 / X8 / X9</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_fetch_existing_entity_keys</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>讀取既有實體鍵，避免 two-pass 第 2 階段重複創建或命名飄移。</td>
+                                            <td><code>X5</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_prefill_missing_entities</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>把 Phase-1 的實體盤點補入候選集合，提升 Phase-2 關係抽取命中率。</td>
+                                            <td><code>X6</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_sanitize_extraction</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>整體清洗入口：別名正規化、關係型別/方向檢查、財報期間一致性過濾。</td>
+                                            <td><code>Y0</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_name_variants</code> / <code>_best_match</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>別名與近似比對輔助器；將語義相近名稱收斂成同一 canonical entity。</td>
+                                            <td><code>Y1</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>關係驗證邏輯（白名單 + 方向規則）</td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>套用 <code>ALLOWED_RELATION_TYPES</code> 與 <code>RELATION_DIRECTION_RULES</code>，必要時反轉，不可修復則丟棄。</td>
+                                            <td><code>Y2</code></td>
+                                        </tr>
+                                        <tr>
+                                            <td>財務期間守門（FOR_PERIOD）</td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>檢查 metric 與 period 是否一致，不一致關係標記 dropped 以避免錯誤推論。</td>
+                                            <td><code>Y3</code></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 C：Retry & Repair loop -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 C：Retry & Repair Loop（_extract_json_with_retry）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    R0["entry: _extract_json_with_retry"] --> R1["Attempt i (0..N)"]
+    R1 --> R2{"Mode: strict_json / auto / text (EXTRACTION_JSON_MODE)"}
+    R2 --> R3["llm_client.chat_json or chat_text (EXTRACTION_NUM_PREDICT)"]
+    R3 --> R4{"_validate_extraction_payload ok?"}
+    R4 -- "Yes" --> R8["return valid payload and json_retries=i"]
+    R4 -- "No" --> R5["JSON parse or schema fail -> build repair prompt"]
+    R5 --> R6{"attempt below EXTRACTION_MAX_JSON_RETRIES?"}
+    R6 -- "Yes" --> R1
+    R6 -- "No" --> R7["raise ValueError after max attempts"]
+</div>
+                            <p>圖 C 專門展開 `_extract_json_with_retry` 內部，聚焦 mode 切換、驗證失敗修復與最大重試退出條件，方便直接排查 JSON 格式錯誤。</p>
+                            <h5>圖 C 函式作用詳解</h5>
+                            <div class="table-wrapper">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>函式</th>
+                                            <th>檔案</th>
+                                            <th>主要作用</th>
+                                            <th>失敗處理重點</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>_extract_json_with_retry</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>抽取可靠性核心；包住 LLM 呼叫、JSON 驗證、修復重試與最終失敗拋錯。</td>
+                                            <td>超過 <code>EXTRACTION_MAX_JSON_RETRIES</code> 後停止，避免無限重試。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>llm_client.chat_json</code></td>
+                                            <td><code>backend/llm_kg/llm_client.py</code></td>
+                                            <td>優先要求模型回傳 JSON；在 strict/auto 模式下提升可解析率。</td>
+                                            <td>若回傳非預期格式，交由後續驗證與 repair prompt 修復。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>llm_client.chat_text</code></td>
+                                            <td><code>backend/llm_kg/llm_client.py</code></td>
+                                            <td>文字輸出備援路徑；再由程式端做 JSON 萃取/修復。</td>
+                                            <td>文本自由度高，解析失敗機率較高，需依靠 retry loop。</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>_validate_extraction_payload</code></td>
+                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                            <td>檢查 payload 是否符合實體/關係結構要求，攔截格式錯誤與欄位缺漏。</td>
+                                            <td>驗證失敗會觸發 repair prompt，附帶錯誤訊息回送給 LLM。</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 D：查詢流程 -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 D：查詢流程（NL2Cypher + Guardrails + Answer Fallback）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    Q1["POST /api/query"] --> Q2["logic.query_kg"]
+    Q2 --> Q3["answer_with_manual_prompt"]
+    Q3 --> Q4["load_schema_snapshot + fetch_entity_names + fetch_organization_names"]
+    Q4 --> Q5["natural_language_to_cypher"]
+    Q5 --> Q6["link_entity_literals"]
+    Q6 --> Q7{"Finance question?"}
+
+    Q7 -- "No" --> Q8["validate_cypher_relationships"]
+    Q7 -- "Yes" --> Q9{"_cypher_uses_hardcoded_finance_constants OR not _cypher_has_required_finance_path (FINANCE_REQUIRED_REL_TYPES)?"}
+    Q9 -- "Yes" --> Q10["_build_finance_template_cypher fallback"]
+    Q9 -- "No" --> Q8
+
+    Q8 --> Q11["execute_cypher"]
+    Q10 --> Q11
+    Q11 --> Q12{"Neo4j error or empty rows and attempt count below CYPHER_REPAIR_RETRIES+1?"}
+    Q12 -- "Yes" --> Q5
+    Q12 -- "No" --> Q13["rows ready (may be empty)"]
+
+    Q13 --> Q14{"KG_QA_USE_LLM?"}
+    Q14 -- "Yes" --> Q15["_generate_kg_answer_with_llm"]
+    Q15 --> Q16{"LLM rewrite valid?"}
+    Q16 -- "Yes" --> Q17["answer_source = qa_llm"]
+    Q16 -- "No" --> Q18["template fallback summary (_summarize_query_rows)"]
+    Q14 -- "No" --> Q18
+    Q18 --> Q19["answer_source = template_fallback"]
+</div>
+                            <p>圖 D 顯示查詢階段並非單一路徑，而是「Cypher 生成修復 + 財報守門 + 答案改寫回退」的組合流程。這張圖可用來解釋為何同一個問題可能走不同 fallback 分支。</p>
+                        </div>
+                    </div>
+
+                    <h4>本節流程圖涉及的 Env 變數作用表</h4>
+                    <p>以下僅列出「圖 A / 圖 B / 圖 C / 圖 D」直接涉及的環境變數與其在流程中的影響點。</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Env 變數</th>
+                                    <th>主要讀取位置</th>
+                                    <th>作用說明</th>
+                                    <th>流程影響點</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>CHUNK_SIZE_MODE</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>控制 chunk 策略：<code>provider|token|char</code>。<code>provider</code> 模式下 Gemini 走 token chunk，其他走 char chunk。</td>
+                                    <td>圖 A：<code>chunk_text</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>CHUNK_SIZE_TOKENS</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>token chunk 上限；超長段落會觸發二次切分。</td>
+                                    <td>圖 A：<code>chunk_text</code> / token budget</td>
+                                </tr>
+                                <tr>
+                                    <td><code>CHUNK_MIN_TOKENS</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>chunk 最小 token 門檻；過短片段可被跳過，避免噪音輸入抽取。</td>
+                                    <td>圖 A：chunk 產出品質</td>
+                                </tr>
+                                <tr>
+                                    <td><code>INGEST_CHUNK_LIMIT</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>全域 chunk 處理上限（與 request 的 <code>chunk_limit</code> 合併判斷），降低單次 ingest 負載。</td>
+                                    <td>圖 A：<code>_resolve_chunk_limit</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>EXTRACTION_JSON_MODE</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>抽取 JSON 解析策略：<code>strict_json</code>、<code>auto</code>、<code>text</code>。</td>
+                                    <td>圖 A/B/C：<code>_extract_json_with_retry</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>EXTRACTION_MAX_JSON_RETRIES</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>JSON 修復重試次數上限；總嘗試次數為 <code>retries + 1</code>。</td>
+                                    <td>圖 C：Retry & Repair loop</td>
+                                </tr>
+                                <tr>
+                                    <td><code>EXTRACTION_NUM_PREDICT</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>抽取階段輸出 token 預算（非 Gemini 時優先使用），影響長輸出被截斷風險。</td>
+                                    <td>圖 A/B/C：<code>_extract_json_with_retry</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>GEMINI_TWO_PASS_EXTRACTION</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>啟用 Gemini 兩階段抽取（Phase-1 實體盤點 + prefill + Phase-2 關係抽取）。</td>
+                                    <td>圖 A/B：Single-pass vs Two-pass 分支</td>
+                                </tr>
+                                <tr>
+                                    <td><code>CYPHER_REPAIR_RETRIES</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>NL2Cypher 失敗修復迴圈上限，控制「生成 -> 執行 -> 修正」嘗試次數。</td>
+                                    <td>圖 D：Cypher repair loop</td>
+                                </tr>
+                                <tr>
+                                    <td><code>KG_QA_USE_LLM</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>是否啟用查詢結果改寫。關閉時直接走模板摘要 fallback。</td>
+                                    <td>圖 D：<code>qa_llm</code> vs <code>template_fallback</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>KG_QA_MAX_TOKENS</code> / <code>KG_QA_TEMPERATURE</code> / <code>KG_QA_MODEL</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>控制答案改寫模型、輸出長度與穩定度（溫度）；直接影響最終回答品質與可讀性。</td>
+                                    <td>圖 D：<code>_generate_kg_answer_with_llm</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4>本節流程圖涉及的核心函式作用表</h4>
+                    <p>函式依資料流分群：Ingest/Chunk、抽取/清洗/寫入、查詢守門與回答回退。</p>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>函式</th>
+                                    <th>檔案</th>
+                                    <th>作用</th>
+                                    <th>輸入 / 輸出重點</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>process_text_to_kg</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>文字輸入的 KG 建圖入口，負責前置切塊與後續建圖呼叫。</td>
+                                    <td>In: raw text；Out: <code>stats/summary/chunk_progress</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>process_url_to_kg</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>URL ingest 入口，先抓取清洗頁面文字，再導入切塊與建圖。</td>
+                                    <td>In: URL；Out: 同上</td>
+                                </tr>
+                                <tr>
+                                    <td><code>process_keyword_to_kg</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>關鍵字爬取入口，聚合多 URL 的抽取結果，並累計成功/失敗來源。</td>
+                                    <td>In: keyword；Out: aggregated stats + fetched/failed urls</td>
+                                </tr>
+                                <tr>
+                                    <td><code>chunk_text</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>provider-aware 切塊核心；根據模式選 token 或 char budget。</td>
+                                    <td>In: text/source metadata；Out: <code>List[Chunk]</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>_resolve_chunk_limit</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>統一解析 chunk 上限（request + env），並做合法範圍防護。</td>
+                                    <td>In: optional limit；Out: normalized limit or <code>None</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>build_kg_from_chunks</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>逐 chunk 執行抽取與 upsert，維護每塊狀態、統計與進度回報。</td>
+                                    <td>In: chunks；Out: build result payload</td>
+                                </tr>
+                                <tr>
+                                    <td><code>extract_entities_relations</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>抽取總入口；判斷 single-pass 或 Gemini two-pass 路徑。</td>
+                                    <td>In: chunk text；Out: sanitized entities/relations + meta</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_extract_entities_relations_two_pass</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>兩階段抽取：先盤點實體，再補齊缺漏，再抽關係。</td>
+                                    <td>Out meta: <code>phase1_entities/prefilled_missing_entities</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>_extract_json_with_retry</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>JSON 解析保護層；解析失敗時生成修復 prompt 重試。</td>
+                                    <td>Out: parsed payload + retry count 或 raise error</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_sanitize_extraction</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>抽取後清洗：白名單過濾、別名合併、關係方向校正、財報季度一致性檢查。</td>
+                                    <td>Out meta: <code>merged_entities/dropped_relations</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>populate_graph</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>將清洗後資料寫入 Neo4j，彙整 upsert 統計。</td>
+                                    <td>Out: <code>GraphBuildStats</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>_ensure_constraints</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>建立唯一鍵與索引，確保主鍵一致性與查詢效率。</td>
+                                    <td>Creates: unique constraint + normalizedName index</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_create_entity</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>用 <code>MERGE</code> upsert 實體，維護 aliases 與額外屬性。</td>
+                                    <td>Node labels: concrete type + <code>:Entity</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>_create_relation</code></td>
+                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>用 <code>MERGE (a)-[:REL]->(b)</code> upsert 關係並更新時間戳。</td>
+                                    <td>Rel type validated by allowlist</td>
+                                </tr>
+                                <tr>
+                                    <td><code>query_kg</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>查詢入口；先取得 Cypher rows，再嘗試 LLM 改寫答案。</td>
+                                    <td>Out: <code>answer + answer_source + rows</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>answer_with_manual_prompt</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>NL2Cypher 主路徑；結合 schema、守門規則、重試修復與 fallback。</td>
+                                    <td>Out: <code>question/cypher/rows/attempt</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>load_schema_snapshot</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>從 Neo4j 取 labels/relations/properties，生成 prompt 用 schema 描述。</td>
+                                    <td>Out: <code>SchemaSnapshot</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>natural_language_to_cypher</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>把自然語言問題轉為可執行 Cypher，必要時帶入前次錯誤做修復。</td>
+                                    <td>In: question + schema (+ previous error)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>validate_cypher_relationships</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>檢查 Cypher 關係型別是否存在於 schema，阻擋未知關係查詢。</td>
+                                    <td>Raises on unknown relationship type</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_cypher_uses_hardcoded_finance_constants</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>偵測財報查詢是否作弊（硬編碼常值回覆）。</td>
+                                    <td>Finance guard trigger</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_cypher_has_required_finance_path</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>要求財報查詢必須走真實圖譜路徑（<code>HAS_FINANCIAL_METRIC</code> + <code>FOR_PERIOD</code>）。</td>
+                                    <td>Finance guard trigger</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_build_finance_template_cypher</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>當財報查詢不合規或多次失敗時，回退到固定模板查詢真實資料。</td>
+                                    <td>Fallback Cypher path</td>
+                                </tr>
+                                <tr>
+                                    <td><code>_generate_kg_answer_with_llm</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>以 rows 為基礎生成可讀答案，並驗證是否引用查詢值、防止空洞回覆。</td>
+                                    <td>Success => <code>answer_source=qa_llm</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>_summarize_query_rows</code></td>
+                                    <td><code>backend/logic.py</code></td>
+                                    <td>當 QA LLM 不可用或輸出不合格時，使用模板規則產生 fallback 答案。</td>
+                                    <td>Fallback => <code>answer_source=template_fallback</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <section id="section-4">
                 <h2>4. OpenClaw 系統架構與技能安全分析</h2>
 
                 <div id="section-4-1">
-                    <h3>(1) OpenClaw 系統架構與主要組件</h3>
+                    <h3>(1) 系統架構與主要組件</h3>
                     <p>以下依 <code>ARCHITECTURE.md</code> 彙整：</p>
                     <ul>
                         <li><strong>Gateway Server (<code>src/gateway</code>)</strong>：
@@ -778,7 +1618,7 @@
                                 <li>若配置了 Fallback，當主要模型失敗時會自動切換至備援模型。</li>
                             </ul>
                         </li>
-                        <li><strong>推理與工具 (Reasoning &amp; Tools)</strong>：
+                        <li><strong>推理與工具 (Reasoning & Tools)</strong>：
                             <ul>
                                 <li><strong>Thinking</strong>：Agent 產生思考過程 (CoT)。</li>
                                 <li><strong>Action</strong>：若 Agent 決定使用工具，系統會攔截 Tool Call，執行對應的 TypeScript 函數，並將結果 (Observation) 附加回對話歷史。</li>
@@ -950,7 +1790,7 @@ require(mod).exec("rm -rf /");</code></pre>
                     <ul>
                         <li>網路：DNS/TCP 連線紀錄，未授權外聯立即標記。</li>
                         <li>檔案：<code>open/read/write</code> 存取是否超出白名單。</li>
-                        <li>程序：禁止 <code>fork/exec</code>；CPU &gt; 5 秒或記憶體 &gt; 128 MB 即終止。</li>
+                        <li>程序：禁止 <code>fork/exec</code>；CPU > 5 秒或記憶體 > 128 MB 即終止。</li>
                         <li>行為一致性：以 mock 輸入執行，檢查輸出是否符合 manifest schema。</li>
                     </ul>
 
@@ -983,19 +1823,339 @@ validateAgainstSchema(result, skill.manifest.schema.output);</code></pre>
                     </ol>
 
                     <h4>3.7 縱深防禦總結</h4>
-                    <p><code>Phase 1 -&gt; Phase 2 -&gt; Phase 3 -&gt; Phase 4</code> 分別處理宣告合規、靜態風險、動態行為與完整性驗證。任一階段命中 <code>CRITICAL/ERROR</code> 即中止流程，降低惡意 Skill 進入生態系機率。</p>
+                    <p><code>Phase 1 -> Phase 2 -> Phase 3 -> Phase 4</code> 分別處理宣告合規、靜態風險、動態行為與完整性驗證。任一階段命中 <code>CRITICAL/ERROR</code> 即中止流程，降低惡意 Skill 進入生態系機率。</p>
                 </div>
+            </section>
+
+            <section id="section-5">
+                <h2>5. OpenClaw 自訂 Skill Plugin 與自動化 Agent 實作說明</h2>
+
+                <div id="section-5-1">
+                    <h3>(1) 自訂 OpenClaw Skill Plugin（<code>todo-helper</code>）</h3>
+                    <p>已實作全新 plugin：<code>extensions/todo-helper/</code>，提供三個工具能力：</p>
+                    <ol>
+                        <li><code>local_time({ timezone? })</code>：回傳本地或指定時區時間（ISO、local string、epoch）。</li>
+                        <li><code>read_and_summarize({ path, maxBytes?, maxSentences? })</code>：在 allowlist 路徑內讀取檔案並回傳摘要。</li>
+                        <li><code>read_todo_snapshot({ path?, includeCompleted?, lookaheadHours? })</code>：讀取 To-do 快照 JSON，分類逾期 / 今日 / 即將到期 / 未設定到期，並做 stale 檢查。</li>
+                    </ol>
+                    <p><strong>相關檔案</strong></p>
+                    <ul>
+                        <li><code>extensions/todo-helper/index.ts</code></li>
+                        <li><code>extensions/todo-helper/openclaw.plugin.json</code></li>
+                        <li><code>extensions/todo-helper/skills/todo-sync/SKILL.md</code></li>
+                        <li><code>extensions/todo-helper/skills/todo-notify/SKILL.md</code></li>
+                    </ul>
+                </div>
+
+                <div id="section-5-2">
+                    <h3>(2) 自動化 Agent 工作流程（至少兩個 skill）</h3>
+                    <p>本實作使用 <strong>3 個 skill</strong>（符合「兩個以上 skill」要求）：</p>
+                    <ol>
+                        <li><code>todo-sync</code></li>
+                        <li><code>organize-files</code></li>
+                        <li><code>todo-notify</code></li>
+                    </ol>
+
+                    <p>排程：每日 <code>09:00</code>（本地時區）啟動，流程如下：</p>
+                    <ol>
+                        <li><strong>todo-sync</strong>：先呼叫 <code>local_time</code>，再呼叫 <code>read_todo_snapshot</code>，完成逾期/今日/即將到期分類與 stale 檢查。</li>
+                        <li><strong>organize-files</strong>：整理指定資料夾（如 <code>~/Downloads</code>），輸出整理結果。</li>
+                        <li><strong>todo-notify</strong>：生成提醒摘要（含下一步行動）並發送到 <code>last route</code>。</li>
+                    </ol>
+
+                    <h4>自動化 Agent 工作流程圖</h4>
+                    <div class="mermaid">flowchart TB
+                        subgraph SCHEDULE["排程觸發 (每日 09:00)"]
+                            S1["Cron Job 觸發"]
+                        end
+
+                        subgraph SYNC["Skill 1: todo-sync"]
+                            S2["讀取 SKILL.md"]
+                            S3["呼叫 local_time 工具"]
+                            S4["呼叫 read_todo_snapshot 工具"]
+                            S5{"分析結果"}
+                            S6["分類: 逾期/今日/即將到期/無到期日"]
+                            S7["Stale 檢查"]
+                        end
+
+                        subgraph ORGANIZE["Skill 2: organize-files"]
+                            O1["讀取 SKILL.md"]
+                            O2["讀取 inbox 資料夾"]
+                            O3{"檔案類型"}
+                            O4["移動: documents (.pdf, .docx)"]
+                            O5["移動: images (.jpg, .png)"]
+                            O6["輸出整理結果"]
+                        end
+
+                        subgraph NOTIFY["Skill 3: todo-notify"]
+                            N1["讀取 SKILL.md"]
+                            N2["生成摘要報告"]
+                            N3["包含: Time / Snapshot Health / Priority Focus / Upcoming / File Organization / Next Step"]
+                            N4["發送到 last route"]
+                            N5["完成"]
+                        end
+
+                        SCHEDULE --> SYNC
+                        S2 --> S3
+                        S3 --> S4
+                        S4 --> S5
+                        S5 --> S6
+                        S6 --> S7
+                        S7 --> ORGANIZE
+
+                        O1 --> O2
+                        O2 --> O3
+                        O3 -->|*.pdf, *.docx| O4
+                        O3 -->|*.jpg, *.png| O5
+                        O4 --> O6
+                        O5 --> O6
+                        O6 --> NOTIFY
+
+                        N1 --> N2
+                        N2 --> N3
+                        N3 --> N4
+                        N4 --> N5
+
+                        style SCHEDULE fill:#e0f2fe,stroke:#075985
+                        style SYNC fill:#dcfce7,stroke:#166534
+                        style ORGANIZE fill:#fef9c3,stroke:#854d0e
+                        style NOTIFY fill:#fee2e2,stroke:#991b1b
+                    </div>
+
+                    <h4>詳細設定步驟（實際可執行）</h4>
+
+                    <p><strong>1) 準備 To-do snapshot 檔案（資料來源）</strong></p>
+                    <ul>
+                        <li>在 To-do 前端連接 snapshot 檔，建議使用 Host 路徑：<code>/Users/silver/.openclaw/workspace/openclaw-data/todo-snapshot.json</code></li>
+                        <li>Gateway 容器內對應路徑：<code>/home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json</code></li>
+                    </ul>
+
+                    <p><strong>2) 設定 <code>todo-helper</code> plugin config</strong></p>
+                    <p>在 <code>~/.openclaw/openclaw.json</code> 確認 <code>allowedRoots</code> 與 <code>defaultSnapshotPath</code>：</p>
+                    <pre><code class="language-json">{
+  "plugins": {
+    "entries": {
+      "todo-helper": {
+        "enabled": true,
+        "config": {
+          "allowedRoots": [
+            "/home/node/.openclaw/workspace/openclaw-data",
+            "/home/node/.openclaw/workspace/automation-demo"
+          ],
+          "defaultSnapshotPath": "/home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json",
+          "maxReadBytes": 262144,
+          "staleMinutes": 180,
+          "enableReadSummary": true
+        }
+      }
+    }
+  }
+}</code></pre>
+
+                    <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+docker compose restart openclaw-gateway</code></pre>
+
+                    <p><strong>3) 建立/更新 cron job（固定 skill 順序）</strong></p>
+                    <pre><code class="language-bash">AUTOMATION_MESSAGE=$(cat <<'PROMPT'
+You are executing a cron automation verification run.
+
+Mandatory requirements (do not skip):
+1) Read /app/extensions/todo-helper/skills/todo-sync/SKILL.md.
+2) Call local_time exactly once.
+3) Call read_todo_snapshot exactly once with:
+   /home/node/.openclaw/workspace/openclaw-data/todo-snapshot.json
+4) Read /app/extensions/todo-helper/skills/organize-files/SKILL.md.
+5) Use exec to organize /home/node/.openclaw/workspace/automation-demo/inbox:
+   - documents: *.pdf, *.docx
+   - images: *.jpg, *.png
+   - top-level files only (maxdepth 1)
+6) Read /app/extensions/todo-helper/skills/todo-notify/SKILL.md.
+
+Final output headings:
+Time
+Snapshot Health
+Priority Focus
+Upcoming
+File Organization
+Next Step
+PROMPT
+)
+
+cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli cron add \
+  --name "verify-todo-workflow" \
+  --cron "0 9 * * *" \
+  --session isolated \
+  --message "$AUTOMATION_MESSAGE" \
+  --deliver \
+  --channel last \
+  --best-effort-deliver</code></pre>
+
+                    <p>若 job 已存在，改用：</p>
+                    <pre><code class="language-bash">docker compose run --rm openclaw-cli cron edit &lt;jobId&gt; \
+  --message "$AUTOMATION_MESSAGE" \
+  --deliver \
+  --channel last \
+  --best-effort-deliver</code></pre>
+
+                    <p><strong>4) 手動觸發與驗證（含 log 取證）</strong></p>
+                    <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli cron list
+docker compose run --rm openclaw-cli cron run &lt;jobId&gt; --force --timeout 180000
+docker compose run --rm openclaw-cli cron runs --id &lt;jobId&gt; --limit 5</code></pre>
+
+                    <pre><code class="language-bash">docker compose exec openclaw-gateway sh -lc '
+S=$(ls -t /home/node/.openclaw/agents/main/sessions/*.jsonl | head -n 1)
+echo "$S"
+grep -n "todo-sync\|organize-files\|todo-notify\|local_time\|read_todo_snapshot\|\"name\":\"exec\"" "$S" | sed -n "1,120p"
+'</code></pre>
+
+                    <p><strong>5) 驗收重點</strong></p>
+                    <ul>
+                        <li>session log 可看到 <code>todo-sync -&gt; organize-files -&gt; todo-notify</code> 對應讀取/工具呼叫。</li>
+                        <li><code>read_todo_snapshot</code> 使用 <code>openclaw-data/todo-snapshot.json</code> 路徑。</li>
+                        <li><code>organize-files</code> 只整理 top-level 的目標副檔名檔案。</li>
+                        <li>重跑後檔案結構維持不變（idempotent）。</li>
+                        <li>若未設定 <code>--to</code> recipient，<code>cron runs</code> 可能顯示 <code>Delivery skipped</code>，此時以 session log 驗證流程是否完整執行。</li>
+                    </ul>
+
+                    <p><strong>錯誤分支</strong></p>
+                    <ul>
+                        <li>若 snapshot 讀取失敗或 stale，回覆必含失敗原因與修復建議。</li>
+                    </ul>
+
+                    <p><strong>完整流程與命令展示文件</strong></p>
+                    <ul>
+                        <li><code>docs/automation/todo-web-agent-workflow.md</code></li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="section-6">
+                <h2>6. 附件：如何啟動（Frontend + OpenClaw + Docker）</h2>
+
+                <h3>(1) 啟動 OpenClaw Gateway（Docker）</h3>
+                <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+docker compose up -d openclaw-gateway
+docker compose ps openclaw-gateway</code></pre>
+
+                <h3>(2) 開啟 Control UI（帶 Token）</h3>
+                <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+source .env
+open "http://127.0.0.1:18789/?token=$OPENCLAW_GATEWAY_TOKEN"</code></pre>
+
+                <p>若出現 <code>pairing required</code>：</p>
+                <pre><code class="language-bash">docker compose exec openclaw-gateway node dist/index.mjs devices list --json
+docker compose exec openclaw-gateway node dist/index.mjs devices approve <requestId> --json</code></pre>
+
+                <h3>(3) 啟動 To-do 前端</h3>
+                <pre><code class="language-bash">cd /Users/silver/Documents/To-do
+docker compose up -d --build todo-app
+docker compose ps todo-app</code></pre>
+                <p>瀏覽器開啟：<code>http://localhost:8080</code></p>
+                <p>（To-do 專案 compose 服務：<code>todo-app</code>，定義於 <code>/Users/silver/Documents/To-do/docker-compose.yml</code>）</p>
+
+                <h3>(4) 安裝與啟用 <code>todo-helper</code> plugin</h3>
+                <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli plugins install ./extensions/todo-helper
+docker compose run --rm openclaw-cli plugins enable todo-helper
+docker compose restart openclaw-gateway</code></pre>
+
+                <h3>(5) 驗證排程流程（手動觸發）</h3>
+                <pre><code class="language-bash">cd /Users/silver/Documents/openclaw-main
+docker compose run --rm openclaw-cli cron list
+docker compose run --rm openclaw-cli cron run <jobId> --force
+docker compose run --rm openclaw-cli cron runs --id <jobId> --limit 20</code></pre>
             </section>
         </main>
     </div>
 <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
 
+    // Preserve original mermaid source for Section-3 collapsible re-rendering.
+    document.querySelectorAll("#section-3-4 .diagram-collapsible .mermaid").forEach((el) => {
+        el.dataset.mermaidSource = el.textContent.trim();
+    });
+
     mermaid.initialize({
         startOnLoad: true,
         theme: "default",
         securityLevel: "strict",
-        fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif"
+        fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif",
+        flowchart: {
+            useMaxWidth: false,
+            htmlLabels: false,
+            nodeSpacing: 40,
+            rankSpacing: 55,
+            padding: 12
+        }
+    });
+
+    async function rerenderMermaidInContent(contentEl) {
+        const nodes = Array.from(contentEl.querySelectorAll(".mermaid"));
+        if (!nodes.length) return;
+
+        nodes.forEach((node) => {
+            const source = node.dataset.mermaidSource || node.textContent.trim();
+            node.innerHTML = source;
+            node.removeAttribute("data-processed");
+        });
+
+        try {
+            await mermaid.run({ nodes });
+        } catch (err) {
+            console.error("Mermaid re-render failed:", err);
+        }
+    }
+
+    function setCollapsibleState(collapsible, open) {
+        const header = collapsible.querySelector(".diagram-collapsible-header");
+        const icon = header ? header.querySelector(".toggle-icon") : null;
+        if (open) {
+            collapsible.classList.add("open");
+            if (icon) icon.textContent = "▼";
+            if (header) header.setAttribute("aria-expanded", "true");
+        } else {
+            collapsible.classList.remove("open");
+            if (icon) icon.textContent = "▶";
+            if (header) header.setAttribute("aria-expanded", "false");
+        }
+    }
+
+    // Collapsible diagrams - default collapsed, click header to expand.
+    function initCollapsibleDiagrams() {
+        const collapsibles = document.querySelectorAll("#section-3-4 .diagram-collapsible");
+
+        collapsibles.forEach((collapsible) => {
+            const header = collapsible.querySelector(".diagram-collapsible-header");
+            const content = collapsible.querySelector(".diagram-collapsible-content");
+
+            if (!header || !content) return;
+            header.setAttribute("role", "button");
+            header.setAttribute("tabindex", "0");
+            setCollapsibleState(collapsible, false);
+
+            const toggle = async () => {
+                const willOpen = !collapsible.classList.contains("open");
+                setCollapsibleState(collapsible, willOpen);
+                if (willOpen) {
+                    // Always re-render when expanding to avoid hidden-render layout issues.
+                    await rerenderMermaidInContent(content);
+                }
+            };
+
+            header.addEventListener("click", toggle);
+            header.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    toggle();
+                }
+            });
+        });
+    }
+
+    window.addEventListener("load", () => {
+        initCollapsibleDiagrams();
     });
 </script>
 </body>
