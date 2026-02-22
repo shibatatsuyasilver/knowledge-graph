@@ -113,7 +113,6 @@
     2. `_create_entity()`：使用 `MERGE` upsert 節點，節點同時帶有具體 label（如 `:Organization`）與共通 `:Entity`。
     3. `_create_relation()`：使用 `MERGE (a)-[:REL]->(b)` upsert 關係。
     4. `populate_graph()`：逐筆寫入 entities/relations，回傳統計（upsert 數、drop 數、json retries）。
-*   **流程邊界說明**: `GraphCypherQAChain` 屬於 **NL2Cypher 查詢階段**（`backend/llm_kg/nl2cypher.py`），不是實體/關係抽取階段。
 
 ### (1) 利用 LLM 建立 Knowledge Graph
 *   **方法**: 採用 **Two-Pass Extraction (兩階段抽取法)**。
@@ -126,33 +125,56 @@
         *   **解決**: 設定 **Schema Constraints (Ontology)**，僅允許特定的 Node Labels (e.g., `Organization`, `Person`) 與 Relation Types (e.g., `FOUNDED_BY`, `SUPPLIES_TO`)，過濾掉不符合 Schema 的輸出。
 
 ### (2) 使用者問題轉 Graph DB 查詢 (NL2Cypher)
-*   **方法**: `backend/llm_kg/nl2cypher.py` 採 **雙路徑策略**：
-    *   **Path A (LangChain)**: 使用 `GraphCypherQAChain + Neo4jGraph` 直接將自然語言轉 Cypher（需安裝 `langchain`/`langchain-community`，且目前實作限制 `LLM_PROVIDER=ollama`）。
-    *   **Path B (Manual)**: 使用 **Ministral 3 (14B)** 搭配 **Schema-Aware Prompting** 與修復重試（self-correction）流程。
-    *   若 LangChain 依賴未安裝或 provider 不符，會自動 fallback 到 Manual 路徑，確保查詢流程不中斷。
-    *   Manual 路徑會將 Graph Schema (節點類型、關係、屬性) 注入 Prompt，並用 Few-Shot Examples 引導 Cypher 生成。
+*   **方法**: `backend/llm_kg/nl2cypher.py` 提供兩種方法；目前 `/api/query` 與 `/api/query_async/*` 主路徑使用 Manual/Agentic：
+    *   **Path A (LangChain / langchain-neo4j 用語對齊)**: 使用 `GraphCypherQAChain + Neo4jGraph` 直接將自然語言轉 Cypher。文件用語對齊新版 `langchain-neo4j` / `langchain_neo4j`；目前程式仍採 `langchain_community` 匯入相容路徑（`backend/llm_kg/nl2cypher.py:30`、`backend/llm_kg/nl2cypher.py:31`），且僅在 `LLM_PROVIDER=ollama` 可用（`backend/llm_kg/nl2cypher.py:994`）。
+    *   **Path B (Manual/Agentic)**: 使用可配置模型（常見為 **Ministral 3 (14B)**）搭配 **Schema-Aware Prompting**、deterministic guards 與 agentic loop。
+    *   `GraphCypherQAChain` 目前為可選方法（`query_with_graph_chain`），尚未納入 API 主路徑的自動切換。
+    *   Manual 路徑會將 Graph Schema (節點類型、關係、屬性) 注入 Prompt，並透過 JSON contract 與 guardrails 約束 Cypher 生成。
 
 #### 使用 `GraphCypherQAChain` 的好處（官方文件對應）
-*   **端到端流程內建**：可直接完成「自然語言問題 -> 產生 Cypher -> 查 Neo4j -> 生成答案」，減少自行串接 prompt/executor/answerer 的樣板程式。
-*   **Schema 導向，降低亂生查詢**：官方整合文件示範以圖譜 schema 生成 Cypher，且可 `refresh_schema()`；`enhanced_schema=True` 會自動掃描樣本值與分佈資訊，讓生成更貼近實際資料。
-*   **可觀測性高，便於除錯**：`return_intermediate_steps=True` 可拿到「生成的 Cypher + 查詢 context」，方便追蹤錯誤與建立稽核紀錄。
-*   **結果可控，避免過量回傳**：`top_k` 可限制回傳筆數（官方預設 10），`return_direct=True` 可直接拿資料列，方便下游 API/前端自行格式化。
-*   **可客製 Cypher 生成品質**：可透過 `cypher_prompt` 注入 few-shot 範例；亦可分離 `cypher_llm` 與 `qa_llm`，分別優化「查詢生成」與「答案敘述」。
-*   **可限制 schema 子集，減少誤查**：`include_types` / `exclude_types` 可在生成階段排除特定節點或關係，縮小查詢空間。
-*   **可做關係方向校正**：`validate_cypher=True` 可驗證並修正關係方向，降低因方向錯誤導致的空結果或錯誤查詢。
-*   **可用 function/tool response 強化答案貼地性**：`use_function_response=True` 會以工具輸出方式提供資料庫 context，官方文件明確指出可提升答案準確性與相關性（需模型支援 function calling）。
+*   **[官方可用，本專案未啟用] 端到端流程內建**：`GraphCypherQAChain` 可直接完成「自然語言問題 -> 產生 Cypher -> 查 Neo4j -> 生成答案」。本專案目前僅保留 `query_with_graph_chain` 作為可選方法，未納入 API 主路徑自動切換。
+*   **[官方可用，本專案未啟用] Schema 導向生成 Cypher**：可配合 `Neo4jGraph.refresh_schema()` 與 `enhanced_schema=True`，降低不存在 label/property/relationship 的生成風險；本專案目前未在 chain 路徑啟用這兩項設定。
+*   **[現況已用] 可觀測性高，便於除錯**：目前 `query_with_graph_chain` 已設定 `return_intermediate_steps=True`，可取得中間產物（生成 Cypher 與查詢 context）供除錯與稽核（`backend/llm_kg/nl2cypher.py:1005`）。
+*   **[官方可用，本專案未啟用] 結果可控**：`top_k`、`return_direct=True` 可限制資料量與輸出型態；本專案目前未在 chain 初始化中設定這些參數。
+*   **[官方可用，本專案未啟用] 可客製 Cypher 生成品質**：可透過 `cypher_prompt` 注入 few-shot，或分離 `cypher_llm` / `qa_llm` 做任務分工；本專案目前未在 chain 路徑配置。
+*   **[官方可用，本專案未啟用] 可限制 schema 子集**：`include_types` / `exclude_types` 可縮小生成空間，降低誤查；本專案目前未啟用。
+*   **[本專案以替代機制實作] 關係校正與守門**：官方可用 `validate_cypher=True`。本專案目前未啟用該 chain 參數，改由 deterministic 檢查中的 `validate_cypher_relationships()` 執行關係型別驗證（`backend/llm_kg/nl2cypher.py:1089`、`backend/llm_kg/nl2cypher.py:1613`）。
+*   **[官方可用，本專案未啟用] function/tool response**：`use_function_response=True` 可提升答案與資料列一致性；本專案目前未啟用。
+*   **[現況已用] 風險明示同意**：目前 `query_with_graph_chain` 已顯式設定 `allow_dangerous_requests=True`（`backend/llm_kg/nl2cypher.py:1006`）。
 
-#### 官方來源（LangChain）
-1. Neo4j integration（GraphCypherQAChain 功能總覽）：https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher
-2. GraphCypherQAChain API Reference（類別定義與安全說明）：https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html
-3. LangChain Security（最小權限原則）：https://docs.langchain.com/oss/python/security-policy
+#### 常見誤解澄清（新版用語）
+*   **`GraphCypherQAChain` 與 `Neo4jGraph` 功能分層不同**：前者負責 NL -> Cypher -> Query -> QA 編排；後者負責圖連線與 schema 提供。
+*   **`refresh_schema()` / `enhanced_schema` 屬於 `Neo4jGraph`**：不是 `GraphCypherQAChain` 本身的方法。
+*   **本專案現況**：`query_with_graph_chain` 為可選方法，尚未納入 `/api/query` 與 `/api/query_async/*` 主路徑自動切換。
 
-> 安全註記（官方）：`GraphCypherQAChain` 需明確 `allow_dangerous_requests=True` 才可執行，且官方要求資料庫帳號必須使用最小權限（narrowly-scoped credentials）。
+#### 新版/舊版功能歸屬對照（含本專案現況）
+| 主題 | 功能 | 所屬元件 | 本專案現況 |
+| :--- | :--- | :--- | :--- |
+| 端到端 NL -> Cypher -> QA | `GraphCypherQAChain.from_llm(...)` | `GraphCypherQAChain` | 不在主路徑 |
+| 限制回傳筆數 | `top_k` | `GraphCypherQAChain` | 可用未啟用 |
+| 直接回傳資料列 | `return_direct` | `GraphCypherQAChain` | 可用未啟用 |
+| 輸出中間步驟 | `return_intermediate_steps` | `GraphCypherQAChain` | 已使用 |
+| 關係方向驗證/修正 | `validate_cypher` | `GraphCypherQAChain` | 可用未啟用 |
+| 限制 schema 子集 | `include_types` / `exclude_types` | `GraphCypherQAChain` | 可用未啟用 |
+| function/tool response | `use_function_response` | `GraphCypherQAChain` | 可用未啟用 |
+| 刷新 schema | `refresh_schema()` | `Neo4jGraph` | 可用未啟用 |
+| schema 增強（樣本值/分佈） | `enhanced_schema=True` | `Neo4jGraph` | 可用未啟用 |
+| 關係型別 deterministic 驗證 | `validate_cypher_relationships()` | 本專案 NL2Cypher 守門 | 已使用 |
+
+#### 官方來源（LangChain，最新版）
+1. Neo4j provider integration：https://docs.langchain.com/oss/python/integrations/providers/neo4j
+2. Neo4j graph/cypher integration：https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher
+3. LangChain Security：https://docs.langchain.com/oss/python/security-policy
+
+#### Legacy 參考（對照目前 `langchain_community` 匯入路徑）
+1. GraphCypherQAChain API Reference（community）：https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html
+
+> 安全註記（官方 + 現況）：`GraphCypherQAChain` 需明確 `allow_dangerous_requests=True` 才可執行，且官方要求資料庫帳號必須使用最小權限（narrowly-scoped credentials）。本專案目前在 `query_with_graph_chain` 已顯式設定此參數（`backend/llm_kg/nl2cypher.py:1006`）。
 *   **遇到的問題與解決**:
     *   **語法錯誤 (Syntax Error)**: 生成的 Cypher 無法執行。
-        *   **解決**: 實作 **Self-Correction Loop**。捕捉 Neo4j 錯誤訊息，將錯誤回傳給 LLM 要求修正 (Retry up to 3 times)。
+        *   **解決**: 主流程採用 agentic loop（planner/reactor/critic/replanner）逐輪修正；當 reactor 失敗時，才回退到 legacy `natural_language_to_cypher` 修復提示路徑。
     *   **語意不清**: 使用者問「董事長」但 Schema 只有 `CHAIRED_BY` 關係。
-        *   **解決**: 在 System Prompt 中加入 **Semantic Mapping Rules** (e.g., "董事長" maps to `CHAIRED_BY` relationship)。
+        *   **解決**: 以 Prompt 規則搭配 deterministic checks（例如領導職稱問題禁用 `FOUNDED_BY`）維持語意對齊。
     *   **財報數據造假**: LLM 傾向直接生成數字而非查詢資料庫。
         *   **解決**: 加入 **Guardrails**，檢測 Cypher 是否包含 `AS revenue` 等硬編碼常數，若發現則強制使用預定義的 Template Query 查詢真實路徑。
 
@@ -164,6 +186,274 @@
 | **TigerGraph** | **分散式運算強**：適合超大規模 (TB級) 數據分析。 | **學習曲線陡**：GSQL 較複雜。<br>**社群版限制**：功能與限制較多。 | **不適合**<br>本專案規模未達 TB 級，且 Neo4j 對於中小型規模更易於上手與部署。 |
 | **ArangoDB** | **多模資料庫 (Multi-model)**：同時支援 Document, Key-Value, Graph，靈活性高。 | **非原生圖資料庫**：在純圖演算法與深度遍歷效能上通常不如原生的 Neo4j。 | **不適合**<br>本專案專注於複雜關係鏈查詢，原生圖資料庫 (Native Graph DB) 較為合適。 |
 | **NebulaGraph** | **寫入吞吐量高**：針對海量數據設計的開源分佈式圖資料庫。 | **部署複雜**：在單機開發環境的輕量級部署上，配置較 Neo4j 繁瑣。 | **備選**<br>Docker 版的 Neo4j 配置較為簡單，符合目前快速開發需求。 |
+
+### (4) 詳細流程圖（建圖 + 查詢全流程）
+
+以下以 5 張 Mermaid 圖同步目前實作：完整覆蓋 ingest 的 sync + async 路徑；query 以現行 Chat 使用的 async agentic 路徑為主，並補上其共用回答後處理。
+
+#### 圖 A：Ingest API 與同步/非同步任務協調總覽
+
+```mermaid
+flowchart TB
+    subgraph API["API｜入口與查詢"]
+        A1[POST api process text｜同步文字建圖請求入口]
+        A2[POST api process url｜同步網址建圖請求入口]
+        A3[POST api process keyword｜同步關鍵字建圖請求入口]
+        A4[POST api process text async start｜非同步文字建圖啟動入口]
+        A5[POST api process url async start｜非同步網址建圖啟動入口]
+        A6[POST api process keyword async start｜非同步關鍵字建圖啟動入口]
+        A7[GET api process text async by job id｜非同步文字建圖狀態查詢]
+        A8[GET api process url async by job id｜非同步網址建圖狀態查詢]
+        A9[GET api process keyword async by job id｜非同步關鍵字建圖狀態查詢]
+    end
+
+    subgraph JOB["JOB｜建立與回寫"]
+        B1[create job in ingest or keyword store｜建立 ingest 或 keyword job 紀錄]
+        B2[run worker thread｜背景執行緒處理作業]
+        B3[update progress result error｜更新進度與結果錯誤]
+        B4[get job by id｜依 job id 讀取狀態]
+    end
+
+    subgraph PIPE["PIPE｜建圖主鏈"]
+        C1[logic process to kg facade｜logic facade 轉發建圖]
+        C2[ingest service process to kg｜ingest service 主流程]
+        C3[build kg from chunks｜逐 chunk 建圖處理]
+        C4[chunk update callback｜chunk 進度回呼上報]
+        C5[result stats summary chunk progress｜統計與進度摘要輸出]
+    end
+
+    A1 --> C1
+    A2 --> C1
+    A3 --> C1
+    A4 --> B1
+    A5 --> B1
+    A6 --> B1
+    B1 --> B2
+    B2 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> C5
+    C3 --> C4
+    C4 --> B3
+    B3 --> A7
+    B3 --> A8
+    B3 --> A9
+    A7 -.-> B4
+    A8 -.-> B4
+    A9 -.-> B4
+    B4 --> A7
+    B4 --> A8
+    B4 --> A9
+```
+
+圖 A 聚焦 API 層與 Job Store 協調：同步請求直接執行，非同步請求透過 job 建立、背景執行與 polling 狀態查詢串起完整流程。節點已改為英文 + 繁中說明，便於程式對照與閱讀。
+
+#### 圖 B：建圖主線（Chunk -> Extract -> Sanitize -> Upsert）
+
+```mermaid
+flowchart TB
+    B0[logic process text url keyword to kg｜建圖 facade 入口]
+    B1[service chunk text by token or char｜依 token 或 char 切塊]
+    B2[resolve chunk limit｜套用 chunk_limit 決策]
+    B3[build kg from chunks｜逐塊建圖主迴圈]
+    B4{more chunks｜是否仍有未處理塊}
+    B5[extract entities and relations｜抽取實體與關係]
+    B6[sanitize extraction｜抽取結果清洗守門]
+    B7[populate graph ensure entity relation｜upsert 節點與關係]
+    B8[aggregate stats and chunk status｜聚合統計與狀態]
+    B9[emit chunk update callback｜送出 chunk_update 事件]
+    B10[return stats summary chunk progress｜回傳最終統計進度]
+
+    B0 --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 -- yes/是 --> B5
+    B5 --> B6
+    B6 --> B7
+    B7 --> B8
+    B8 --> B9
+    B9 --> B4
+    B4 -- no/否 --> B10
+```
+
+圖 B 對齊實作中的「逐 chunk 抽取與寫入」主線，並明確標示 `_resolve_chunk_limit`、chunk_update 回報與最終聚合輸出。節點已改為英文 + 繁中說明，便於程式對照與閱讀。
+
+#### 圖 C：抽取內核 Retry/Repair 與 Two-pass 分支
+
+```mermaid
+flowchart TB
+    C0[extract entities relations entry｜抽取流程入口]
+    C1{gemini two pass enabled｜是否啟用 Gemini two-pass}
+    C2[phase1 entity prompt｜第一階段實體盤點提示]
+    C3[retry json phase1｜第一階段 JSON 重試抽取]
+    C4[fetch existing and prefill missing｜補齊既有實體與預填]
+    C5[phase2 relation prompt｜第二階段關係抽取提示]
+    C6[retry json phase2｜第二階段 JSON 重試抽取]
+    C7[single pass prompt｜單階段抽取提示]
+    C8[retry json single｜單階段 JSON 重試抽取]
+    C9[sanitize extraction｜套用 schema 清洗守門]
+    C10[output entities relations meta｜輸出 entities relations meta]
+
+    subgraph RETRY["RETRY｜JSON重試"]
+        R1[attempt loop｜重試嘗試迴圈]
+        R2{json mode｜JSON 模式判斷}
+        R3[call chat json or text｜呼叫 chat_json chat_text]
+        R4{payload valid｜內容是否有效}
+        R5[build repair prompt｜建立 repair prompt]
+        R6[return payload with retries｜回傳有效 payload 與重試資訊]
+        R7[raise error at max retry｜達上限拋出錯誤]
+        R1 --> R2
+        R2 --> R3
+        R3 --> R4
+        R4 -- yes/是 --> R6
+        R4 -- no/否 --> R5
+        R5 --> R1
+        R1 -- max reached/達重試上限 --> R7
+    end
+
+    C0 --> C1
+    C1 -- yes/是 --> C2
+    C2 --> C3
+    C3 --> C4
+    C4 --> C5
+    C5 --> C6
+    C1 -- no/否 --> C7
+    C7 --> C8
+    C6 --> C9
+    C8 --> C9
+    C9 --> C10
+    C3 -.-> R1
+    C6 -.-> R1
+    C8 -.-> R1
+```
+
+圖 C 把 two-pass/single-pass 分流與 JSON 修復回圈同圖呈現，方便定位是「抽取策略問題」或「格式重試問題」。節點已改為英文 + 繁中說明，便於程式對照與閱讀。
+
+#### 圖 E：非同步查詢與 Agentic Loop（`/api/query_async/*`，現行 Chat 主路徑）
+
+```mermaid
+flowchart TB
+    subgraph API["API｜非同步查詢"]
+        E1[post api query async start｜非同步查詢啟動入口]
+        E2[create query job with planner stage｜建立 query job 與初始階段]
+        E3[run worker thread｜背景執行查詢工作]
+        E4[get api query async by job id｜依 job id 查詢狀態]
+        E5[return progress result error｜回傳進度結果錯誤]
+    end
+
+    subgraph LOOP["LOOP｜agentic迴圈"]
+        F1[load schema and entity names｜載入 schema 與實體名稱]
+        F2[emit agentic progress callback｜發送 agentic progress 事件]
+        F3[planner｜planner 規劃查詢策略]
+        F4[reactor｜reactor 生成查詢動作]
+        F5[deterministic checks｜決定性檢查與守門]
+        F6[execute cypher and optional relax｜執行 cypher 與必要放寬]
+        F7[critic｜critic 評估結果品質]
+        F8{verdict｜判定結果分支}
+        F9[replanner｜replanner 產生新計畫]
+        F10[next round｜進入下一輪]
+        F11[accept rows done｜接受結果並完成]
+        F12[fail fast or exhausted｜fail_fast 或輪次耗盡]
+        F13[finance fallback template｜財報模板 fallback]
+    end
+
+    E1 --> E2
+    E2 --> E3
+    E3 --> F1
+    F1 --> F2
+    F2 --> F3
+    F3 --> F4
+    F4 --> F5
+    F5 --> F6
+    F6 --> F7
+    F7 --> F8
+    F8 -- accept/接受 --> F11
+    F8 -- replan/重規劃 --> F9
+    F9 --> F10
+    F10 --> F4
+    F8 -- fail/失敗 --> F12
+    F12 -- finance/財報回退 --> F13
+    F2 -.-> E2
+    F11 --> E5
+    F12 --> E5
+    F13 --> E5
+    E4 --> E5
+```
+
+圖 E 對齊目前 agentic 實作：`planner -> reactor -> deterministic checks -> execute/critic -> replan`，並包含 `fail_fast/exhausted` 與財報模板回退分支。節點已改為英文 + 繁中說明，便於程式對照與閱讀。
+
+#### 圖 D：圖 E 會走到的共用回答後處理（query_kg answer fallback）
+
+```mermaid
+flowchart TB
+    D0[query async worker calls logic query kg｜async worker 呼叫 query_kg]
+    D1[qa service query kg｜qa service 主流程]
+    D2[answer with manual prompt｜執行 answer_with_manual_prompt]
+    D3[raw result with cypher rows trace｜取得 cypher rows trace]
+    D4{use qa llm｜是否啟用 QA LLM}
+    D5[generate answer with llm｜LLM 生成自然語句答案]
+    D6{answer valid｜QA LLM 答案是否可用}
+    D7[answer source qa llm｜answer_source 設為 qa_llm]
+    D8[summarize rows fallback｜rows 模板摘要 fallback]
+    D9[answer source template fallback｜answer_source 設為 template_fallback]
+    D10[return answer rows cypher to async job result｜回寫 async job 最終結果]
+
+    D0 --> D1
+    D1 --> D2
+    D2 --> D3
+    D3 --> D4
+    D4 -- yes/是 --> D5
+    D5 --> D6
+    D6 -- yes/是 --> D7
+    D6 -- no/否 --> D8
+    D4 -- no/否 --> D8
+    D8 --> D9
+    D7 --> D10
+    D9 --> D10
+```
+
+圖 D 只保留圖 E 會用到的共用後處理：`answer_with_manual_prompt` 產生查詢結果後，由 QA 層決定 `qa_llm` 或 `template_fallback`，並把 `answer_source` 寫回 async job result。節點已改為英文 + 繁中說明，便於程式對照與閱讀。
+
+#### 本節流程圖涉及的 Env 變數作用表（精簡）
+
+| Env 變數 | 主要讀取位置 | 作用說明 | 流程影響點 |
+| :--- | :--- | :--- | :--- |
+| `CHUNK_SIZE_MODE` | `backend/config/settings.py` -> `backend/services/ingest/service.py` | 切塊策略 `provider|token|char`。 | 圖 A/B |
+| `CHUNK_SIZE_TOKENS` / `CHUNK_MIN_TOKENS` | `backend/config/settings.py` -> `backend/services/ingest/service.py` | token 切塊上限與最小門檻。 | 圖 B |
+| `CHUNK_SIZE_CHARS` / `CHUNK_MIN_CHARS` | `backend/config/settings.py` -> `backend/services/ingest/service.py` | char 切塊上限與最小門檻。 | 圖 B |
+| `INGEST_CHUNK_LIMIT` | `backend/config/settings.py` -> `backend/services/ingest/service.py` | 全域 chunk 上限（與 request 參數合併）。 | 圖 A/B |
+| `KEYWORD_SEARCH_MODE` | `backend/config/settings.py` -> `backend/services/ingest/service.py` | 控制 keyword crawl 搜尋策略（html_only/html_first 等）。 | 圖 A |
+| `EXTRACTION_JSON_MODE` | `backend/llm_kg/kg_builder.py` | JSON 解析模式。 | 圖 C |
+| `EXTRACTION_MAX_JSON_RETRIES` | `backend/llm_kg/kg_builder.py` | 修復重試上限。 | 圖 C |
+| `EXTRACTION_NUM_PREDICT` | `backend/config/settings.py` -> `backend/llm_kg/kg_builder.py` | 抽取輸出 token 預算。 | 圖 C |
+| `GEMINI_TWO_PASS_EXTRACTION` | `backend/llm_kg/kg_builder.py` | two-pass 分支開關。 | 圖 C |
+| `KG_QA_USE_LLM` | `backend/services/qa/service.py` | 是否啟用 QA LLM 改寫。 | 圖 D |
+| `KG_QA_MODEL` / `KG_QA_TEMPERATURE` / `KG_QA_MAX_TOKENS` / `KG_QA_MAX_ROWS_FOR_PROMPT` | `backend/services/qa/service.py` | QA 回答品質與輸出長度控制。 | 圖 D |
+| `NL2CYPHER_TIMEOUT_SECONDS` / `NL2CYPHER_NUM_PREDICT` | `backend/llm_kg/nl2cypher.py` | NL2Cypher 呼叫 timeout 與 token 預算。 | 圖 E |
+| `NL2CYPHER_PROVIDER` / `NL2CYPHER_MODEL` | `backend/config/settings.py` -> `backend/llm_kg/nl2cypher.py` | 查詢階段 provider/model（可被 QueryRequest 覆寫）。 | 圖 E：async 查詢與 agentic loop；圖 D：共用回答後處理 |
+| `NL2CYPHER_AGENTIC_MAX_ROUNDS` | `backend/llm_kg/nl2cypher.py` | agentic loop 最大輪數。 | 圖 E |
+| `NL2CYPHER_AGENTIC_PLAN_TOKENS` / `NL2CYPHER_AGENTIC_REACT_TOKENS` / `NL2CYPHER_AGENTIC_CRITIC_TOKENS` | `backend/llm_kg/nl2cypher.py` | planner/reactor/critic token 預算。 | 圖 E |
+| `CYPHER_REPAIR_RETRIES`（legacy） | `backend/llm_kg/nl2cypher.py` | 舊式修復語境參數；非 agentic 主迴圈控制鈕。 | 圖 E 次要路徑 |
+
+#### 本節流程圖涉及的核心函式作用表（精簡）
+
+| 函式 | 檔案 | 作用 |
+| :--- | :--- | :--- |
+| `process_text_sync` / `process_url_sync` / `process_keyword_sync` | `backend/api/routers/ingest.py` | Ingest 同步 API 入口。 |
+| `process_text_async_start` / `process_url_async_start` / `process_keyword_async_start` | `backend/api/routers/ingest.py` | Ingest 非同步入口（建立 job + 背景執行）。 |
+| `logic.process_*_to_kg` | `backend/logic.py` | Facade wrapper，轉呼叫 ingest service。 |
+| `chunk_text` / `_resolve_chunk_limit` / `build_kg_from_chunks` | `backend/services/ingest/service.py` | 切塊、限流、逐 chunk 抽取與統計聚合。 |
+| `extract_entities_relations` / `_extract_entities_relations_two_pass` | `backend/llm_kg/kg_builder.py` | 抽取主控制器（single/two-pass）。 |
+| `_extract_json_with_retry` / `_sanitize_extraction` | `backend/llm_kg/kg_builder.py` | JSON 修復重試與 schema 清洗守門。 |
+| `populate_graph` | `backend/llm_kg/kg_builder.py` | Neo4j upsert 協調。 |
+| `query_sync` / `query_async_start` / `query_async_status` | `backend/api/routers/qa.py` | Query 同步/非同步 API 與 job 狀態查詢。 |
+| `logic.query_kg` | `backend/logic.py` | QA facade wrapper。 |
+| `backend/services/qa/service.py::query_kg` | `backend/services/qa/service.py` | query 結果整形與回答策略分流。 |
+| `answer_with_manual_prompt` / `_run_agentic_query_loop` / `_emit_progress` | `backend/llm_kg/nl2cypher.py` | agentic NL2Cypher 主流程與進度回報。 |
+| `_run_planner_agent` / `_run_reactor_agent` / `_run_critic_agent` / `_run_replanner_agent` | `backend/llm_kg/nl2cypher.py` | planner/reactor/critic/replanner 子代理決策鏈。 |
+| `_build_finance_template_cypher` | `backend/llm_kg/nl2cypher.py` | finance fail_fast/exhausted 時的 deterministic fallback。 |
+| `_generate_kg_answer_with_llm` / `_summarize_query_rows` | `backend/services/qa/service.py` | `qa_llm` 與 `template_fallback` 回答分支。 |
 
 ---
 

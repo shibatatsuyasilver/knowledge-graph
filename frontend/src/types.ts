@@ -120,6 +120,49 @@ export interface QueryResponse {
   answer?: string
   attempt?: number
   answer_source?: 'qa_llm' | 'template_fallback'
+  agentic_trace?: {
+    stage: string
+    round_count: number
+    replan_count: number
+    final_strategy: string
+    failure_chain: string[]
+    llm_provider?: string
+    llm_model?: string
+  }
+}
+
+export interface QueryRequest {
+  question: string
+  nl2cypher_provider?: ExtractionProvider
+  nl2cypher_model?: string
+}
+
+export type QueryJobStatus = 'running' | 'completed' | 'failed'
+
+export interface QueryProgressSnapshot {
+  status?: QueryJobStatus
+  question?: string
+  stage?: string
+  round_count?: number
+  replan_count?: number
+  final_strategy?: string
+  failure_chain?: string[]
+  detail?: string
+  llm_provider?: string
+  llm_model?: string
+}
+
+export interface QueryJobStartResponse {
+  job_id: string
+  status: 'running'
+}
+
+export interface QueryJobStateResponse {
+  job_id: string
+  status: QueryJobStatus
+  progress?: QueryProgressSnapshot
+  result?: QueryResponse
+  error?: string
 }
 
 export interface ChatHistoryMessage {

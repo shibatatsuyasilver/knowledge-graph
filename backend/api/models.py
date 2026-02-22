@@ -23,6 +23,8 @@ class TextRequest(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str
+    nl2cypher_provider: Optional[Literal["ollama", "gemini"]] = None
+    nl2cypher_model: Optional[str] = None
 
 
 class KeywordRequest(BaseModel):

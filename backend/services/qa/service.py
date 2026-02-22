@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 from collections.abc import Mapping
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from backend.config.settings import get_general_chat_settings, get_kg_qa_settings
 from backend.llm_kg import llm_client
@@ -21,6 +22,37 @@ def _load_kg_query_executor() -> Any:
             "Unable to load KG query module. Install backend dependencies before calling KG endpoints."
         ) from exc
     return answer_with_manual_prompt
+
+
+def _invoke_kg_query_executor(
+    *,
+    executor: Callable[..., Dict[str, Any]],
+    question: str,
+    progress_callback: Optional[Callable[[Dict[str, Any]], None]],
+    nl2cypher_provider: Optional[str],
+    nl2cypher_model: Optional[str],
+) -> Dict[str, Any]:
+    """以相容方式呼叫 KG query executor，支援舊版與新版函式簽名。"""
+    kwargs: Dict[str, Any] = {}
+    if progress_callback is not None:
+        kwargs["progress_callback"] = progress_callback
+    if nl2cypher_provider:
+        kwargs["nl2cypher_provider"] = nl2cypher_provider
+    if nl2cypher_model:
+        kwargs["nl2cypher_model"] = nl2cypher_model
+
+    try:
+        signature = inspect.signature(executor)
+    except (TypeError, ValueError):
+        return executor(question, **kwargs)
+
+    params = signature.parameters
+    supports_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values())
+    if supports_kwargs:
+        return executor(question, **kwargs)
+
+    filtered_kwargs = {key: value for key, value in kwargs.items() if key in params}
+    return executor(question, **filtered_kwargs)
 
 
 def _stringify_query_value(value: Any) -> str:
@@ -274,7 +306,12 @@ def _generate_kg_answer_with_llm(*, question: str, cypher: str, rows: List[Dict[
     return normalized
 
 
-def query_kg(question: str) -> Dict[str, Any]:
+def query_kg(
+    question: str,
+    progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    nl2cypher_provider: Optional[str] = None,
+    nl2cypher_model: Optional[str] = None,
+) -> Dict[str, Any]:
     """執行 `query_kg` 的主要流程。
     函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
     """
@@ -283,7 +320,13 @@ def query_kg(question: str) -> Dict[str, Any]:
         raise ValueError("Question cannot be empty")
 
     answer_with_manual_prompt = _load_kg_query_executor()
-    raw_result = answer_with_manual_prompt(cleaned)
+    raw_result = _invoke_kg_query_executor(
+        executor=answer_with_manual_prompt,
+        question=cleaned,
+        progress_callback=progress_callback,
+        nl2cypher_provider=nl2cypher_provider,
+        nl2cypher_model=nl2cypher_model,
+    )
     if not isinstance(raw_result, dict):
         raise RuntimeError("Unexpected KG query result format")
 

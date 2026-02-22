@@ -92,6 +92,10 @@ class Nl2CypherSettings:
     entity_link_threshold: float
     timeout_seconds: int
     num_predict: int
+    agentic_max_rounds: int
+    agentic_plan_tokens: int
+    agentic_react_tokens: int
+    agentic_critic_tokens: int
 
 
 @dataclass(frozen=True)
@@ -286,17 +290,22 @@ def get_nl2cypher_settings() -> Nl2CypherSettings:
     """執行 `get_nl2cypher_settings` 的主要流程。
     函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
     """
+    base_tokens = max(
+        1,
+        get_env_int(
+            "NL2CYPHER_NUM_PREDICT",
+            get_env_int("LLM_MAX_TOKENS", 1024),
+        ),
+    )
     return Nl2CypherSettings(
         cypher_repair_retries=max(0, get_env_int("CYPHER_REPAIR_RETRIES", 2)),
         entity_link_threshold=get_env_float("ENTITY_LINK_THRESHOLD", 0.82),
         timeout_seconds=max(1, get_env_int("NL2CYPHER_TIMEOUT_SECONDS", 180)),
-        num_predict=max(
-            1,
-            get_env_int(
-                "NL2CYPHER_NUM_PREDICT",
-                get_env_int("LLM_MAX_TOKENS", 1024),
-            ),
-        ),
+        num_predict=base_tokens,
+        agentic_max_rounds=max(1, get_env_int("NL2CYPHER_AGENTIC_MAX_ROUNDS", 5)),
+        agentic_plan_tokens=max(1, get_env_int("NL2CYPHER_AGENTIC_PLAN_TOKENS", min(1024, base_tokens))),
+        agentic_react_tokens=max(1, get_env_int("NL2CYPHER_AGENTIC_REACT_TOKENS", base_tokens)),
+        agentic_critic_tokens=max(1, get_env_int("NL2CYPHER_AGENTIC_CRITIC_TOKENS", min(1024, base_tokens))),
     )
 
 
@@ -333,12 +342,34 @@ def resolve_extraction_model(provider: Optional[str], explicit_model: Optional[s
     return value or None
 
 
-def resolve_nl2cypher_model() -> Optional[str]:
+def resolve_nl2cypher_provider(provider: Optional[str]) -> Optional[str]:
+    """執行 `resolve_nl2cypher_provider` 的主要流程。
+    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """
+    value = (provider or get_env_str("NL2CYPHER_PROVIDER", "")).strip().lower()
+    if not value:
+        return None
+    if value not in {"openai", "ollama", "gemini"}:
+        raise ValueError(f"Unsupported NL2CYPHER provider: {value}")
+    return value
+
+
+def resolve_nl2cypher_model(provider: Optional[str] = None, explicit_model: Optional[str] = None) -> Optional[str]:
     """執行 `resolve_nl2cypher_model` 的主要流程。
     函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
     """
+    explicit = (explicit_model or "").strip()
+    if explicit:
+        return explicit
+
     value = get_env_str("NL2CYPHER_MODEL", "").strip()
-    return value or None
+    if value:
+        return value
+
+    resolved_provider = resolve_nl2cypher_provider(provider)
+    if resolved_provider == "gemini":
+        return get_env_str("GEMINI_MODEL", "").strip() or DEFAULT_GEMINI_MODEL
+    return None
 
 
 def resolve_extraction_provider(provider: Optional[str]) -> Optional[str]:

@@ -312,7 +312,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             overflow-x: auto;
-            overflow-y: hidden;
+            overflow-y: visible;
             display: block;
         }
 
@@ -322,10 +322,11 @@
             max-width: none !important;
             width: auto !important;
             height: auto !important;
+            overflow: visible;
             margin: 0 auto;
         }
 
-        /* Collapsible Diagram Containers */
+        /* Section-3 collapsible diagrams */
         .diagram-collapsible {
             margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
@@ -361,12 +362,14 @@
             margin: 0;
             font-size: 1rem;
             font-weight: 600;
+            color: var(--text-color);
         }
 
         .diagram-collapsible-content {
             display: none;
             padding: 1rem;
             border-top: 1px solid var(--border-color);
+            background: var(--card-bg);
         }
 
         .diagram-collapsible.open .diagram-collapsible-content {
@@ -375,13 +378,29 @@
 
         .diagram-collapsible-content .mermaid {
             margin-top: 0;
+            margin-bottom: 1rem;
         }
 
-        .diagram-collapsible-content p {
-            margin-top: 1rem;
+        .diagram-detail {
+            margin-top: 0.5rem;
+            padding: 0.9rem 1rem;
+            background: var(--neutral-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        .diagram-detail ol {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+
+        .diagram-detail li {
+            margin-bottom: 0.45rem;
+            color: var(--secondary-color);
+        }
+
+        .diagram-detail li:last-child {
             margin-bottom: 0;
-            color: var(--text-muted);
-            font-size: 0.9rem;
         }
 
         /* Lists */
@@ -559,6 +578,11 @@
                                 <td><strong>MoM/YoY 問題觸發 Cypher syntax error（500）</strong></td>
                                 <td>1. 擴充財報偵測詞（mom/yoy/月增/年增）<br>2. 新增 Cypher 語法守門（攔截 label {function(...)} 類型）<br>3. 重試失敗時回可解釋答案而不是 500</td>
                                 <td><span class="badge pending">🚧 待實作</span><br>(建議優先修復)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>UNION/UNION ALL 分支 RETURN 欄位別名不一致，觸發 Neo4j syntax error（500）</strong></td>
+                                <td>NL2Cypher 加入 UNION 別名一致規則；執行前新增 UNION RETURN 結構驗證與 alias 自動對齊（以第一分支為 canonical）。若無法安全對齊（欄位數不同/缺 AS alias/缺 RETURN）則回傳明確錯誤進 repair loop。</td>
+                                <td><span class="badge done">✅ 已完成</span><br><code class="text-sm">backend/llm_kg/nl2cypher.py</code>, <code class="text-sm">backend/llm_kg/tests/test_nl2cypher_union_guard.py</code></td>
                             </tr>
                             <tr>
                                 <td><strong>一句多問（例如「董事長 + 創辦人」）</strong></td>
@@ -746,10 +770,10 @@
                 <div id="section-3-step">
                     <h3>步驟說明</h3>
                     <ul>
-                        <li><strong>數據來源</strong>: 企業財務報告 (Financial Reports) 與新聞稿 (範例：鴻海、台積電)。</li>
+                        <li><strong>數據來源</strong>: 以企業財務報告 (Financial Reports) 與新聞稿為主要示例（範例：鴻海、台積電）；實作上可處理一般 text/url/keyword 來源。</li>
                         <li><strong>Graph DB</strong>: 選擇 <strong>Neo4j (Community Edition v5)</strong>。</li>
                         <li><strong>建置流程</strong>: 使用 <code>backend/llm_kg/kg_builder.py</code> 進行自動化建置。</li>
-                        <li><strong>大檔處理策略</strong>: 透過 <code>backend/logic.py</code> 先做 chunking（token/char budget），再逐塊呼叫 <code>backend/llm_kg/kg_builder.py</code> 抽取與 upsert，避免單次大上下文造成 OOM。</li>
+                        <li><strong>大檔處理策略</strong>: 由 <code>backend/logic.py</code> 作 facade 轉發，實際在 <code>backend/services/ingest/service.py</code> 先做 chunking（token/char budget），再逐塊呼叫 <code>backend/llm_kg/kg_builder.py</code> 抽取與 upsert，避免單次大上下文造成 OOM。</li>
                     </ul>
                 </div>
 
@@ -762,7 +786,7 @@
                             <ul>
                                 <li>預設 Single-pass：一次輸出 <code>entities + relations</code>。</li>
                                 <li>Gemini 可啟用 Two-pass（<code>GEMINI_TWO_PASS_EXTRACTION=1</code>）：先實體盤點，再以 seed entities 抽關係，並先補齊 KG 缺漏實體後再做第二階段關係抽取。</li>
-                                <li>解析失敗時有 Retry & Repair（最多 5 次）以修復 JSON。</li>
+                                <li>解析失敗時有 Retry & Repair（預設總嘗試 5 次，可由 <code>EXTRACTION_MAX_JSON_RETRIES</code> 調整）以修復 JSON。</li>
                             </ul>
                         </li>
                         <li><strong>抽取後清洗 (Post-processing)</strong>:
@@ -779,18 +803,20 @@
                                 <li><code>_create_relation()</code>：使用 <code>MERGE (a)-[:REL]->(b)</code> upsert 關係。</li>
                                 <li><code>populate_graph()</code>：逐筆寫入 entities/relations，回傳統計（upsert 數、drop 數、json retries）。</li>
                             </ol>
+                            <ul>
+                                <li><strong>為何使用 <code>MERGE</code></strong>：確保建圖流程具備 idempotent（可重入）特性。相同資料在重跑、重試或 chunk 重疊時，不會重複建立同名實體與同向關係；只會更新既有節點/關係屬性（如 <code>updatedAt</code>、<code>aliases</code>），維持圖譜一致性。</li>
+                            </ul>
                         </li>
-                        <li><strong>流程邊界說明</strong>: <code>GraphCypherQAChain</code> 屬於 <strong>NL2Cypher 查詢階段</strong>（<code>backend/llm_kg/nl2cypher.py</code>），不是實體/關係抽取階段。</li>
                     </ul>
                 </div>
 
                 <div id="section-3-1">
                     <h3>(1) 利用 LLM 建立 Knowledge Graph</h3>
                     <ul>
-                        <li><strong>方法</strong>: 採用 <strong>Two-Pass Extraction (兩階段抽取法)</strong>。
+                        <li><strong>方法</strong>: 抽取策略為「預設 <strong>Single-pass</strong>；在 <code>provider=gemini</code> 且 <code>GEMINI_TWO_PASS_EXTRACTION=1</code> 時採用 <strong>Two-Pass</strong>」。
                             <ul>
-                                <li><strong>Phase 1 (Entity Inventory)</strong>: 先讓 LLM 掃描全文，列出所有實體 (Entities)，進行標準化 (Canonicalization)。</li>
-                                <li><strong>Phase 2 (Relation Extraction)</strong>: 將第一階段的實體清單作為 Context 餵給 LLM，要求其找出實體間的關係 (Relations)。</li>
+                                <li><strong>Two-Pass / Phase 1 (Entity Inventory)</strong>: 先讓 LLM 掃描全文，列出所有實體 (Entities)，進行標準化 (Canonicalization)。</li>
+                                <li><strong>Two-Pass / Phase 2 (Relation Extraction)</strong>: 將第一階段的實體清單作為 Context 餵給 LLM，要求其找出實體間的關係 (Relations)。</li>
                             </ul>
                         </li>
                         <li><strong>遇到的問題與解決</strong>:
@@ -831,48 +857,137 @@
                 <div id="section-3-2">
                     <h3>(2) 使用者問題轉 Graph DB 查詢 (NL2Cypher)</h3>
                     <ul>
-                        <li><strong>方法</strong>: <code>backend/llm_kg/nl2cypher.py</code> 採 <strong>雙路徑策略</strong>：
+                        <li><strong>方法</strong>: <code>backend/llm_kg/nl2cypher.py</code> 提供兩種方法；目前 <code>/api/query</code> 與 <code>/api/query_async/*</code> 主路徑使用 Manual/Agentic：
                             <ul>
-                                <li><strong>Path A (LangChain)</strong>: 使用 <code>GraphCypherQAChain + Neo4jGraph</code> 直接將自然語言轉 Cypher（需安裝 <code>langchain</code>/<code>langchain-community</code>，且目前實作限制 <code>LLM_PROVIDER=ollama</code>）。</li>
-                                <li><strong>Path B (Manual)</strong>: 使用 <strong>Ministral 3 (14B)</strong> 搭配 <strong>Schema-Aware Prompting</strong> 與修復重試（self-correction）流程。</li>
-                                <li>若 LangChain 依賴未安裝或 provider 不符，會自動 fallback 到 Manual 路徑，確保查詢流程不中斷。</li>
-                                <li>Manual 路徑會將 Graph Schema (節點類型、關係、屬性) 注入 Prompt，並用 Few-Shot Examples 引導 Cypher 生成。</li>
+                                <li><strong>Path A (LangChain / langchain-neo4j 用語對齊)</strong>: 使用 <code>GraphCypherQAChain + Neo4jGraph</code> 直接將自然語言轉 Cypher。文件用語對齊新版 <code>langchain-neo4j</code> / <code>langchain_neo4j</code>；目前程式仍採 <code>langchain_community</code> 匯入相容路徑（<code>backend/llm_kg/nl2cypher.py:30</code>、<code>backend/llm_kg/nl2cypher.py:31</code>），且僅在 <code>LLM_PROVIDER=ollama</code> 可用（<code>backend/llm_kg/nl2cypher.py:994</code>）。</li>
+                                <li><strong>Path B (Manual/Agentic)</strong>: 使用可配置模型（常見為 <strong>Ministral 3 (14B)</strong>）搭配 <strong>Schema-Aware Prompting</strong>、deterministic guards 與 agentic loop。</li>
+                                <li><code>GraphCypherQAChain</code> 目前為可選方法（<code>query_with_graph_chain</code>），尚未納入 API 主路徑的自動切換。</li>
+                                <li>Manual 路徑會將 Graph Schema (節點類型、關係、屬性) 注入 Prompt，並透過 JSON contract 與 guardrails 約束 Cypher 生成。</li>
                             </ul>
                         </li>
                     </ul>
 
                     <h4>使用 <code>GraphCypherQAChain</code> 的好處（官方文件對應）</h4>
                     <ul>
-                        <li><strong>端到端流程內建</strong>：可直接完成「自然語言問題 -> 產生 Cypher -> 查 Neo4j -> 生成答案」，減少自行串接 prompt/executor/answerer 的樣板程式。</li>
-                        <li><strong>Schema 導向，降低亂生查詢</strong>：官方整合文件示範以圖譜 schema 生成 Cypher，且可 <code>refresh_schema()</code>；<code>enhanced_schema=True</code> 會自動掃描樣本值與分佈資訊，讓生成更貼近實際資料。</li>
-                        <li><strong>可觀測性高，便於除錯</strong>：<code>return_intermediate_steps=True</code> 可拿到「生成的 Cypher + 查詢 context」，方便追蹤錯誤與建立稽核紀錄。</li>
-                        <li><strong>結果可控，避免過量回傳</strong>：<code>top_k</code> 可限制回傳筆數（官方預設 10），<code>return_direct=True</code> 可直接拿資料列，方便下游 API/前端自行格式化。</li>
-                        <li><strong>可客製 Cypher 生成品質</strong>：可透過 <code>cypher_prompt</code> 注入 few-shot 範例；亦可分離 <code>cypher_llm</code> 與 <code>qa_llm</code>，分別優化「查詢生成」與「答案敘述」。</li>
-                        <li><strong>可限制 schema 子集，減少誤查</strong>：<code>include_types</code> / <code>exclude_types</code> 可在生成階段排除特定節點或關係，縮小查詢空間。</li>
-                        <li><strong>可做關係方向校正</strong>：<code>validate_cypher=True</code> 可驗證並修正關係方向，降低因方向錯誤導致的空結果或錯誤查詢。</li>
-                        <li><strong>可用 function/tool response 強化答案貼地性</strong>：<code>use_function_response=True</code> 會以工具輸出方式提供資料庫 context，官方文件明確指出可提升答案準確性與相關性（需模型支援 function calling）。</li>
+                        <li><strong>[官方可用，本專案未啟用] 端到端流程內建</strong>：<code>GraphCypherQAChain</code> 可直接完成「自然語言問題 -> 產生 Cypher -> 查 Neo4j -> 生成答案」。本專案目前僅保留 <code>query_with_graph_chain</code> 作為可選方法，未納入 API 主路徑自動切換。</li>
+                        <li><strong>[官方可用，本專案未啟用] Schema 導向生成 Cypher</strong>：可配合 <code>Neo4jGraph.refresh_schema()</code> 與 <code>enhanced_schema=True</code>，降低不存在 label/property/relationship 的生成風險；本專案目前未在 chain 路徑啟用這兩項設定。</li>
+                        <li><strong>[現況已用] 可觀測性高，便於除錯</strong>：目前 <code>query_with_graph_chain</code> 已設定 <code>return_intermediate_steps=True</code>，可取得中間產物（生成 Cypher 與查詢 context）供除錯與稽核（<code>backend/llm_kg/nl2cypher.py:1005</code>）。</li>
+                        <li><strong>[官方可用，本專案未啟用] 結果可控</strong>：<code>top_k</code>、<code>return_direct=True</code> 可限制資料量與輸出型態；本專案目前未在 chain 初始化中設定這些參數。</li>
+                        <li><strong>[官方可用，本專案未啟用] 可客製 Cypher 生成品質</strong>：可透過 <code>cypher_prompt</code> 注入 few-shot，或分離 <code>cypher_llm</code> / <code>qa_llm</code> 做任務分工；本專案目前未在 chain 路徑配置。</li>
+                        <li><strong>[官方可用，本專案未啟用] 可限制 schema 子集</strong>：<code>include_types</code> / <code>exclude_types</code> 可縮小生成空間，降低誤查；本專案目前未啟用。</li>
+                        <li><strong>[本專案以替代機制實作] 關係校正與守門</strong>：官方可用 <code>validate_cypher=True</code>。本專案目前未啟用該 chain 參數，改由 deterministic 檢查中的 <code>validate_cypher_relationships()</code> 執行關係型別驗證（<code>backend/llm_kg/nl2cypher.py:1089</code>、<code>backend/llm_kg/nl2cypher.py:1613</code>）。</li>
+                        <li><strong>[官方可用，本專案未啟用] function/tool response</strong>：<code>use_function_response=True</code> 可提升答案與資料列一致性；本專案目前未啟用。</li>
+                        <li><strong>[現況已用] 風險明示同意</strong>：目前 <code>query_with_graph_chain</code> 已顯式設定 <code>allow_dangerous_requests=True</code>（<code>backend/llm_kg/nl2cypher.py:1006</code>）。</li>
                     </ul>
 
-                    <p><strong>官方來源（LangChain）</strong></p>
+                    <h4>常見誤解澄清（新版用語）</h4>
+                    <ul>
+                        <li><strong><code>GraphCypherQAChain</code> 與 <code>Neo4jGraph</code> 功能分層不同</strong>：前者負責 NL -> Cypher -> Query -> QA 編排；後者負責圖連線與 schema 提供。</li>
+                        <li><strong><code>refresh_schema()</code> / <code>enhanced_schema</code> 屬於 <code>Neo4jGraph</code></strong>：不是 <code>GraphCypherQAChain</code> 本身的方法。</li>
+                        <li><strong>本專案現況</strong>：<code>query_with_graph_chain</code> 為可選方法，尚未納入 <code>/api/query</code> 與 <code>/api/query_async/*</code> 主路徑自動切換。</li>
+                    </ul>
+
+                    <h4>新版/舊版功能歸屬對照（含本專案現況）</h4>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>主題</th>
+                                    <th>功能</th>
+                                    <th>所屬元件</th>
+                                    <th>本專案現況</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>端到端 NL -> Cypher -> QA</td>
+                                    <td><code>GraphCypherQAChain.from_llm(...)</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>不在主路徑</td>
+                                </tr>
+                                <tr>
+                                    <td>限制回傳筆數</td>
+                                    <td><code>top_k</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>直接回傳資料列</td>
+                                    <td><code>return_direct</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>輸出中間步驟</td>
+                                    <td><code>return_intermediate_steps</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>已使用</td>
+                                </tr>
+                                <tr>
+                                    <td>關係方向驗證/修正</td>
+                                    <td><code>validate_cypher</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>限制 schema 子集</td>
+                                    <td><code>include_types</code> / <code>exclude_types</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>function/tool response</td>
+                                    <td><code>use_function_response</code></td>
+                                    <td><code>GraphCypherQAChain</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>刷新 schema</td>
+                                    <td><code>refresh_schema()</code></td>
+                                    <td><code>Neo4jGraph</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>schema 增強（樣本值/分佈）</td>
+                                    <td><code>enhanced_schema=True</code></td>
+                                    <td><code>Neo4jGraph</code></td>
+                                    <td>可用未啟用</td>
+                                </tr>
+                                <tr>
+                                    <td>關係型別 deterministic 驗證</td>
+                                    <td><code>validate_cypher_relationships()</code></td>
+                                    <td>本專案 NL2Cypher 守門</td>
+                                    <td>已使用</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>官方來源（LangChain，最新版）</strong></p>
                     <ol>
-                        <li>Neo4j integration：<a href="https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher" target="_blank">https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher</a></li>
-                        <li>GraphCypherQAChain API Reference：<a href="https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html" target="_blank">https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html</a></li>
+                        <li>Neo4j provider integration：<a href="https://docs.langchain.com/oss/python/integrations/providers/neo4j" target="_blank">https://docs.langchain.com/oss/python/integrations/providers/neo4j</a></li>
+                        <li>Neo4j graph/cypher integration：<a href="https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher" target="_blank">https://docs.langchain.com/oss/python/integrations/graphs/neo4j_cypher</a></li>
                         <li>LangChain Security：<a href="https://docs.langchain.com/oss/python/security-policy" target="_blank">https://docs.langchain.com/oss/python/security-policy</a></li>
                     </ol>
 
-                    <blockquote>安全註記（官方）：<code>GraphCypherQAChain</code> 需明確 <code>allow_dangerous_requests=True</code> 才可執行，且官方要求資料庫帳號必須使用最小權限（narrowly-scoped credentials）。</blockquote>
+                    <p><strong>Legacy 參考（對照目前 <code>langchain_community</code> 匯入路徑）</strong></p>
+                    <ol>
+                        <li>GraphCypherQAChain API Reference（community）：<a href="https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html" target="_blank">https://api.python.langchain.com/en/latest/community/chains/langchain_community.chains.graph_qa.cypher.GraphCypherQAChain.html</a></li>
+                    </ol>
+
+                    <blockquote>安全註記（官方 + 現況）：<code>GraphCypherQAChain</code> 需明確 <code>allow_dangerous_requests=True</code> 才可執行，且官方要求資料庫帳號必須使用最小權限（narrowly-scoped credentials）。本專案目前在 <code>query_with_graph_chain</code> 已顯式設定此參數（<code>backend/llm_kg/nl2cypher.py:1006</code>）。</blockquote>
 
                     <ul>
                         <li><strong>遇到的問題與解決</strong>:
                             <ul>
                                 <li><strong>語法錯誤 (Syntax Error)</strong>: 生成的 Cypher 無法執行。
                                     <ul>
-                                        <li><strong>解決</strong>: 實作 <strong>Self-Correction Loop</strong>。捕捉 Neo4j 錯誤訊息，將錯誤回傳給 LLM 要求修正 (Retry up to 3 times)。</li>
+                                        <li><strong>解決</strong>: 主流程採用 agentic loop（planner/reactor/critic/replanner）逐輪修正；當 reactor 失敗時，才回退到 legacy <code>natural_language_to_cypher</code> 修復提示路徑。</li>
                                     </ul>
                                 </li>
                                 <li><strong>語意不清</strong>: 使用者問「董事長」但 Schema 只有 <code>CHAIRED_BY</code> 關係。
                                     <ul>
-                                        <li><strong>解決</strong>: 在 System Prompt 中加入 <strong>Semantic Mapping Rules</strong> (e.g., "董事長" maps to <code>CHAIRED_BY</code> relationship)。</li>
+                                        <li><strong>解決</strong>: 以 Prompt 規則搭配 deterministic checks（例如領導職稱問題禁用 <code>FOUNDED_BY</code>）維持語意對齊。</li>
                                     </ul>
                                 </li>
                                 <li><strong>財報數據造假</strong>: LLM 傾向直接生成數字而非查詢資料庫。
@@ -925,365 +1040,320 @@
                             </tbody>
                         </table>
                     </div>
+                    <p><em>註</em>：本節比較屬技術選型評估，市場與效能指標為外部資訊，非本 repo 內可直接驗證項目。</p>
                 </div>
 
                 <div id="section-3-4">
                     <h3>(4) 詳細流程圖（建圖 + 查詢全流程）</h3>
-                    <p>以下以四張分層流程圖，對應目前實作中的函式與關鍵環境變數，完整展示 Domain KG 從 ingest 到 query 的執行路徑與守門邏輯（點擊標題展開查看）。</p>
+                    <p>以下重構為五張分層流程圖：完整覆蓋 ingest 的同步/非同步路徑；查詢面以現行 Chat 使用的 async agentic 路徑為主，並補上其共用回答後處理（點擊標題展開查看，內含詳細流程說明）。</p>
 
-                    <!-- 圖 A：Domain KG 建圖主流程 -->
+                    <!-- 圖 A：Ingest API 與任務協調總覽 -->
                     <div class="diagram-collapsible">
                         <div class="diagram-collapsible-header">
                             <span class="toggle-icon">▶</span>
-                            <h4>圖 A：Domain KG 建圖主流程（Ingest -> Chunk -> Extract -> Sanitize -> Upsert）</h4>
+                            <h4>圖 A：Ingest API 與同步/非同步任務協調總覽</h4>
                         </div>
                         <div class="diagram-collapsible-content">
                             <div class="mermaid">flowchart TB
-    subgraph API["API 入口 (backend/main.py)"]
-        A1["POST /api/process_text(_async)"]
-        A2["POST /api/process_url(_async)"]
-        A3["POST /api/process_keyword(_async)"]
+    subgraph API["API｜入口與查詢"]
+        A1[POST api process text｜同步文字建圖請求入口]
+        A2[POST api process url｜同步網址建圖請求入口]
+        A3[POST api process keyword｜同步關鍵字建圖請求入口]
+        A4[POST api process text async start｜非同步文字建圖啟動入口]
+        A5[POST api process url async start｜非同步網址建圖啟動入口]
+        A6[POST api process keyword async start｜非同步關鍵字建圖啟動入口]
+        A7[GET api process text async by job id｜非同步文字建圖狀態查詢]
+        A8[GET api process url async by job id｜非同步網址建圖狀態查詢]
+        A9[GET api process keyword async by job id｜非同步關鍵字建圖狀態查詢]
     end
 
-    subgraph INGEST["Ingest 與切塊 (backend/logic.py)"]
-        B1["logic.process_text_to_kg / process_url_to_kg / process_keyword_to_kg"]
-        B2["chunk_text (provider-aware token/char budget)"]
-        B3["_resolve_chunk_limit (chunk_limit or INGEST_CHUNK_LIMIT)"]
-        B4["build_kg_from_chunks (iterate chunk_progress)"]
+    subgraph JOB["JOB｜建立與回寫"]
+        B1[create job in ingest or keyword store｜建立 ingest 或 keyword job 紀錄]
+        B2[run worker thread｜背景執行緒處理作業]
+        B3[update progress result error｜更新進度與結果錯誤]
+        B4[get job by id｜依 job id 讀取狀態]
     end
 
-    subgraph EXTRACT["抽取與清洗 (backend/llm_kg/kg_builder.py)"]
-        C1["KnowledgeGraphBuilder.extract_entities_relations"]
-        C2{"GEMINI_TWO_PASS_EXTRACTION and provider=gemini?"}
-        C3["Single-pass relation prompt"]
-        C4["Two-pass: Phase-1 entity inventory -> prefill missing -> Phase-2 relation extraction"]
-        C5["_extract_json_with_retry (EXTRACTION_JSON_MODE / EXTRACTION_MAX_JSON_RETRIES / EXTRACTION_NUM_PREDICT)"]
-        C6["_sanitize_extraction (ALLOWED_ENTITY_TYPES / ALLOWED_RELATION_TYPES / RELATION_DIRECTION_RULES / ENTITY_RESOLVE_THRESHOLD / FOR_PERIOD consistency)"]
+    subgraph PIPE["PIPE｜建圖主鏈"]
+        C1[logic process to kg facade｜logic facade 轉發建圖]
+        C2[ingest service process to kg｜ingest service 主流程]
+        C3[build kg from chunks｜逐 chunk 建圖處理]
+        C4[chunk update callback｜chunk 進度回呼上報]
+        C5[result stats summary chunk progress｜統計與進度摘要輸出]
     end
 
-    subgraph UPSERT["Neo4j Upsert (backend/llm_kg/kg_builder.py)"]
-        D1["populate_graph"]
-        D2["_ensure_constraints (Entity.name unique / normalizedName index)"]
-        D3["_create_entity (MERGE node + aliases + props)"]
-        D4["_create_relation (MERGE relation)"]
-    end
+    A1 --> C1
+    A2 --> C1
+    A3 --> C1
+    A4 --> B1
+    A5 --> B1
+    A6 --> B1
+    B1 --> B2
+    B2 --> C1
+    C1 --> C2
+    C2 --> C3
+    C3 --> C5
+    C3 --> C4
+    C4 --> B3
+    B3 --> A7
+    B3 --> A8
+    B3 --> A9
+    A7 -.-> B4
+    A8 -.-> B4
+    A9 -.-> B4
+    B4 --> A7
+    B4 --> A8
+    B4 --> A9
+</div>
+                            <div class="diagram-detail">
+                                <ol>
+                                    <li>同步入口（text/url/keyword）會直接進入 <code>logic facade</code>，立刻執行建圖流程。</li>
+                                    <li>非同步入口會先建立 job 並立即回傳 <code>job_id</code>，讓前端可先取得追蹤識別。</li>
+                                    <li>背景 worker 取出 job 後，開始呼叫建圖主鏈執行實際資料處理。</li>
+                                    <li><code>logic facade</code> 轉發到 ingest service，接著進入 chunk 化與逐塊建圖。</li>
+                                    <li>每個 chunk 的處理結果會透過 callback 回寫進度，包含目前狀態與錯誤資訊。</li>
+                                    <li>前端使用 polling API 依 <code>job_id</code> 持續查詢，取得最新進度與中間狀態。</li>
+                                    <li>任務完成後回傳 <code>stats/summary/chunk_progress</code>，供畫面顯示最終結果。</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
 
-    E1["輸出: stats + summary + chunk_progress + json_retries + dropped_relations"]
-    ENV1["Env: CHUNK_SIZE_MODE / CHUNK_SIZE_TOKENS / CHUNK_MIN_TOKENS / INGEST_CHUNK_LIMIT / EXTRACTION_JSON_MODE / EXTRACTION_MAX_JSON_RETRIES / EXTRACTION_NUM_PREDICT"]
-    ENV2["Env: GEMINI_TWO_PASS_EXTRACTION"]
+                    <!-- 圖 B：建圖主線 -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 B：建圖主線（Chunk -> Extract -> Sanitize -> Upsert）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    B0[logic process text url keyword to kg｜建圖 facade 入口]
+    B1[service chunk text by token or char｜依 token 或 char 切塊]
+    B2[resolve chunk limit｜套用 chunk_limit 決策]
+    B3[build kg from chunks｜逐塊建圖主迴圈]
+    B4{more chunks｜是否仍有未處理塊}
+    B5[extract entities and relations｜抽取實體與關係]
+    B6[sanitize extraction｜抽取結果清洗守門]
+    B7[populate graph ensure entity relation｜upsert 節點與關係]
+    B8[aggregate stats and chunk status｜聚合統計與狀態]
+    B9[emit chunk update callback｜送出 chunk_update 事件]
+    B10[return stats summary chunk progress｜回傳最終統計進度]
 
-    A1 --> B1
-    A2 --> B1
-    A3 --> B1
+    B0 --> B1
     B1 --> B2
     B2 --> B3
     B3 --> B4
-    B4 --> C1
-    C1 --> C2
-    C2 -- "No" --> C3
-    C2 -- "Yes" --> C4
-    C3 --> C5
+    B4 -- yes/是 --> B5
+    B5 --> B6
+    B6 --> B7
+    B7 --> B8
+    B8 --> B9
+    B9 --> B4
+    B4 -- no/否 --> B10
+</div>
+                            <div class="diagram-detail">
+                                <ol>
+                                    <li>流程入口可接收 text/url/keyword 三類來源，統一進入建圖主鏈。</li>
+                                    <li>系統先依 token 或 char 策略切 chunk，確保長文能被穩定分段處理。</li>
+                                    <li>切塊後套用 request 與全域 <code>chunk_limit</code>，決定可處理的最大 chunk 數量。</li>
+                                    <li>進入逐 chunk 迴圈，逐一處理每個未完成的文本區塊。</li>
+                                    <li>每個 chunk 先執行 entities/relations 抽取，產出候選知識資料。</li>
+                                    <li>抽取結果進入 sanitize 守門，過濾不合法或不一致的節點與關係。</li>
+                                    <li>通過守門後執行 upsert，將節點與關係寫入圖資料庫。</li>
+                                    <li>每輪更新都會累積統計資料並送出 <code>chunk_update</code> 進度事件。</li>
+                                    <li>當沒有剩餘 chunk 時，輸出最終摘要與完整進度統計。</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 C：抽取內核與 Retry/Repair -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 C：抽取內核 Retry/Repair 與 Two-pass 分支</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    C0[extract entities relations entry｜抽取流程入口]
+    C1{gemini two pass enabled｜是否啟用 Gemini two-pass}
+    C2[phase1 entity prompt｜第一階段實體盤點提示]
+    C3[retry json phase1｜第一階段 JSON 重試抽取]
+    C4[fetch existing and prefill missing｜補齊既有實體與預填]
+    C5[phase2 relation prompt｜第二階段關係抽取提示]
+    C6[retry json phase2｜第二階段 JSON 重試抽取]
+    C7[single pass prompt｜單階段抽取提示]
+    C8[retry json single｜單階段 JSON 重試抽取]
+    C9[sanitize extraction｜套用 schema 清洗守門]
+    C10[output entities relations meta｜輸出 entities relations meta]
+
+    subgraph RETRY["RETRY｜JSON重試"]
+        R1[attempt loop｜重試嘗試迴圈]
+        R2{json mode｜JSON 模式判斷}
+        R3[call chat json or text｜呼叫 chat_json chat_text]
+        R4{payload valid｜內容是否有效}
+        R5[build repair prompt｜建立 repair prompt]
+        R6[return payload with retries｜回傳有效 payload 與重試資訊]
+        R7[raise error at max retry｜達上限拋出錯誤]
+        R1 --> R2
+        R2 --> R3
+        R3 --> R4
+        R4 -- yes/是 --> R6
+        R4 -- no/否 --> R5
+        R5 --> R1
+        R1 -- max reached/達重試上限 --> R7
+    end
+
+    C0 --> C1
+    C1 -- yes/是 --> C2
+    C2 --> C3
+    C3 --> C4
     C4 --> C5
     C5 --> C6
-    C6 --> D1
+    C1 -- no/否 --> C7
+    C7 --> C8
+    C6 --> C9
+    C8 --> C9
+    C9 --> C10
+    C3 -.-> R1
+    C6 -.-> R1
+    C8 -.-> R1
+</div>
+                            <div class="diagram-detail">
+                                <ol>
+                                    <li>抽取流程由統一入口開始，先建立當前 provider 與抽取設定上下文。</li>
+                                    <li>系統判斷是否走 Gemini two-pass（需滿足 provider 與 env 條件）。</li>
+                                    <li>two-pass 第一階段先做實體盤點，並走 JSON 重試/修復回圈確保格式可解析。</li>
+                                    <li>第一階段完成後會補齊既有實體，再進入第二階段關係抽取。</li>
+                                    <li>若不符合 two-pass 條件，直接走 single-pass 抽取與 JSON 重試。</li>
+                                    <li>重試回圈統一執行「呼叫模型 -> 驗證 payload -> repair prompt -> 再重試」。</li>
+                                    <li>若達重試上限則拋錯；若成功取得有效 payload 則進入 sanitize。</li>
+                                    <li>最終輸出 <code>entities/relations/meta(retries)</code>，供後續寫圖與統計使用。</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 E：非同步查詢 + Agentic Loop（現行 Chat 主路徑） -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 E：非同步查詢與 Agentic Loop（/api/query_async/*，現行 Chat 主路徑）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    subgraph API["API｜非同步查詢"]
+        E1[post api query async start｜非同步查詢啟動入口]
+        E2[create query job with planner stage｜建立 query job 與初始階段]
+        E3[run worker thread｜背景執行查詢工作]
+        E4[get api query async by job id｜依 job id 查詢狀態]
+        E5[return progress result error｜回傳進度結果錯誤]
+    end
+
+    subgraph LOOP["LOOP｜agentic迴圈"]
+        F1[load schema and entity names｜載入 schema 與實體名稱]
+        F2[emit agentic progress callback｜發送 agentic progress 事件]
+        F3[planner｜planner 規劃查詢策略]
+        F4[reactor｜reactor 生成查詢動作]
+        F5[deterministic checks｜決定性檢查與守門]
+        F6[execute cypher and optional relax｜執行 cypher 與必要放寬]
+        F7[critic｜critic 評估結果品質]
+        F8{verdict｜判定結果分支}
+        F9[replanner｜replanner 產生新計畫]
+        F10[next round｜進入下一輪]
+        F11[accept rows done｜接受結果並完成]
+        F12[fail fast or exhausted｜fail_fast 或輪次耗盡]
+        F13[finance fallback template｜財報模板 fallback]
+    end
+
+    E1 --> E2
+    E2 --> E3
+    E3 --> F1
+    F1 --> F2
+    F2 --> F3
+    F3 --> F4
+    F4 --> F5
+    F5 --> F6
+    F6 --> F7
+    F7 --> F8
+    F8 -- accept/接受 --> F11
+    F8 -- replan/重規劃 --> F9
+    F9 --> F10
+    F10 --> F4
+    F8 -- fail/失敗 --> F12
+    F12 -- finance/財報回退 --> F13
+    F2 -.-> E2
+    F11 --> E5
+    F12 --> E5
+    F13 --> E5
+    E4 --> E5
+</div>
+                            <div class="diagram-detail">
+                                <ol>
+                                    <li><code>/api/query_async/start</code> 會建立 query job，初始化查詢任務與階段狀態。</li>
+                                    <li>worker 啟動後先載入 schema 與 entity names，作為後續 Cypher 生成依據。</li>
+                                    <li>planner 先產生查詢策略，再由 reactor 產生具體 action/cypher。</li>
+                                    <li>所有候選查詢先進 deterministic checks，攔截明顯不安全或不合理語句。</li>
+                                    <li>通過守門後執行 cypher，必要時走 relax 邏輯提升可命中率。</li>
+                                    <li>critic 會評估查詢結果品質，並輸出 accept/replan/fail verdict。</li>
+                                    <li>accept 直接完成；replan 則回到下一輪繼續迭代查詢策略。</li>
+                                    <li><code>fail_fast</code> 或輪次耗盡時進入失敗分支，避免無限重試。</li>
+                                    <li>財報題型可走 finance fallback，最後將結果與狀態回寫到 job。</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 圖 D：圖 E 會走到的共用回答後處理 -->
+                    <div class="diagram-collapsible">
+                        <div class="diagram-collapsible-header">
+                            <span class="toggle-icon">▶</span>
+                            <h4>圖 D：圖 E 會走到的共用回答後處理（query_kg answer fallback）</h4>
+                        </div>
+                        <div class="diagram-collapsible-content">
+                            <div class="mermaid">flowchart TB
+    D0[query async worker calls logic query kg｜async worker 呼叫 query_kg]
+    D1[qa service query kg｜qa service 主流程]
+    D2[answer with manual prompt｜執行 answer_with_manual_prompt]
+    D3[raw result with cypher rows trace｜取得 cypher rows trace]
+    D4{use qa llm｜是否啟用 QA LLM}
+    D5[generate answer with llm｜LLM 生成自然語句答案]
+    D6{answer valid｜QA LLM 答案是否可用}
+    D7[answer source qa llm｜answer_source 設為 qa_llm]
+    D8[summarize rows fallback｜rows 模板摘要 fallback]
+    D9[answer source template fallback｜answer_source 設為 template_fallback]
+    D10[return answer rows cypher to async job result｜回寫 async job 最終結果]
+
+    D0 --> D1
     D1 --> D2
-    D1 --> D3
-    D1 --> D4
-    D2 --> E1
-    D3 --> E1
-    D4 --> E1
-    ENV1 -.->|controls| B2
-    ENV1 -.->|controls| C5
-    ENV2 -.->|controls| C2
+    D2 --> D3
+    D3 --> D4
+    D4 -- yes/是 --> D5
+    D5 --> D6
+    D6 -- yes/是 --> D7
+    D6 -- no/否 --> D8
+    D4 -- no/否 --> D8
+    D8 --> D9
+    D7 --> D10
+    D9 --> D10
 </div>
-                            <p>圖 A 釐清了每個 API 請求如何經過切塊、重試抽取、schema 清洗與 Neo4j upsert，並把輸出指標（`json_retries`、`dropped_relations`）和上游 env 控制點連在同一張圖上，方便排障與容量規劃。</p>
-                            <h5>圖 A 函式作用詳解</h5>
-                            <div class="table-wrapper">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>函式</th>
-                                            <th>檔案</th>
-                                            <th>主要作用</th>
-                                            <th>關鍵輸入 / 輸出</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><code>process_text_to_kg</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>文字建圖入口；負責前置參數整理、切塊與呼叫建圖主流程。</td>
-                                            <td>In: raw text；Out: <code>stats/summary/chunk_progress</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>process_url_to_kg</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>URL 建圖入口；抓取網頁內容後導入相同的切塊與抽取鏈路。</td>
-                                            <td>In: URL；Out: 同建圖統計結果</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>process_keyword_to_kg</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>關鍵字入口；整合多來源內容並聚合 chunk 與抽取結果。</td>
-                                            <td>In: keyword；Out: 聚合後 stats 與來源狀態</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>chunk_text</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>依 provider/token/char 規則切塊，控制抽取上下文大小與噪音。</td>
-                                            <td>In: text + chunk policy；Out: <code>List[Chunk]</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_resolve_chunk_limit</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>整合 request 參數與 <code>INGEST_CHUNK_LIMIT</code>，決定單次處理上限。</td>
-                                            <td>In: request chunk_limit + env；Out: effective limit</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>build_kg_from_chunks</code></td>
-                                            <td><code>backend/logic.py</code></td>
-                                            <td>逐 chunk 觸發抽取與寫入，累計 chunk_progress 與錯誤統計。</td>
-                                            <td>In: chunk list；Out: aggregate <code>stats</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>extract_entities_relations</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>抽取核心；根據設定走 single-pass 或 two-pass 並回傳實體/關係。</td>
-                                            <td>In: chunk text；Out: <code>entities + relations + meta</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_extract_json_with_retry</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>封裝 LLM JSON 抽取與修復重試，避免壞 JSON 直接中斷流程。</td>
-                                            <td>In: prompt + retry policy；Out: valid payload / raise error</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_sanitize_extraction</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>套用 schema 與財務期間守門，清理不合法或方向錯誤的關係。</td>
-                                            <td>In: raw entities/relations；Out: sanitized result</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>populate_graph</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>將清洗後結果寫入 Neo4j，協調 constraints、節點與關係 upsert。</td>
-                                            <td>In: sanitized extraction；Out: upsert stats</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_ensure_constraints</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>確保實體唯一鍵與索引存在，避免重複節點與慢查詢。</td>
-                                            <td>In: graph handle；Out: constraint/index ready</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_create_entity</code> / <code>_create_relation</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>最終 MERGE 層：寫入節點屬性、別名與關係邊。</td>
-                                            <td>In: normalized entity/relation；Out: merged node/edge</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="diagram-detail">
+                                <ol>
+                                    <li>async worker 會呼叫 <code>query_kg</code>，把查詢結果交給 QA service 後處理。</li>
+                                    <li>QA service 先執行 <code>answer_with_manual_prompt</code> 取得查詢基礎結果。</li>
+                                    <li>拿到 <code>cypher/rows/trace</code> 後，判斷是否啟用 QA LLM 生成自然語句答案。</li>
+                                    <li>若啟用 QA LLM，會先嘗試生成對使用者可讀的最終回答。</li>
+                                    <li>當 QA LLM 答案可用時，設定 <code>answer_source=qa_llm</code>。</li>
+                                    <li>若答案不可用或未啟用 QA LLM，則改走 rows template 摘要 fallback。</li>
+                                    <li>fallback 路徑會設定 <code>answer_source=template_fallback</code>。</li>
+                                    <li>最後把 answer 與 rows/cypher 一起回寫到 async job 最終結果。</li>
+                                </ol>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- 圖 B：抽取核心主流程 -->
-                    <div class="diagram-collapsible">
-                        <div class="diagram-collapsible-header">
-                            <span class="toggle-icon">▶</span>
-                            <h4>圖 B：抽取核心主流程（Two-pass / Single-pass + Sanitization）</h4>
-                        </div>
-                        <div class="diagram-collapsible-content">
-                            <div class="mermaid">flowchart TB
-    X0["extract_entities_relations entry"] --> X1{"GEMINI_TWO_PASS_EXTRACTION and provider=gemini?"}
-    X1 -- "Yes" --> X2["Phase-1 prompt: entity inventory"]
-    X2 --> X4["_extract_json_with_retry (phase1)"]
-    X4 --> X5["_fetch_existing_entity_keys"]
-    X5 --> X6["_prefill_missing_entities"]
-    X6 --> X7["Phase-2 prompt with seed entities"]
-    X7 --> X8["_extract_json_with_retry (phase2)"]
-
-    X1 -- "No" --> X3["Single-pass prompt: entities + relations"]
-    X3 --> X9["_extract_json_with_retry (single pass)"]
-
-    X4 -.->|internal loop detail| CREF["圖 C 展開: Retry and Repair loop"]
-    X8 -.->|internal loop detail| CREF
-    X9 -.->|internal loop detail| CREF
-    Y0 --> Y1["Alias canonicalization (_name_variants / _best_match / ENTITY_RESOLVE_THRESHOLD)"]
-    Y1 --> Y2["Relation validation (ALLOWED_RELATION_TYPES / RELATION_DIRECTION_RULES / reverse-if-possible)"]
-    Y2 --> Y3["Financial guard (FOR_PERIOD mismatch drop / infer metric period)"]
-    Y3 --> Y4["Output: entities + relations + meta(two_pass, json_retries, merged_entities, dropped_relations)"]
-    X8 --> Y0["_sanitize_extraction"]
-    X9 --> Y0
-</div>
-                            <p>圖 B 只保留抽取核心主幹，先看 two-pass/single-pass 分流，再看 sanitize 與最終輸出。重試細節獨立到圖 C，閱讀順序會更直覺。</p>
-                            <h5>圖 B 函式作用詳解</h5>
-                            <div class="table-wrapper">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>函式</th>
-                                            <th>檔案</th>
-                                            <th>主要作用</th>
-                                            <th>在圖中的位置</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><code>extract_entities_relations</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>抽取主控制器；決定走 two-pass 或 single-pass，並負責最後組裝輸出。</td>
-                                            <td><code>X0 -> X1</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_extract_json_with_retry</code> (phase1/phase2/single)</td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>在三個抽取時機點執行 LLM 請求，確保回傳可用 JSON。</td>
-                                            <td><code>X4 / X8 / X9</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_fetch_existing_entity_keys</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>讀取既有實體鍵，避免 two-pass 第 2 階段重複創建或命名飄移。</td>
-                                            <td><code>X5</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_prefill_missing_entities</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>把 Phase-1 的實體盤點補入候選集合，提升 Phase-2 關係抽取命中率。</td>
-                                            <td><code>X6</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_sanitize_extraction</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>整體清洗入口：別名正規化、關係型別/方向檢查、財報期間一致性過濾。</td>
-                                            <td><code>Y0</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_name_variants</code> / <code>_best_match</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>別名與近似比對輔助器；將語義相近名稱收斂成同一 canonical entity。</td>
-                                            <td><code>Y1</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td>關係驗證邏輯（白名單 + 方向規則）</td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>套用 <code>ALLOWED_RELATION_TYPES</code> 與 <code>RELATION_DIRECTION_RULES</code>，必要時反轉，不可修復則丟棄。</td>
-                                            <td><code>Y2</code></td>
-                                        </tr>
-                                        <tr>
-                                            <td>財務期間守門（FOR_PERIOD）</td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>檢查 metric 與 period 是否一致，不一致關係標記 dropped 以避免錯誤推論。</td>
-                                            <td><code>Y3</code></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 圖 C：Retry & Repair loop -->
-                    <div class="diagram-collapsible">
-                        <div class="diagram-collapsible-header">
-                            <span class="toggle-icon">▶</span>
-                            <h4>圖 C：Retry & Repair Loop（_extract_json_with_retry）</h4>
-                        </div>
-                        <div class="diagram-collapsible-content">
-                            <div class="mermaid">flowchart TB
-    R0["entry: _extract_json_with_retry"] --> R1["Attempt i (0..N)"]
-    R1 --> R2{"Mode: strict_json / auto / text (EXTRACTION_JSON_MODE)"}
-    R2 --> R3["llm_client.chat_json or chat_text (EXTRACTION_NUM_PREDICT)"]
-    R3 --> R4{"_validate_extraction_payload ok?"}
-    R4 -- "Yes" --> R8["return valid payload and json_retries=i"]
-    R4 -- "No" --> R5["JSON parse or schema fail -> build repair prompt"]
-    R5 --> R6{"attempt below EXTRACTION_MAX_JSON_RETRIES?"}
-    R6 -- "Yes" --> R1
-    R6 -- "No" --> R7["raise ValueError after max attempts"]
-</div>
-                            <p>圖 C 專門展開 `_extract_json_with_retry` 內部，聚焦 mode 切換、驗證失敗修復與最大重試退出條件，方便直接排查 JSON 格式錯誤。</p>
-                            <h5>圖 C 函式作用詳解</h5>
-                            <div class="table-wrapper">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>函式</th>
-                                            <th>檔案</th>
-                                            <th>主要作用</th>
-                                            <th>失敗處理重點</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><code>_extract_json_with_retry</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>抽取可靠性核心；包住 LLM 呼叫、JSON 驗證、修復重試與最終失敗拋錯。</td>
-                                            <td>超過 <code>EXTRACTION_MAX_JSON_RETRIES</code> 後停止，避免無限重試。</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>llm_client.chat_json</code></td>
-                                            <td><code>backend/llm_kg/llm_client.py</code></td>
-                                            <td>優先要求模型回傳 JSON；在 strict/auto 模式下提升可解析率。</td>
-                                            <td>若回傳非預期格式，交由後續驗證與 repair prompt 修復。</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>llm_client.chat_text</code></td>
-                                            <td><code>backend/llm_kg/llm_client.py</code></td>
-                                            <td>文字輸出備援路徑；再由程式端做 JSON 萃取/修復。</td>
-                                            <td>文本自由度高，解析失敗機率較高，需依靠 retry loop。</td>
-                                        </tr>
-                                        <tr>
-                                            <td><code>_validate_extraction_payload</code></td>
-                                            <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                            <td>檢查 payload 是否符合實體/關係結構要求，攔截格式錯誤與欄位缺漏。</td>
-                                            <td>驗證失敗會觸發 repair prompt，附帶錯誤訊息回送給 LLM。</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 圖 D：查詢流程 -->
-                    <div class="diagram-collapsible">
-                        <div class="diagram-collapsible-header">
-                            <span class="toggle-icon">▶</span>
-                            <h4>圖 D：查詢流程（NL2Cypher + Guardrails + Answer Fallback）</h4>
-                        </div>
-                        <div class="diagram-collapsible-content">
-                            <div class="mermaid">flowchart TB
-    Q1["POST /api/query"] --> Q2["logic.query_kg"]
-    Q2 --> Q3["answer_with_manual_prompt"]
-    Q3 --> Q4["load_schema_snapshot + fetch_entity_names + fetch_organization_names"]
-    Q4 --> Q5["natural_language_to_cypher"]
-    Q5 --> Q6["link_entity_literals"]
-    Q6 --> Q7{"Finance question?"}
-
-    Q7 -- "No" --> Q8["validate_cypher_relationships"]
-    Q7 -- "Yes" --> Q9{"_cypher_uses_hardcoded_finance_constants OR not _cypher_has_required_finance_path (FINANCE_REQUIRED_REL_TYPES)?"}
-    Q9 -- "Yes" --> Q10["_build_finance_template_cypher fallback"]
-    Q9 -- "No" --> Q8
-
-    Q8 --> Q11["execute_cypher"]
-    Q10 --> Q11
-    Q11 --> Q12{"Neo4j error or empty rows and attempt count below CYPHER_REPAIR_RETRIES+1?"}
-    Q12 -- "Yes" --> Q5
-    Q12 -- "No" --> Q13["rows ready (may be empty)"]
-
-    Q13 --> Q14{"KG_QA_USE_LLM?"}
-    Q14 -- "Yes" --> Q15["_generate_kg_answer_with_llm"]
-    Q15 --> Q16{"LLM rewrite valid?"}
-    Q16 -- "Yes" --> Q17["answer_source = qa_llm"]
-    Q16 -- "No" --> Q18["template fallback summary (_summarize_query_rows)"]
-    Q14 -- "No" --> Q18
-    Q18 --> Q19["answer_source = template_fallback"]
-</div>
-                            <p>圖 D 顯示查詢階段並非單一路徑，而是「Cypher 生成修復 + 財報守門 + 答案改寫回退」的組合流程。這張圖可用來解釋為何同一個問題可能走不同 fallback 分支。</p>
                         </div>
                     </div>
 
                     <h4>本節流程圖涉及的 Env 變數作用表</h4>
-                    <p>以下僅列出「圖 A / 圖 B / 圖 C / 圖 D」直接涉及的環境變數與其在流程中的影響點。</p>
+                    <p>以下僅列出圖 A-E 的直接控制參數，並標註實作中主要讀取位置與影響路徑。</p>
                     <div class="table-wrapper">
                         <table>
                             <thead>
@@ -1297,76 +1367,106 @@
                             <tbody>
                                 <tr>
                                     <td><code>CHUNK_SIZE_MODE</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>控制 chunk 策略：<code>provider|token|char</code>。<code>provider</code> 模式下 Gemini 走 token chunk，其他走 char chunk。</td>
-                                    <td>圖 A：<code>chunk_text</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/services/ingest/service.py</code></td>
+                                    <td>控制切塊策略：<code>provider|token|char</code>。</td>
+                                    <td>圖 A/B：<code>chunk_text</code></td>
                                 </tr>
                                 <tr>
-                                    <td><code>CHUNK_SIZE_TOKENS</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>token chunk 上限；超長段落會觸發二次切分。</td>
-                                    <td>圖 A：<code>chunk_text</code> / token budget</td>
+                                    <td><code>CHUNK_SIZE_TOKENS</code> / <code>CHUNK_MIN_TOKENS</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/services/ingest/service.py</code></td>
+                                    <td>token 切塊上限與最小門檻，影響超長段落二次切分與噪音過濾。</td>
+                                    <td>圖 B：token chunk budget</td>
                                 </tr>
                                 <tr>
-                                    <td><code>CHUNK_MIN_TOKENS</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>chunk 最小 token 門檻；過短片段可被跳過，避免噪音輸入抽取。</td>
-                                    <td>圖 A：chunk 產出品質</td>
+                                    <td><code>CHUNK_SIZE_CHARS</code> / <code>CHUNK_MIN_CHARS</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/services/ingest/service.py</code></td>
+                                    <td>char 切塊上限與最小門檻。</td>
+                                    <td>圖 B：char chunk budget</td>
                                 </tr>
                                 <tr>
                                     <td><code>INGEST_CHUNK_LIMIT</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>全域 chunk 處理上限（與 request 的 <code>chunk_limit</code> 合併判斷），降低單次 ingest 負載。</td>
-                                    <td>圖 A：<code>_resolve_chunk_limit</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/services/ingest/service.py</code></td>
+                                    <td>全域 chunk 處理上限，與 request <code>chunk_limit</code> 合併生效。</td>
+                                    <td>圖 A/B：<code>_resolve_chunk_limit</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>KEYWORD_SEARCH_MODE</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/services/ingest/service.py</code></td>
+                                    <td>控制 keyword crawl 搜尋策略（html_only/html_first 等）。</td>
+                                    <td>圖 A：keyword ingest 分支</td>
                                 </tr>
                                 <tr>
                                     <td><code>EXTRACTION_JSON_MODE</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>抽取 JSON 解析策略：<code>strict_json</code>、<code>auto</code>、<code>text</code>。</td>
-                                    <td>圖 A/B/C：<code>_extract_json_with_retry</code></td>
+                                    <td>抽取 JSON 模式：<code>auto/strict_json/text</code>。</td>
+                                    <td>圖 C：Retry/Repair loop</td>
                                 </tr>
                                 <tr>
                                     <td><code>EXTRACTION_MAX_JSON_RETRIES</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>JSON 修復重試次數上限；總嘗試次數為 <code>retries + 1</code>。</td>
-                                    <td>圖 C：Retry & Repair loop</td>
+                                    <td>JSON 修復重試上限（總嘗試次數 = retries + 1）。</td>
+                                    <td>圖 C：終止條件</td>
                                 </tr>
                                 <tr>
                                     <td><code>EXTRACTION_NUM_PREDICT</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>抽取階段輸出 token 預算（非 Gemini 時優先使用），影響長輸出被截斷風險。</td>
-                                    <td>圖 A/B/C：<code>_extract_json_with_retry</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/llm_kg/kg_builder.py</code></td>
+                                    <td>抽取階段輸出 token 預算。</td>
+                                    <td>圖 C：<code>chat_json/chat_text</code></td>
                                 </tr>
                                 <tr>
                                     <td><code>GEMINI_TWO_PASS_EXTRACTION</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>啟用 Gemini 兩階段抽取（Phase-1 實體盤點 + prefill + Phase-2 關係抽取）。</td>
-                                    <td>圖 A/B：Single-pass vs Two-pass 分支</td>
-                                </tr>
-                                <tr>
-                                    <td><code>CYPHER_REPAIR_RETRIES</code></td>
-                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>NL2Cypher 失敗修復迴圈上限，控制「生成 -> 執行 -> 修正」嘗試次數。</td>
-                                    <td>圖 D：Cypher repair loop</td>
+                                    <td>決定是否啟用 Gemini two-pass 抽取。</td>
+                                    <td>圖 C：two-pass 分流</td>
                                 </tr>
                                 <tr>
                                     <td><code>KG_QA_USE_LLM</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>是否啟用查詢結果改寫。關閉時直接走模板摘要 fallback。</td>
+                                    <td><code>backend/services/qa/service.py</code></td>
+                                    <td>控制是否啟用 QA 改寫；關閉時直接走模板摘要。</td>
                                     <td>圖 D：<code>qa_llm</code> vs <code>template_fallback</code></td>
                                 </tr>
                                 <tr>
-                                    <td><code>KG_QA_MAX_TOKENS</code> / <code>KG_QA_TEMPERATURE</code> / <code>KG_QA_MODEL</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>控制答案改寫模型、輸出長度與穩定度（溫度）；直接影響最終回答品質與可讀性。</td>
+                                    <td><code>KG_QA_MODEL</code> / <code>KG_QA_TEMPERATURE</code> / <code>KG_QA_MAX_TOKENS</code> / <code>KG_QA_MAX_ROWS_FOR_PROMPT</code></td>
+                                    <td><code>backend/services/qa/service.py</code></td>
+                                    <td>控制 QA 改寫模型、採樣與輸出限制。</td>
                                     <td>圖 D：<code>_generate_kg_answer_with_llm</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>NL2CYPHER_TIMEOUT_SECONDS</code> / <code>NL2CYPHER_NUM_PREDICT</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>控制 NL2Cypher 模型呼叫的 timeout 與 token 預算。</td>
+                                    <td>圖 E：planner/reactor/critic 呼叫</td>
+                                </tr>
+                                <tr>
+                                    <td><code>NL2CYPHER_PROVIDER</code> / <code>NL2CYPHER_MODEL</code></td>
+                                    <td><code>backend/config/settings.py</code> -> <code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>指定查詢階段 provider/model，亦可由 QueryRequest 覆寫。</td>
+                                    <td>圖 E：async 查詢與 agentic loop；圖 D：共用回答後處理</td>
+                                </tr>
+                                <tr>
+                                    <td><code>NL2CYPHER_AGENTIC_MAX_ROUNDS</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>agentic loop 最大輪數。</td>
+                                    <td>圖 E：round 迴圈上限</td>
+                                </tr>
+                                <tr>
+                                    <td><code>NL2CYPHER_AGENTIC_PLAN_TOKENS</code> / <code>NL2CYPHER_AGENTIC_REACT_TOKENS</code> / <code>NL2CYPHER_AGENTIC_CRITIC_TOKENS</code></td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>planner/reactor/critic 三類 agent 的輸出 token 預算。</td>
+                                    <td>圖 E：agentic 子代理品質與穩定度</td>
+                                </tr>
+                                <tr>
+                                    <td><code>CYPHER_REPAIR_RETRIES</code>（legacy 次要路徑）</td>
+                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
+                                    <td>目前主要供舊式 `natural_language_to_cypher` 修復語境；非 agentic 主迴圈控制鈕。</td>
+                                    <td>圖 E：reactor fallback（次要）</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <h4>本節流程圖涉及的核心函式作用表</h4>
-                    <p>函式依資料流分群：Ingest/Chunk、抽取/清洗/寫入、查詢守門與回答回退。</p>
+                    <p>下表以實際執行責任分層：Router 協調、Service 主流程、Logic facade、NL2Cypher agentic 核心。</p>
                     <div class="table-wrapper">
                         <table>
                             <thead>
@@ -1379,148 +1479,100 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><code>process_text_to_kg</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>文字輸入的 KG 建圖入口，負責前置切塊與後續建圖呼叫。</td>
-                                    <td>In: raw text；Out: <code>stats/summary/chunk_progress</code></td>
+                                    <td><code>process_text_sync</code> / <code>process_url_sync</code> / <code>process_keyword_sync</code></td>
+                                    <td><code>backend/api/routers/ingest.py</code></td>
+                                    <td>Ingest 同步 API 入口，整理 request 後呼叫 logic facade。</td>
+                                    <td>Out: build result payload</td>
                                 </tr>
                                 <tr>
-                                    <td><code>process_url_to_kg</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>URL ingest 入口，先抓取清洗頁面文字，再導入切塊與建圖。</td>
-                                    <td>In: URL；Out: 同上</td>
+                                    <td><code>process_text_async_start</code> / <code>process_url_async_start</code> / <code>process_keyword_async_start</code></td>
+                                    <td><code>backend/api/routers/ingest.py</code></td>
+                                    <td>Ingest 非同步入口，建立 job、啟動 worker 與進度更新。</td>
+                                    <td>Out: <code>{job_id, status}</code></td>
                                 </tr>
                                 <tr>
-                                    <td><code>process_keyword_to_kg</code></td>
+                                    <td><code>logic.process_*_to_kg</code></td>
                                     <td><code>backend/logic.py</code></td>
-                                    <td>關鍵字爬取入口，聚合多 URL 的抽取結果，並累計成功/失敗來源。</td>
-                                    <td>In: keyword；Out: aggregated stats + fetched/failed urls</td>
+                                    <td>Facade wrapper，轉呼叫 <code>backend/services/ingest/service.py</code>。</td>
+                                    <td>保留向後相容介面</td>
                                 </tr>
                                 <tr>
-                                    <td><code>chunk_text</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>provider-aware 切塊核心；根據模式選 token 或 char budget。</td>
-                                    <td>In: text/source metadata；Out: <code>List[Chunk]</code></td>
-                                </tr>
-                                <tr>
-                                    <td><code>_resolve_chunk_limit</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>統一解析 chunk 上限（request + env），並做合法範圍防護。</td>
-                                    <td>In: optional limit；Out: normalized limit or <code>None</code></td>
+                                    <td><code>chunk_text</code> / <code>_resolve_chunk_limit</code></td>
+                                    <td><code>backend/services/ingest/service.py</code></td>
+                                    <td>切塊與限流核心，決定 token/char 與實際處理上限。</td>
+                                    <td>Out: <code>List[Chunk]</code> + effective limit</td>
                                 </tr>
                                 <tr>
                                     <td><code>build_kg_from_chunks</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>逐 chunk 執行抽取與 upsert，維護每塊狀態、統計與進度回報。</td>
-                                    <td>In: chunks；Out: build result payload</td>
+                                    <td><code>backend/services/ingest/service.py</code></td>
+                                    <td>逐 chunk 抽取/寫入並聚合 <code>stats/summary/chunk_progress</code>。</td>
+                                    <td>Out: ingest 結果與 chunk_update 資料</td>
                                 </tr>
                                 <tr>
-                                    <td><code>extract_entities_relations</code></td>
+                                    <td><code>extract_entities_relations</code> / <code>_extract_entities_relations_two_pass</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>抽取總入口；判斷 single-pass 或 Gemini two-pass 路徑。</td>
-                                    <td>In: chunk text；Out: sanitized entities/relations + meta</td>
+                                    <td>抽取主控制器，處理 single-pass 與 two-pass 分流。</td>
+                                    <td>Out: sanitized entities/relations + meta</td>
                                 </tr>
                                 <tr>
-                                    <td><code>_extract_entities_relations_two_pass</code></td>
+                                    <td><code>_extract_json_with_retry</code> / <code>_sanitize_extraction</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>兩階段抽取：先盤點實體，再補齊缺漏，再抽關係。</td>
-                                    <td>Out meta: <code>phase1_entities/prefilled_missing_entities</code></td>
-                                </tr>
-                                <tr>
-                                    <td><code>_extract_json_with_retry</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>JSON 解析保護層；解析失敗時生成修復 prompt 重試。</td>
-                                    <td>Out: parsed payload + retry count 或 raise error</td>
-                                </tr>
-                                <tr>
-                                    <td><code>_sanitize_extraction</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>抽取後清洗：白名單過濾、別名合併、關係方向校正、財報季度一致性檢查。</td>
-                                    <td>Out meta: <code>merged_entities/dropped_relations</code></td>
+                                    <td>抽取可靠性與 schema 清洗守門層。</td>
+                                    <td>Out: valid payload, retry stats, dropped_relations</td>
                                 </tr>
                                 <tr>
                                     <td><code>populate_graph</code></td>
                                     <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>將清洗後資料寫入 Neo4j，彙整 upsert 統計。</td>
+                                    <td>Neo4j upsert 協調（constraints/entity/relation）。</td>
                                     <td>Out: <code>GraphBuildStats</code></td>
                                 </tr>
                                 <tr>
-                                    <td><code>_ensure_constraints</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>建立唯一鍵與索引，確保主鍵一致性與查詢效率。</td>
-                                    <td>Creates: unique constraint + normalizedName index</td>
+                                    <td><code>query_sync</code> / <code>query_async_start</code> / <code>query_async_status</code></td>
+                                    <td><code>backend/api/routers/qa.py</code></td>
+                                    <td>Query API 同步與非同步入口，協調 query_job_store 與進度流。</td>
+                                    <td>Out: sync result 或 async job 狀態</td>
                                 </tr>
                                 <tr>
-                                    <td><code>_create_entity</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>用 <code>MERGE</code> upsert 實體，維護 aliases 與額外屬性。</td>
-                                    <td>Node labels: concrete type + <code>:Entity</code></td>
-                                </tr>
-                                <tr>
-                                    <td><code>_create_relation</code></td>
-                                    <td><code>backend/llm_kg/kg_builder.py</code></td>
-                                    <td>用 <code>MERGE (a)-[:REL]->(b)</code> upsert 關係並更新時間戳。</td>
-                                    <td>Rel type validated by allowlist</td>
-                                </tr>
-                                <tr>
-                                    <td><code>query_kg</code></td>
+                                    <td><code>logic.query_kg</code></td>
                                     <td><code>backend/logic.py</code></td>
-                                    <td>查詢入口；先取得 Cypher rows，再嘗試 LLM 改寫答案。</td>
-                                    <td>Out: <code>answer + answer_source + rows</code></td>
+                                    <td>QA facade wrapper，轉呼叫 service 層。</td>
+                                    <td>維持舊測試與介面相容</td>
+                                </tr>
+                                <tr>
+                                    <td><code>backend/services/qa/service.py::query_kg</code></td>
+                                    <td><code>backend/services/qa/service.py</code></td>
+                                    <td>查詢服務主體：執行 nl2cypher，再決定 QA LLM 或模板回退。</td>
+                                    <td>Out: <code>answer/answer_source/rows/cypher</code></td>
                                 </tr>
                                 <tr>
                                     <td><code>answer_with_manual_prompt</code></td>
                                     <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>NL2Cypher 主路徑；結合 schema、守門規則、重試修復與 fallback。</td>
-                                    <td>Out: <code>question/cypher/rows/attempt</code></td>
+                                    <td>NL2Cypher 主入口，載入 schema/entity 後進入 agentic loop。</td>
+                                    <td>Out: <code>rows + cypher + agentic_trace</code></td>
                                 </tr>
                                 <tr>
-                                    <td><code>load_schema_snapshot</code></td>
+                                    <td><code>_run_agentic_query_loop</code> / <code>_emit_progress</code></td>
                                     <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>從 Neo4j 取 labels/relations/properties，生成 prompt 用 schema 描述。</td>
-                                    <td>Out: <code>SchemaSnapshot</code></td>
+                                    <td>執行 planner/reactor/critic/replanner 迴圈，並發送 <code>agentic_progress</code>。</td>
+                                    <td>Out: accepted rows 或 fallback / raise</td>
                                 </tr>
                                 <tr>
-                                    <td><code>natural_language_to_cypher</code></td>
+                                    <td><code>_run_planner_agent</code> / <code>_run_reactor_agent</code> / <code>_run_critic_agent</code> / <code>_run_replanner_agent</code></td>
                                     <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>把自然語言問題轉為可執行 Cypher，必要時帶入前次錯誤做修復。</td>
-                                    <td>In: question + schema (+ previous error)</td>
-                                </tr>
-                                <tr>
-                                    <td><code>validate_cypher_relationships</code></td>
-                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>檢查 Cypher 關係型別是否存在於 schema，阻擋未知關係查詢。</td>
-                                    <td>Raises on unknown relationship type</td>
-                                </tr>
-                                <tr>
-                                    <td><code>_cypher_uses_hardcoded_finance_constants</code></td>
-                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>偵測財報查詢是否作弊（硬編碼常值回覆）。</td>
-                                    <td>Finance guard trigger</td>
-                                </tr>
-                                <tr>
-                                    <td><code>_cypher_has_required_finance_path</code></td>
-                                    <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>要求財報查詢必須走真實圖譜路徑（<code>HAS_FINANCIAL_METRIC</code> + <code>FOR_PERIOD</code>）。</td>
-                                    <td>Finance guard trigger</td>
+                                    <td>agentic 子代理：規劃、生成、評審、重規劃。</td>
+                                    <td>由 JSON contract 串接決策</td>
                                 </tr>
                                 <tr>
                                     <td><code>_build_finance_template_cypher</code></td>
                                     <td><code>backend/llm_kg/nl2cypher.py</code></td>
-                                    <td>當財報查詢不合規或多次失敗時，回退到固定模板查詢真實資料。</td>
-                                    <td>Fallback Cypher path</td>
+                                    <td>finance 問題在 fail_fast/exhausted 時的 deterministic fallback。</td>
+                                    <td>Out: graph-grounded fallback rows</td>
                                 </tr>
                                 <tr>
-                                    <td><code>_generate_kg_answer_with_llm</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>以 rows 為基礎生成可讀答案，並驗證是否引用查詢值、防止空洞回覆。</td>
-                                    <td>Success => <code>answer_source=qa_llm</code></td>
-                                </tr>
-                                <tr>
-                                    <td><code>_summarize_query_rows</code></td>
-                                    <td><code>backend/logic.py</code></td>
-                                    <td>當 QA LLM 不可用或輸出不合格時，使用模板規則產生 fallback 答案。</td>
-                                    <td>Fallback => <code>answer_source=template_fallback</code></td>
+                                    <td><code>_generate_kg_answer_with_llm</code> / <code>_summarize_query_rows</code></td>
+                                    <td><code>backend/services/qa/service.py</code></td>
+                                    <td>最終回答層：LLM 改寫與模板回退。</td>
+                                    <td><code>answer_source=qa_llm|template_fallback</code></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2081,19 +2133,27 @@ docker compose run --rm openclaw-cli cron runs --id <jobId> --limit 20</code></p
         startOnLoad: true,
         theme: "default",
         securityLevel: "strict",
-        fontFamily: "Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif",
+        fontFamily: "Inter, Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif",
         flowchart: {
             useMaxWidth: false,
             htmlLabels: false,
             nodeSpacing: 40,
             rankSpacing: 55,
-            padding: 12
+            padding: 32
         }
     });
 
     async function rerenderMermaidInContent(contentEl) {
         const nodes = Array.from(contentEl.querySelectorAll(".mermaid"));
         if (!nodes.length) return;
+
+        if (document.fonts && document.fonts.ready) {
+            try {
+                await document.fonts.ready;
+            } catch (err) {
+                console.warn("Font readiness check failed:", err);
+            }
+        }
 
         nodes.forEach((node) => {
             const source = node.dataset.mermaidSource || node.textContent.trim();
@@ -2154,7 +2214,14 @@ docker compose run --rm openclaw-cli cron runs --id <jobId> --limit 20</code></p
         });
     }
 
-    window.addEventListener("load", () => {
+    window.addEventListener("load", async () => {
+        if (document.fonts && document.fonts.ready) {
+            try {
+                await document.fonts.ready;
+            } catch (err) {
+                console.warn("Initial font readiness check failed:", err);
+            }
+        }
         initCollapsibleDiagrams();
     });
 </script>

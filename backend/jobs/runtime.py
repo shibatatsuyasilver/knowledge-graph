@@ -9,3 +9,4 @@ _ttls = get_job_ttl_settings()
 
 keyword_job_store = JobStore(_ttls.keyword_job_ttl_seconds)
 ingest_job_store = JobStore(_ttls.ingest_job_ttl_seconds)
+query_job_store = JobStore(_ttls.ingest_job_ttl_seconds)

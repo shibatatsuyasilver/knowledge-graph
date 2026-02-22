@@ -108,6 +108,146 @@ def test_chat_general_timeout_returns_504(monkeypatch) -> None:
     assert response.json()["detail"] == "Upstream service timeout"
 
 
+def test_query_endpoint_keeps_compat_fields_and_optional_agentic_trace(monkeypatch) -> None:
+    """驗證 /api/query 保持既有欄位，並可回傳 agentic_trace。"""
+
+    monkeypatch.setattr(
+        main_module.logic,
+        "query_kg",
+        lambda question, **_kwargs: {
+            "question": question,
+            "cypher": "MATCH (o:Organization) RETURN o.name AS organization",
+            "rows": [{"organization": "鴻海精密"}],
+            "attempt": 1,
+            "answer": "鴻海精密。",
+            "answer_source": "qa_llm",
+            "agentic_trace": {
+                "stage": "done",
+                "round_count": 1,
+                "replan_count": 0,
+                "final_strategy": "single_query",
+                "failure_chain": [],
+            },
+        },
+    )
+
+    response = client.post("/api/query", json={"question": "鴻海的事業有哪些"})
+    assert response.status_code == 200
+    body = response.json()
+    assert body["question"] == "鴻海的事業有哪些"
+    assert body["cypher"].startswith("MATCH")
+    assert body["rows"] == [{"organization": "鴻海精密"}]
+    assert body["attempt"] == 1
+    assert body["answer"] == "鴻海精密。"
+    assert body["answer_source"] == "qa_llm"
+    assert body["agentic_trace"]["stage"] == "done"
+    assert body["agentic_trace"]["round_count"] == 1
+
+
+def test_query_endpoint_forwards_nl2cypher_overrides(monkeypatch) -> None:
+    """驗證 /api/query 會轉送 nl2cypher provider/model。"""
+    captured = {}
+
+    def fake_query_kg(question, progress_callback=None, nl2cypher_provider=None, nl2cypher_model=None):
+        captured["question"] = question
+        captured["progress_callback"] = progress_callback
+        captured["nl2cypher_provider"] = nl2cypher_provider
+        captured["nl2cypher_model"] = nl2cypher_model
+        return {
+            "question": question,
+            "cypher": "MATCH (o:Organization) RETURN o.name AS organization",
+            "rows": [{"organization": "鴻海精密"}],
+            "attempt": 1,
+        }
+
+    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+
+    response = client.post(
+        "/api/query",
+        json={
+            "question": "鴻海的事業有哪些",
+            "nl2cypher_provider": "gemini",
+            "nl2cypher_model": "gemini-3-pro-preview",
+        },
+    )
+    assert response.status_code == 200
+    assert captured["question"] == "鴻海的事業有哪些"
+    assert captured["progress_callback"] is None
+    assert captured["nl2cypher_provider"] == "gemini"
+    assert captured["nl2cypher_model"] == "gemini-3-pro-preview"
+
+
+def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
+    """驗證 /api/query_async/start 會轉送 nl2cypher provider/model。"""
+    captured = {}
+
+    def fake_query_kg(question, progress_callback=None, nl2cypher_provider=None, nl2cypher_model=None):
+        captured["question"] = question
+        captured["nl2cypher_provider"] = nl2cypher_provider
+        captured["nl2cypher_model"] = nl2cypher_model
+        captured["progress_callback_called"] = progress_callback is not None
+        if progress_callback:
+            progress_callback(
+                {
+                    "type": "agentic_progress",
+                    "stage": "planner",
+                    "round_count": 0,
+                    "replan_count": 0,
+                    "final_strategy": "single_query",
+                    "failure_chain": [],
+                    "detail": "planning",
+                    "llm_provider": nl2cypher_provider,
+                    "llm_model": nl2cypher_model,
+                }
+            )
+        return {
+            "question": question,
+            "cypher": "MATCH (o:Organization) RETURN o.name AS organization",
+            "rows": [{"organization": "鴻海精密"}],
+            "attempt": 1,
+            "agentic_trace": {
+                "stage": "done",
+                "round_count": 1,
+                "replan_count": 0,
+                "final_strategy": "single_query",
+                "failure_chain": [],
+                "llm_provider": nl2cypher_provider,
+                "llm_model": nl2cypher_model,
+            },
+        }
+
+    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+
+    start_resp = client.post(
+        "/api/query_async/start",
+        json={
+            "question": "鴻海的事業有哪些",
+            "nl2cypher_provider": "gemini",
+            "nl2cypher_model": "gemini-3-pro-preview",
+        },
+    )
+    assert start_resp.status_code == 200
+    job_id = start_resp.json()["job_id"]
+
+    final_body = None
+    for _ in range(40):
+        poll_resp = client.get(f"/api/query_async/{job_id}")
+        assert poll_resp.status_code == 200
+        final_body = poll_resp.json()
+        if final_body["status"] in {"completed", "failed"}:
+            break
+        time.sleep(0.01)
+
+    assert final_body is not None
+    assert final_body["status"] == "completed"
+    assert captured["question"] == "鴻海的事業有哪些"
+    assert captured["nl2cypher_provider"] == "gemini"
+    assert captured["nl2cypher_model"] == "gemini-3-pro-preview"
+    assert captured["progress_callback_called"] is True
+    assert final_body["progress"]["llm_provider"] == "gemini"
+    assert final_body["progress"]["llm_model"] == "gemini-3-pro-preview"
+
+
 def test_process_keyword_async_job_flow(monkeypatch) -> None:
     """驗證 `test_process_keyword_async_job_flow` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。

@@ -330,6 +330,18 @@ td {
   align-self: flex-start;
 }
 
+.agentic-progress {
+  align-self: flex-start;
+  width: min(560px, 100%);
+  border-radius: 12px;
+  border: 1px solid #bce8dd;
+  background: #f1fbf8;
+  padding: 0.7rem 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
 .bubble-role {
   margin: 0;
   font-size: 0.74rem;

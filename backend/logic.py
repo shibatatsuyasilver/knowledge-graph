@@ -429,12 +429,22 @@ def _normalize_chat_history(history: Optional[List[Dict[str, str]]]) -> List[Dic
     return qa_service._normalize_chat_history(history)
 
 
-def query_kg(question: str) -> Dict[str, Any]:
+def query_kg(
+    question: str,
+    progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
+    nl2cypher_provider: Optional[str] = None,
+    nl2cypher_model: Optional[str] = None,
+) -> Dict[str, Any]:
     """執行 `query_kg` 的主要流程。
     函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
     """
     _sync_qa_runtime()
-    return qa_service.query_kg(question)
+    return qa_service.query_kg(
+        question,
+        progress_callback=progress_callback,
+        nl2cypher_provider=nl2cypher_provider,
+        nl2cypher_model=nl2cypher_model,
+    )
 
 
 def chat_general(message: str, history: Optional[List[Dict[str, str]]] = None) -> Dict[str, Any]:

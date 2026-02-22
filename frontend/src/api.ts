@@ -9,6 +9,9 @@ import type {
   KeywordJobStateResponse,
   KeywordRequest,
   KeywordProcessResponse,
+  QueryRequest,
+  QueryJobStartResponse,
+  QueryJobStateResponse,
   QueryResponse,
   TextIngestRequest,
   UrlIngestRequest,
@@ -81,8 +84,18 @@ export async function getKeywordProcessJob(jobId: string): Promise<KeywordJobSta
   return response.data
 }
 
-export async function queryKg(question: string): Promise<QueryResponse> {
-  const response = await apiClient.post<QueryResponse>('/api/query', { question })
+export async function queryKg(payload: QueryRequest): Promise<QueryResponse> {
+  const response = await apiClient.post<QueryResponse>('/api/query', payload)
+  return response.data
+}
+
+export async function startQueryKgAsync(payload: QueryRequest): Promise<QueryJobStartResponse> {
+  const response = await apiClient.post<QueryJobStartResponse>('/api/query_async/start', payload)
+  return response.data
+}
+
+export async function getQueryKgJob(jobId: string): Promise<QueryJobStateResponse> {
+  const response = await apiClient.get<QueryJobStateResponse>(`/api/query_async/${jobId}`)
   return response.data
 }
 

@@ -506,6 +506,35 @@ def test_query_kg_returns_answer_text(monkeypatch: pytest.MonkeyPatch) -> None:
     assert result["answer_source"] in {"qa_llm", "template_fallback"}
 
 
+def test_query_kg_preserves_agentic_trace(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 query_kg 會保留 agentic_trace 可選欄位。"""
+
+    def fake_loader():
+        def fake_answer_with_manual_prompt(question: str):
+            return {
+                "question": question,
+                "cypher": "MATCH (n) RETURN n.name AS partner LIMIT 1",
+                "rows": [{"partner": "NVIDIA"}],
+                "attempt": 1,
+                "agentic_trace": {
+                    "stage": "done",
+                    "round_count": 1,
+                    "replan_count": 0,
+                    "final_strategy": "single_query",
+                    "failure_chain": [],
+                },
+            }
+
+        return object, fake_answer_with_manual_prompt
+
+    monkeypatch.setattr(logic, "_load_kg_modules", fake_loader)
+
+    result = logic.query_kg("鴻海公司的合作夥伴")
+
+    assert result["agentic_trace"]["stage"] == "done"
+    assert result["agentic_trace"]["round_count"] == 1
+
+
 def test_query_kg_handles_empty_rows(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_query_kg_handles_empty_rows` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。

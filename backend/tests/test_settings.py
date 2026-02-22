@@ -64,3 +64,26 @@ def test_resolve_extraction_provider_validation(monkeypatch) -> None:
     except ValueError:
         raised = True
     assert raised is True
+
+
+def test_resolve_nl2cypher_provider_validation(monkeypatch) -> None:
+    """驗證 NL2CYPHER provider 解析與驗證行為。"""
+    monkeypatch.setenv("NL2CYPHER_PROVIDER", "gemini")
+    assert settings.resolve_nl2cypher_provider(None) == "gemini"
+
+    monkeypatch.setenv("NL2CYPHER_PROVIDER", "bad-provider")
+    try:
+        settings.resolve_nl2cypher_provider(None)
+        raised = False
+    except ValueError:
+        raised = True
+    assert raised is True
+
+
+def test_resolve_nl2cypher_model_prefers_gemini_default(monkeypatch) -> None:
+    """驗證 NL2CYPHER model 未指定時可依 provider 回退到 Gemini 預設模型。"""
+    monkeypatch.delenv("NL2CYPHER_MODEL", raising=False)
+    monkeypatch.setenv("GEMINI_MODEL", "")
+
+    resolved = settings.resolve_nl2cypher_model(provider="gemini", explicit_model=None)
+    assert resolved == "gemini-3-pro-preview"
