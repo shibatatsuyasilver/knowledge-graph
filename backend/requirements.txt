@@ -6,3 +6,6 @@ neo4j
 python-dotenv
 pydantic
 duckduckgo-search
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-google-genai>=2.0.0

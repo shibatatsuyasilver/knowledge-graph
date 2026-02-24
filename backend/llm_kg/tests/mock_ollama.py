@@ -28,8 +28,14 @@ EXTRACTION_PAYLOAD: Dict[str, Any] = {
 
 
 def pick_cypher(prompt: str) -> str:
-    """執行 `pick_cypher` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`pick_cypher` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     if "誰創立了台積電" in prompt or "創立" in prompt:
         return (
@@ -50,8 +56,14 @@ def pick_cypher(prompt: str) -> str:
 
 
 def pick_content(payload: Dict[str, Any]) -> str:
-    """執行 `pick_content` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`pick_content` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     messages = payload.get("messages", [])
     prompt = "\n".join(str(message.get("content", "")) for message in messages if isinstance(message, dict))
@@ -67,8 +79,14 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "MockOllama/1.0"
 
     def _reply(self, status_code: int, data: Dict[str, Any]) -> None:
-        """執行 `_reply` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_reply` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status_code)
@@ -78,8 +96,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self) -> None:  # noqa: N802
-        """執行 `do_GET` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`do_GET` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         if self.path == "/api/tags":
             self._reply(
@@ -94,8 +118,14 @@ class Handler(BaseHTTPRequestHandler):
         self._reply(404, {"error": "not_found"})
 
     def do_POST(self) -> None:  # noqa: N802
-        """執行 `do_POST` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`do_POST` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         if self.path != "/api/chat":
             self._reply(404, {"error": "not_found"})

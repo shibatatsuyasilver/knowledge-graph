@@ -13,6 +13,9 @@ def test_process_url_route_is_unique() -> None:
     """驗證 `test_process_url_route_is_unique` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     routes = [
         route
         for route in main_module.app.routes
@@ -25,6 +28,9 @@ def test_process_url_endpoint_success(monkeypatch) -> None:
     """驗證 `test_process_url_endpoint_success` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         main_module.logic,
         "process_url_to_kg",
@@ -51,6 +57,9 @@ def test_process_url_endpoint_forwards_chunk_limit(monkeypatch) -> None:
     """驗證 `test_process_url_endpoint_forwards_chunk_limit` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     captured = {}
 
     def fake_process_url_to_kg(url, uri, user, pwd, chunk_limit=None, extraction_provider=None, extraction_model=None):
@@ -95,9 +104,18 @@ def test_chat_general_timeout_returns_504(monkeypatch) -> None:
     """驗證 `test_chat_general_timeout_returns_504` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def timeout_chat(message, history=None):
-        """執行 `timeout_chat` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`timeout_chat` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         raise requests.Timeout("timeout")
 
@@ -110,6 +128,9 @@ def test_chat_general_timeout_returns_504(monkeypatch) -> None:
 
 def test_query_endpoint_keeps_compat_fields_and_optional_agentic_trace(monkeypatch) -> None:
     """驗證 /api/query 保持既有欄位，並可回傳 agentic_trace。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
 
     monkeypatch.setattr(
         main_module.logic,
@@ -146,13 +167,23 @@ def test_query_endpoint_keeps_compat_fields_and_optional_agentic_trace(monkeypat
 
 def test_query_endpoint_forwards_nl2cypher_overrides(monkeypatch) -> None:
     """驗證 /api/query 會轉送 nl2cypher provider/model。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     captured = {}
 
-    def fake_query_kg(question, progress_callback=None, nl2cypher_provider=None, nl2cypher_model=None):
+    def fake_query_kg(
+        question,
+        progress_callback=None,
+        nl2cypher_provider=None,
+        nl2cypher_model=None,
+        query_engine=None,
+    ):
         captured["question"] = question
         captured["progress_callback"] = progress_callback
         captured["nl2cypher_provider"] = nl2cypher_provider
         captured["nl2cypher_model"] = nl2cypher_model
+        captured["query_engine"] = query_engine
         return {
             "question": question,
             "cypher": "MATCH (o:Organization) RETURN o.name AS organization",
@@ -168,6 +199,7 @@ def test_query_endpoint_forwards_nl2cypher_overrides(monkeypatch) -> None:
             "question": "鴻海的事業有哪些",
             "nl2cypher_provider": "gemini",
             "nl2cypher_model": "gemini-3-pro-preview",
+            "query_engine": "graph_chain",
         },
     )
     assert response.status_code == 200
@@ -175,16 +207,69 @@ def test_query_endpoint_forwards_nl2cypher_overrides(monkeypatch) -> None:
     assert captured["progress_callback"] is None
     assert captured["nl2cypher_provider"] == "gemini"
     assert captured["nl2cypher_model"] == "gemini-3-pro-preview"
+    assert captured["query_engine"] == "graph_chain"
+
+
+def test_query_endpoint_graph_chain_keeps_compat_fields(monkeypatch) -> None:
+    """驗證 /api/query graph_chain 路徑仍回傳相容欄位。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+
+    monkeypatch.setattr(
+        main_module.logic,
+        "query_kg",
+        lambda question, **_kwargs: {
+            "question": question,
+            "cypher": "MATCH (o:Organization) RETURN o.name AS organization",
+            "rows": [{"organization": "鴻海精密"}],
+            "answer": "鴻海精密。",
+            "query_engine": "graph_chain",
+            "graph_chain_raw": {"raw": True},
+            "engine_provider": "gemini",
+            "engine_model": "gemini-3-pro-preview",
+        },
+    )
+
+    response = client.post(
+        "/api/query",
+        json={
+            "question": "鴻海的事業有哪些",
+            "query_engine": "graph_chain",
+            "nl2cypher_provider": "gemini",
+            "nl2cypher_model": "gemini-3-pro-preview",
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["question"] == "鴻海的事業有哪些"
+    assert body["cypher"].startswith("MATCH")
+    assert body["rows"] == [{"organization": "鴻海精密"}]
+    assert body["answer"] == "鴻海精密。"
+    assert body["query_engine"] == "graph_chain"
+    assert body["graph_chain_raw"] == {"raw": True}
+    assert body["engine_provider"] == "gemini"
+    assert body["engine_model"] == "gemini-3-pro-preview"
 
 
 def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
     """驗證 /api/query_async/start 會轉送 nl2cypher provider/model。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     captured = {}
 
-    def fake_query_kg(question, progress_callback=None, nl2cypher_provider=None, nl2cypher_model=None):
+    def fake_query_kg(
+        question,
+        progress_callback=None,
+        nl2cypher_provider=None,
+        nl2cypher_model=None,
+        query_engine=None,
+    ):
         captured["question"] = question
         captured["nl2cypher_provider"] = nl2cypher_provider
         captured["nl2cypher_model"] = nl2cypher_model
+        captured["query_engine"] = query_engine
         captured["progress_callback_called"] = progress_callback is not None
         if progress_callback:
             progress_callback(
@@ -198,6 +283,17 @@ def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
                     "detail": "planning",
                     "llm_provider": nl2cypher_provider,
                     "llm_model": nl2cypher_model,
+                    "agentic_trace": {
+                        "stage": "planner",
+                        "round_count": 0,
+                        "replan_count": 0,
+                        "final_strategy": "single_query",
+                        "failure_chain": [],
+                        "plan_initial": {"strategy": "single_query"},
+                        "planner_plan": {"strategy": "single_query"},
+                        "plan_final": {"strategy": "single_query"},
+                        "rounds": [],
+                    },
                 }
             )
         return {
@@ -213,6 +309,10 @@ def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
                 "failure_chain": [],
                 "llm_provider": nl2cypher_provider,
                 "llm_model": nl2cypher_model,
+                "plan_initial": {"strategy": "single_query"},
+                "planner_plan": {"strategy": "single_query"},
+                "plan_final": {"strategy": "single_query"},
+                "rounds": [{"round": 1, "verdict": "accept"}],
             },
         }
 
@@ -224,6 +324,7 @@ def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
             "question": "鴻海的事業有哪些",
             "nl2cypher_provider": "gemini",
             "nl2cypher_model": "gemini-3-pro-preview",
+            "query_engine": "manual",
         },
     )
     assert start_resp.status_code == 200
@@ -243,15 +344,108 @@ def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
     assert captured["question"] == "鴻海的事業有哪些"
     assert captured["nl2cypher_provider"] == "gemini"
     assert captured["nl2cypher_model"] == "gemini-3-pro-preview"
+    assert captured["query_engine"] == "manual"
     assert captured["progress_callback_called"] is True
     assert final_body["progress"]["llm_provider"] == "gemini"
     assert final_body["progress"]["llm_model"] == "gemini-3-pro-preview"
+    assert final_body["progress"]["agentic_trace"]["plan_final"]["strategy"] == "single_query"
+    assert final_body["result"]["agentic_trace"]["rounds"][0]["verdict"] == "accept"
+
+
+def test_query_async_start_rejects_graph_chain_engine() -> None:
+    """驗證 /api/query_async/start 不接受 graph_chain。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+    response = client.post(
+        "/api/query_async/start",
+        json={
+            "question": "鴻海的事業有哪些",
+            "query_engine": "graph_chain",
+            "nl2cypher_provider": "gemini",
+            "nl2cypher_model": "gemini-3-pro-preview",
+        },
+    )
+    assert response.status_code == 400
+    assert "query_engine=graph_chain" in response.json()["detail"]
+
+
+def test_query_async_failed_job_keeps_agentic_trace(monkeypatch) -> None:
+    """驗證 /api/query_async 在 failed 狀態仍保留 progress.agentic_trace。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+
+    def fake_query_kg(
+        question,
+        progress_callback=None,
+        nl2cypher_provider=None,
+        nl2cypher_model=None,
+        query_engine=None,
+    ):
+        if progress_callback:
+            progress_callback(
+                {
+                    "type": "agentic_progress",
+                    "stage": "critic",
+                    "round_count": 1,
+                    "replan_count": 0,
+                    "final_strategy": "single_query",
+                    "failure_chain": [],
+                    "detail": "Round 1: evaluating candidate",
+                    "llm_provider": nl2cypher_provider,
+                    "llm_model": nl2cypher_model,
+                    "agentic_trace": {
+                        "stage": "critic",
+                        "round_count": 1,
+                        "replan_count": 0,
+                        "final_strategy": "single_query",
+                        "failure_chain": [],
+                        "planner_plan": {"strategy": "single_query"},
+                        "plan_final": {"strategy": "single_query"},
+                        "rounds": [{"round": 1, "verdict": "replan"}],
+                    },
+                }
+            )
+        raise RuntimeError("Cypher generation failed after retries: bad query")
+
+    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+
+    start_resp = client.post(
+        "/api/query_async/start",
+        json={
+            "question": "鴻海的事業有哪些",
+            "nl2cypher_provider": "gemini",
+            "nl2cypher_model": "gemini-3-pro-preview",
+            "query_engine": "manual",
+        },
+    )
+    assert start_resp.status_code == 200
+    job_id = start_resp.json()["job_id"]
+
+    final_body = None
+    for _ in range(40):
+        poll_resp = client.get(f"/api/query_async/{job_id}")
+        assert poll_resp.status_code == 200
+        final_body = poll_resp.json()
+        if final_body["status"] in {"completed", "failed"}:
+            break
+        time.sleep(0.01)
+
+    assert final_body is not None
+    assert final_body["status"] == "failed"
+    assert "bad query" in final_body["error"]
+    assert final_body["progress"]["agentic_trace"]["stage"] == "critic"
+    assert final_body["progress"]["agentic_trace"]["rounds"][0]["verdict"] == "replan"
 
 
 def test_process_keyword_async_job_flow(monkeypatch) -> None:
     """驗證 `test_process_keyword_async_job_flow` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_process_keyword_to_kg(
         keyword,
         uri,
@@ -356,6 +550,9 @@ def test_process_text_async_job_flow(monkeypatch) -> None:
     """驗證 `test_process_text_async_job_flow` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_process_text_to_kg(
         text,
         uri,
@@ -444,6 +641,9 @@ def test_process_url_async_job_flow(monkeypatch) -> None:
     """驗證 `test_process_url_async_job_flow` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_process_url_to_kg(
         url,
         uri,
@@ -532,6 +732,9 @@ def test_health_compat_endpoint(monkeypatch) -> None:
     """驗證 `test_health_compat_endpoint` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         main_module.logic.llm_client,
         "get_runtime_config",
@@ -561,6 +764,9 @@ def test_chat_compat_endpoint(monkeypatch) -> None:
     """驗證 `test_chat_compat_endpoint` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         main_module.logic.llm_client,
         "get_runtime_config",

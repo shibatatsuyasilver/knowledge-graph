@@ -7,6 +7,9 @@ def test_normalize_text_handles_fullwidth_and_punctuation() -> None:
     """驗證 `test_normalize_text_handles_fullwidth_and_punctuation` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     assert scorer.normalize_text(" 台積電， NVIDIa。") == "台積電nvidia"
     assert scorer.normalize_text("ＡＢＣ　123") == "abc123"
 
@@ -15,6 +18,9 @@ def test_score_qa_prefers_rows_required_entities() -> None:
     """驗證 `test_score_qa_prefers_rows_required_entities` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     gold = {
         "answer_type": "set",
         "canonical": "Apple、NVIDIA",
@@ -33,6 +39,9 @@ def test_score_qa_fallback_to_answer_alias() -> None:
     """驗證 `test_score_qa_fallback_to_answer_alias` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     gold = {
         "answer_type": "string",
         "canonical": "張忠謀",
@@ -54,6 +63,9 @@ def test_triple_prf_and_micro_prf() -> None:
     """驗證 `test_triple_prf_and_micro_prf` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     gold = {("台積電", "SUPPLIES_TO", "apple"), ("台積電", "SUPPLIES_TO", "nvidia")}
     predicted = {("台積電", "SUPPLIES_TO", "apple")}
 

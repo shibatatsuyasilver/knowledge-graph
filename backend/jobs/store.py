@@ -19,8 +19,14 @@ class JobStore:
         self._jobs: Dict[str, Dict[str, Any]] = {}
 
     def _cleanup_locked(self) -> None:
-        """執行 `_cleanup_locked` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_cleanup_locked` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         now = time.time()
         expired = []
@@ -32,16 +38,31 @@ class JobStore:
             self._jobs.pop(job_id, None)
 
     def cleanup(self) -> None:
-        """執行 `cleanup` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`cleanup` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         with self._lock:
             self._cleanup_locked()
 
     def create(self, payload: Dict[str, Any]) -> str:
-        """執行 `create` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`create` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         job_id = uuid.uuid4().hex
         now = time.time()
         with self._lock:
@@ -54,8 +75,14 @@ class JobStore:
         return job_id
 
     def get(self, job_id: str) -> Optional[Dict[str, Any]]:
-        """執行 `get` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`get` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         with self._lock:
             self._cleanup_locked()
@@ -65,8 +92,14 @@ class JobStore:
             return deepcopy(job)
 
     def update(self, job_id: str, mutator: Callable[[Dict[str, Any]], None]) -> bool:
-        """執行 `update` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`update` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         with self._lock:
             self._cleanup_locked()

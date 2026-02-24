@@ -6,8 +6,14 @@ from backend.llm_kg import kg_builder, nl2cypher
 
 
 def _builder_without_driver() -> kg_builder.KnowledgeGraphBuilder:
-    """執行 `_builder_without_driver` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_builder_without_driver` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return kg_builder.KnowledgeGraphBuilder.__new__(kg_builder.KnowledgeGraphBuilder)
 
@@ -16,6 +22,9 @@ def test_kg_builder_uses_extraction_model_override(monkeypatch: pytest.MonkeyPat
     """驗證 `test_kg_builder_uses_extraction_model_override` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     builder = _builder_without_driver()
     monkeypatch.setenv("EXTRACTION_MODEL", "sam860/deepseek-r1-0528-qwen3:8b")
     monkeypatch.setattr(kg_builder, "EXTRACTION_JSON_MODE", "strict_json")
@@ -42,6 +51,9 @@ def test_kg_builder_gemini_uses_gemini_model_by_default(monkeypatch: pytest.Monk
     """驗證 `test_kg_builder_gemini_uses_gemini_model_by_default` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     builder = _builder_without_driver()
     monkeypatch.setenv("EXTRACTION_MODEL", "sam860/deepseek-r1-0528-qwen3:8b")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-3-pro-preview")
@@ -70,6 +82,9 @@ def test_nl2cypher_uses_model_override(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_nl2cypher_uses_model_override` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("NL2CYPHER_MODEL", "ministral-3:14b")
 
     captured: dict[str, object] = {}

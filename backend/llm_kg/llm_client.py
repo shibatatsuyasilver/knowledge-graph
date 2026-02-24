@@ -63,8 +63,14 @@ class LLMRuntimeConfig:
 
 
 def _safe_float(value: Optional[str], default: float) -> float:
-    """執行 `_safe_float` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_safe_float` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value is None:
         return default
@@ -75,8 +81,14 @@ def _safe_float(value: Optional[str], default: float) -> float:
 
 
 def _safe_int(value: Optional[str], default: int) -> int:
-    """執行 `_safe_int` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_safe_int` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value is None:
         return default
@@ -87,8 +99,14 @@ def _safe_int(value: Optional[str], default: int) -> int:
 
 
 def _safe_bool(value: Optional[str], default: bool) -> bool:
-    """執行 `_safe_bool` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_safe_bool` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value is None:
         return default
@@ -101,15 +119,27 @@ def _safe_bool(value: Optional[str], default: bool) -> bool:
 
 
 def _error_detail_max_chars() -> int:
-    """執行 `_error_detail_max_chars` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_error_detail_max_chars` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return app_settings.get_llm_misc_settings().error_detail_max_chars
 
 
 def _trim_error_detail(text: str) -> str:
-    """執行 `_trim_error_detail` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_trim_error_detail` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     cleaned = str(text or "").strip()
     limit = max(0, _error_detail_max_chars())
@@ -120,16 +150,31 @@ def _trim_error_detail(text: str) -> str:
 
 
 def _resolve_provider() -> str:
-    """執行 `_resolve_provider` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_provider` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return app_settings.resolve_llm_provider()
 
 
 def get_runtime_config() -> LLMRuntimeConfig:
-    """執行 `get_runtime_config` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_runtime_config` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cfg = app_settings.get_llm_runtime_settings()
 
     return LLMRuntimeConfig(
@@ -156,9 +201,18 @@ def _resolve_effective_max_tokens(
     provider: str,
     requested_max_tokens: Optional[int],
 ) -> int:
-    """執行 `_resolve_effective_max_tokens` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_effective_max_tokens` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if requested_max_tokens is None:
         if provider == "gemini":
             return cfg.gemini_output_token_limit
@@ -171,8 +225,14 @@ def _resolve_effective_max_tokens(
 
 
 def _strip_code_fence(raw: str) -> str:
-    """執行 `_strip_code_fence` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_strip_code_fence` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     text = raw.strip()
     match = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, flags=re.DOTALL | re.IGNORECASE)
@@ -180,17 +240,32 @@ def _strip_code_fence(raw: str) -> str:
 
 
 def _first_json_start(text: str) -> int:
-    """執行 `_first_json_start` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_first_json_start` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     starts = [idx for idx in (text.find("{"), text.find("[")) if idx >= 0]
     return min(starts) if starts else -1
 
 
 def _extract_balanced_json_from(text: str, start_idx: int) -> Optional[str]:
-    """執行 `_extract_balanced_json_from` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_balanced_json_from` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if start_idx < 0 or start_idx >= len(text):
         return None
     if text[start_idx] not in "{[":
@@ -233,9 +308,18 @@ def _extract_balanced_json_from(text: str, start_idx: int) -> Optional[str]:
 
 
 def _json_parse_candidates(raw: str) -> List[str]:
-    """執行 `_json_parse_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_json_parse_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     text = _strip_code_fence(raw)
     candidates: List[str] = [text]
 
@@ -273,9 +357,18 @@ def _json_parse_candidates(raw: str) -> List[str]:
 
 
 def _parse_json_strict(raw: str) -> Dict[str, Any]:
-    """執行 `_parse_json_strict` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_parse_json_strict` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     last_error: json.JSONDecodeError | None = None
     for candidate in _json_parse_candidates(raw):
         try:
@@ -295,9 +388,18 @@ def _request_json(
     headers: Optional[Dict[str, str]] = None,
     payload: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """執行 `_request_json` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_request_json` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         if method.upper() == "GET":
             response = requests.get(url, headers=headers, timeout=timeout)
@@ -321,9 +423,18 @@ def _request_json(
 
 
 def _extract_openai_content(body: Dict[str, Any]) -> str:
-    """執行 `_extract_openai_content` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_openai_content` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     choices = body.get("choices")
     if not isinstance(choices, list) or not choices:
         raise LLMResponseError("OpenAI-compatible response missing choices")
@@ -344,9 +455,18 @@ def _extract_openai_content(body: Dict[str, Any]) -> str:
 
 
 def _extract_ollama_content(body: Dict[str, Any]) -> str:
-    """執行 `_extract_ollama_content` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_ollama_content` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     message = body.get("message", {}) if isinstance(body.get("message"), dict) else {}
     content = str(message.get("content", "")).strip()
     if not content:
@@ -365,8 +485,14 @@ def _extract_ollama_content(body: Dict[str, Any]) -> str:
 
 
 def _is_ollama_thinking_only(body: Dict[str, Any]) -> bool:
-    """執行 `_is_ollama_thinking_only` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_is_ollama_thinking_only` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     message = body.get("message", {}) if isinstance(body.get("message"), dict) else {}
     content = str(message.get("content", "")).strip()
@@ -377,30 +503,57 @@ def _is_ollama_thinking_only(body: Dict[str, Any]) -> bool:
 
 def _next_retry_tokens(current_tokens: int) -> int:
     # Deep reasoning models may consume many tokens in "thinking" before content output.
-    """執行 `_next_retry_tokens` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_next_retry_tokens` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return min(max(current_tokens * 2, 1024), 8192)
 
 
 def _think_log_enabled() -> bool:
-    """執行 `_think_log_enabled` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_think_log_enabled` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return app_settings.get_llm_misc_settings().think_log_enabled
 
 
 def _think_log_path() -> str:
-    """執行 `_think_log_path` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_think_log_path` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return app_settings.get_llm_misc_settings().think_log_path
 
 
 def _extract_think_from_content(content: str) -> str:
-    """執行 `_extract_think_from_content` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_think_from_content` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     text = str(content or "")
     if not text:
         return ""
@@ -425,8 +578,14 @@ def _extract_think_from_content(content: str) -> str:
 
 
 def _extract_ollama_thinking(body: Dict[str, Any]) -> str:
-    """執行 `_extract_ollama_thinking` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_ollama_thinking` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     message = body.get("message", {}) if isinstance(body.get("message"), dict) else {}
     thinking = str(message.get("thinking", "")).strip()
@@ -436,9 +595,18 @@ def _extract_ollama_thinking(body: Dict[str, Any]) -> str:
 
 
 def _append_ollama_think_log(*, body: Dict[str, Any], model: str, mode: str) -> None:
-    """執行 `_append_ollama_think_log` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_append_ollama_think_log` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not _think_log_enabled():
         return
 
@@ -466,8 +634,14 @@ def _append_ollama_think_log(*, body: Dict[str, Any], model: str, mode: str) -> 
 
 
 def _resolve_provider_override(provider: Optional[str], default_provider: str) -> str:
-    """執行 `_resolve_provider_override` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_provider_override` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     use_provider = (provider or default_provider).strip().lower()
     if use_provider not in {"openai", "ollama", "gemini"}:
@@ -481,9 +655,18 @@ def _resolve_model_for_provider(
     model: Optional[str],
     default_cfg_model: str,
 ) -> str:
-    """執行 `_resolve_model_for_provider` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_model_for_provider` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if model:
         return model
     if provider in {"ollama", "gemini", "openai"}:
@@ -492,8 +675,14 @@ def _resolve_model_for_provider(
 
 
 def _openai_headers(api_key: str) -> Dict[str, str]:
-    """執行 `_openai_headers` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_openai_headers` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     headers = {"Content-Type": "application/json"}
     if api_key:
@@ -502,8 +691,14 @@ def _openai_headers(api_key: str) -> Dict[str, str]:
 
 
 def _gemini_headers(api_key: str) -> Dict[str, str]:
-    """執行 `_gemini_headers` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_gemini_headers` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if not api_key:
         raise LLMResponseError("GEMINI_API_KEY is required when provider=gemini")
@@ -513,9 +708,18 @@ def _gemini_headers(api_key: str) -> Dict[str, str]:
 
 
 def _messages_to_gemini_payload(messages: List[Dict[str, str]]) -> Dict[str, Any]:
-    """執行 `_messages_to_gemini_payload` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_messages_to_gemini_payload` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     system_chunks: List[str] = []
     contents: List[Dict[str, Any]] = []
 
@@ -542,9 +746,18 @@ def _messages_to_gemini_payload(messages: List[Dict[str, str]]) -> Dict[str, Any
 
 
 def _extract_gemini_content(body: Dict[str, Any]) -> str:
-    """執行 `_extract_gemini_content` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_gemini_content` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     candidates = body.get("candidates")
     if not isinstance(candidates, list) or not candidates:
         raise LLMResponseError("Gemini response missing candidates")
@@ -573,9 +786,18 @@ def chat_text(
     max_tokens: Optional[int] = None,
     timeout_seconds: Optional[float] = None,
 ) -> str:
-    """執行 `chat_text` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`chat_text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cfg = get_runtime_config()
     use_provider = _resolve_provider_override(provider, cfg.provider)
     use_model = _resolve_model_for_provider(provider=use_provider, model=model, default_cfg_model=cfg.model)
@@ -661,9 +883,18 @@ def chat_json(
     max_tokens: Optional[int] = None,
     timeout_seconds: Optional[float] = None,
 ) -> Dict[str, Any]:
-    """執行 `chat_json` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`chat_json` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cfg = get_runtime_config()
     use_provider = _resolve_provider_override(provider, cfg.provider)
     use_model = _resolve_model_for_provider(provider=use_provider, model=model, default_cfg_model=cfg.model)
@@ -759,6 +990,9 @@ def health_check(timeout_seconds: float = 3.0) -> Dict[str, Any]:
     """提供 `health_check` 健康檢查能力以確認服務可用性。
     函式回傳輕量狀態資訊，供部署環境與監控系統快速驗證服務狀態。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cfg = get_runtime_config()
     if cfg.provider == "openai":
         try:

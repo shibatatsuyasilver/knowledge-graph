@@ -54,9 +54,18 @@ class RunnerConfig:
 
 
 def _load_runner_config(path: Path) -> RunnerConfig:
-    """執行 `_load_runner_config` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_load_runner_config` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     dataset_cfg = payload.get("dataset", {})
     benchmark_cfg = payload.get("benchmark", {})
@@ -90,31 +99,58 @@ def _load_runner_config(path: Path) -> RunnerConfig:
 
 
 def _ensure_dir(path: Path) -> None:
-    """執行 `_ensure_dir` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_ensure_dir` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     path.mkdir(parents=True, exist_ok=True)
 
 
 def _timestamp() -> str:
-    """執行 `_timestamp` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_timestamp` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return datetime.now().strftime("%Y%m%d_%H%M%S")
 
 
 def _reset_graph(builder: kg_builder.KnowledgeGraphBuilder) -> None:
-    """執行 `_reset_graph` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_reset_graph` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     with builder.driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
 
 
 def _apply_runtime_settings(config: RunnerConfig, model: str) -> None:
-    """執行 `_apply_runtime_settings` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_apply_runtime_settings` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     os.environ["LLM_PROVIDER"] = config.provider
     os.environ["LLM_MODEL"] = model
     os.environ["EXTRACTION_MODEL"] = model
@@ -146,16 +182,31 @@ def _apply_runtime_settings(config: RunnerConfig, model: str) -> None:
 
 
 def _write_json(path: Path, payload: Dict[str, Any]) -> None:
-    """執行 `_write_json` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_write_json` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
-    """執行 `_write_csv` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_write_csv` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not rows:
         path.write_text("", encoding="utf-8")
         return
@@ -168,9 +219,18 @@ def _write_csv(path: Path, rows: List[Dict[str, Any]]) -> None:
 
 
 def _pick_winner(model_rows: Sequence[Dict[str, Any]]) -> str:
-    """執行 `_pick_winner` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_pick_winner` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not model_rows:
         raise ValueError("No model rows to rank")
 
@@ -192,9 +252,18 @@ def _pick_winner(model_rows: Sequence[Dict[str, Any]]) -> str:
 
 
 def run_benchmark(config: RunnerConfig) -> Path:
-    """執行 `run_benchmark` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`run_benchmark` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     dataset_rows = load_jsonl(config.dataset_path)
     validate_dataset(dataset_rows)
 

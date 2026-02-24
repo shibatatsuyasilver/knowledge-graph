@@ -106,8 +106,14 @@ class LlmMiscSettings:
 
 
 def get_neo4j_settings() -> Neo4jSettings:
-    """執行 `get_neo4j_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_neo4j_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return Neo4jSettings(
         uri=get_env_str("NEO4J_URI", "bolt://localhost:7687"),
@@ -117,8 +123,14 @@ def get_neo4j_settings() -> Neo4jSettings:
 
 
 def get_job_ttl_settings() -> JobTTLSettings:
-    """執行 `get_job_ttl_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_job_ttl_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return JobTTLSettings(
         keyword_job_ttl_seconds=max(1, get_env_int("KEYWORD_JOB_TTL_SECONDS", 3600)),
@@ -127,9 +139,18 @@ def get_job_ttl_settings() -> JobTTLSettings:
 
 
 def get_ingest_chunk_settings() -> IngestChunkSettings:
-    """執行 `get_ingest_chunk_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_ingest_chunk_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     token_chunk_size_default = get_env_int(
         "CHUNK_SIZE_TOKENS",
         get_env_int("GEMINI_INPUT_TOKEN_LIMIT", DEFAULT_GEMINI_INPUT_TOKEN_LIMIT),
@@ -146,9 +167,18 @@ def get_ingest_chunk_settings() -> IngestChunkSettings:
 
 
 def get_general_chat_settings() -> GeneralChatSettings:
-    """執行 `get_general_chat_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_general_chat_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     return GeneralChatSettings(
         timeout_seconds=max(
             1.0,
@@ -172,15 +202,27 @@ def get_general_chat_settings() -> GeneralChatSettings:
 
 
 def _env_bool(name: str, default: bool) -> bool:
-    """執行 `_env_bool` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_env_bool` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return get_env_bool(name, default)
 
 
 def get_kg_qa_settings() -> KgQASettings:
-    """執行 `get_kg_qa_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_kg_qa_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     model = get_env_str("KG_QA_MODEL", "").strip() or None
     return KgQASettings(
@@ -193,9 +235,18 @@ def get_kg_qa_settings() -> KgQASettings:
 
 
 def resolve_llm_provider() -> str:
-    """執行 `resolve_llm_provider` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_llm_provider` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     explicit = get_env_str("LLM_PROVIDER", "").strip().lower()
     if explicit in {"openai", "ollama", "gemini"}:
         return explicit
@@ -209,8 +260,14 @@ def resolve_llm_provider() -> str:
 
 
 def resolve_llm_model(provider: str) -> str:
-    """執行 `resolve_llm_model` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_llm_model` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     if provider == "ollama":
         return get_env_str("OLLAMA_MODEL", "") or get_env_str("LLM_MODEL", "") or DEFAULT_MODEL
@@ -220,9 +277,18 @@ def resolve_llm_model(provider: str) -> str:
 
 
 def get_llm_runtime_settings() -> LLMRuntimeSettings:
-    """執行 `get_llm_runtime_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_llm_runtime_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     provider = resolve_llm_provider()
     model = resolve_llm_model(provider)
 
@@ -273,8 +339,14 @@ def get_llm_runtime_settings() -> LLMRuntimeSettings:
 
 
 def get_kg_builder_settings() -> KgBuilderSettings:
-    """執行 `get_kg_builder_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_kg_builder_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return KgBuilderSettings(
         extraction_timeout_seconds=max(1, get_env_int("EXTRACTION_TIMEOUT_SECONDS", 60)),
@@ -287,9 +359,18 @@ def get_kg_builder_settings() -> KgBuilderSettings:
 
 
 def get_nl2cypher_settings() -> Nl2CypherSettings:
-    """執行 `get_nl2cypher_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_nl2cypher_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     base_tokens = max(
         1,
         get_env_int(
@@ -310,9 +391,18 @@ def get_nl2cypher_settings() -> Nl2CypherSettings:
 
 
 def get_llm_misc_settings() -> LlmMiscSettings:
-    """執行 `get_llm_misc_settings` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`get_llm_misc_settings` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     think_log_enabled = get_env_bool("LLM_THINK_LOG_ENABLED", get_env_bool("OLLAMA_THINK_LOG_ENABLED", False))
     think_log_path = (
         get_env("LLM_THINK_LOG_PATH")
@@ -327,9 +417,18 @@ def get_llm_misc_settings() -> LlmMiscSettings:
 
 
 def resolve_extraction_model(provider: Optional[str], explicit_model: Optional[str]) -> Optional[str]:
-    """執行 `resolve_extraction_model` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_extraction_model` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     explicit = (explicit_model or "").strip()
     if explicit:
         return explicit
@@ -343,8 +442,14 @@ def resolve_extraction_model(provider: Optional[str], explicit_model: Optional[s
 
 
 def resolve_nl2cypher_provider(provider: Optional[str]) -> Optional[str]:
-    """執行 `resolve_nl2cypher_provider` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_nl2cypher_provider` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     value = (provider or get_env_str("NL2CYPHER_PROVIDER", "")).strip().lower()
     if not value:
@@ -355,9 +460,18 @@ def resolve_nl2cypher_provider(provider: Optional[str]) -> Optional[str]:
 
 
 def resolve_nl2cypher_model(provider: Optional[str] = None, explicit_model: Optional[str] = None) -> Optional[str]:
-    """執行 `resolve_nl2cypher_model` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_nl2cypher_model` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     explicit = (explicit_model or "").strip()
     if explicit:
         return explicit
@@ -373,8 +487,14 @@ def resolve_nl2cypher_model(provider: Optional[str] = None, explicit_model: Opti
 
 
 def resolve_extraction_provider(provider: Optional[str]) -> Optional[str]:
-    """執行 `resolve_extraction_provider` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_extraction_provider` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     value = (provider or get_env_str("EXTRACTION_PROVIDER", "")).strip().lower()
     if not value:
@@ -385,9 +505,18 @@ def resolve_extraction_provider(provider: Optional[str]) -> Optional[str]:
 
 
 def resolve_extraction_num_predict(provider: Optional[str], gemini_output_default: int) -> int:
-    """執行 `resolve_extraction_num_predict` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`resolve_extraction_num_predict` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     resolved_provider = resolve_extraction_provider(provider)
     if resolved_provider == "gemini":
         return max(1, get_env_int("GEMINI_OUTPUT_TOKEN_LIMIT", gemini_output_default))

@@ -47,6 +47,9 @@ def test_chunk_text_uses_token_budget_for_gemini(monkeypatch: pytest.MonkeyPatch
     """驗證 `test_chunk_text_uses_token_budget_for_gemini` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(logic, "CHUNK_SIZE_MODE", "provider")
     monkeypatch.setattr(logic, "DEFAULT_TOKEN_CHUNK_SIZE", 5)
     monkeypatch.setattr(logic, "DEFAULT_TOKEN_CHUNK_MIN_SIZE", 1)
@@ -69,6 +72,9 @@ def test_process_keyword_success(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_process_keyword_success` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -106,6 +112,9 @@ def test_process_keyword_no_results(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_process_keyword_no_results` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(logic, "_search_keyword_urls", lambda keyword, max_results, language: [])
 
     with pytest.raises(ValueError, match="No results found"):
@@ -123,6 +132,9 @@ def test_process_keyword_partial_failures(monkeypatch: pytest.MonkeyPatch) -> No
     """驗證 `test_process_keyword_partial_failures` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     urls = ["https://ok.example.com/1", "https://bad.example.com/2"]
     monkeypatch.setattr(logic, "_search_keyword_urls", lambda keyword, max_results, language: urls)
 
@@ -164,6 +176,9 @@ def test_process_keyword_forwards_chunk_limit(monkeypatch: pytest.MonkeyPatch) -
     """驗證 `test_process_keyword_forwards_chunk_limit` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -241,6 +256,9 @@ def test_process_keyword_emits_progress_updates(monkeypatch: pytest.MonkeyPatch)
     """驗證 `test_process_keyword_emits_progress_updates` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         logic,
         "_search_keyword_urls",
@@ -350,6 +368,9 @@ def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch)
     """驗證 `test_search_keyword_urls_falls_back_to_html` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     class EmptyDDGS:
         def __enter__(self):
             """建立並回傳 context manager 進入階段所需資源。
@@ -364,8 +385,14 @@ def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch)
             return False
 
         def text(self, *args, **kwargs):
-            """執行 `text` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return []
 
@@ -380,8 +407,14 @@ def test_search_keyword_urls_falls_back_to_html(monkeypatch: pytest.MonkeyPatch)
         """
 
         def raise_for_status(self):
-            """執行 `raise_for_status` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`raise_for_status` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return None
 
@@ -405,6 +438,9 @@ def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.Mon
     """驗證 `test_search_keyword_urls_falls_back_to_wikipedia_api` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     class EmptyDDGS:
         def __enter__(self):
             """建立並回傳 context manager 進入階段所需資源。
@@ -419,8 +455,14 @@ def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.Mon
             return False
 
         def text(self, *args, **kwargs):
-            """執行 `text` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return []
 
@@ -428,21 +470,39 @@ def test_search_keyword_urls_falls_back_to_wikipedia_api(monkeypatch: pytest.Mon
         text = "<html><body>challenge</body></html>"
 
         def raise_for_status(self):
-            """執行 `raise_for_status` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`raise_for_status` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return None
 
     class WikiResponse:
         def raise_for_status(self):
-            """執行 `raise_for_status` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`raise_for_status` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return None
 
         def json(self):
-            """執行 `json` 的主要流程。
-            函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+            """`json` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
             """
             return {
                 "query": {
@@ -479,6 +539,9 @@ def test_query_kg_returns_answer_text(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_query_kg_returns_answer_text` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_loader():
         """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
         此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
@@ -508,6 +571,9 @@ def test_query_kg_returns_answer_text(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_query_kg_preserves_agentic_trace(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 query_kg 會保留 agentic_trace 可選欄位。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
 
     def fake_loader():
         def fake_answer_with_manual_prompt(question: str):
@@ -522,6 +588,10 @@ def test_query_kg_preserves_agentic_trace(monkeypatch: pytest.MonkeyPatch) -> No
                     "replan_count": 0,
                     "final_strategy": "single_query",
                     "failure_chain": [],
+                    "plan_initial": {"strategy": "single_query"},
+                    "planner_plan": {"strategy": "single_query"},
+                    "plan_final": {"strategy": "single_query"},
+                    "rounds": [{"round": 1, "verdict": "accept"}],
                 },
             }
 
@@ -533,12 +603,17 @@ def test_query_kg_preserves_agentic_trace(monkeypatch: pytest.MonkeyPatch) -> No
 
     assert result["agentic_trace"]["stage"] == "done"
     assert result["agentic_trace"]["round_count"] == 1
+    assert result["agentic_trace"]["plan_final"]["strategy"] == "single_query"
+    assert result["agentic_trace"]["rounds"][0]["verdict"] == "accept"
 
 
 def test_query_kg_handles_empty_rows(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_query_kg_handles_empty_rows` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_loader():
         """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
         此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
@@ -569,6 +644,9 @@ def test_query_kg_prefers_qa_llm(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_query_kg_prefers_qa_llm` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_loader():
         """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
         此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
@@ -600,6 +678,9 @@ def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
     """驗證 `test_query_kg_fallback_when_qa_llm_fails` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_loader():
         """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。
         此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
@@ -621,8 +702,14 @@ def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(logic, "_kg_qa_use_llm", lambda: True)
 
     def raise_chat(**_kwargs):
-        """執行 `raise_chat` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`raise_chat` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         raise RuntimeError("llm down")
 
@@ -636,6 +723,9 @@ def test_query_kg_fallback_when_qa_llm_fails(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_query_kg_fallback_hides_metadata_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 fallback 回覆不暴露技術欄位，且語氣不使用「我查到」模板。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def fake_loader():
         """提供 `fake_loader` 測試替身以模擬外部依賴或固定回傳。"""
         def fake_answer_with_manual_prompt(question: str):
@@ -665,10 +755,55 @@ def test_query_kg_fallback_hides_metadata_keys(monkeypatch: pytest.MonkeyPatch) 
     assert "我查到" not in result["answer"]
 
 
+def test_query_kg_forwards_query_engine(monkeypatch: pytest.MonkeyPatch) -> None:
+    """驗證 logic.query_kg 會轉送 query_engine 到 qa_service。"""
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+    captured: dict[str, object] = {}
+
+    def fake_query_kg(
+        question: str,
+        progress_callback=None,
+        nl2cypher_provider=None,
+        nl2cypher_model=None,
+        query_engine=None,
+    ):
+        captured["question"] = question
+        captured["progress_callback"] = progress_callback
+        captured["nl2cypher_provider"] = nl2cypher_provider
+        captured["nl2cypher_model"] = nl2cypher_model
+        captured["query_engine"] = query_engine
+        return {
+            "question": question,
+            "cypher": "MATCH (n) RETURN n.name AS name",
+            "rows": [{"name": "鴻海"}],
+        }
+
+    monkeypatch.setattr(logic.qa_service, "query_kg", fake_query_kg)
+
+    result = logic.query_kg(
+        "鴻海是什麼",
+        nl2cypher_provider="gemini",
+        nl2cypher_model="gemini-3-pro-preview",
+        query_engine="graph_chain",
+    )
+
+    assert result["question"] == "鴻海是什麼"
+    assert captured["question"] == "鴻海是什麼"
+    assert captured["progress_callback"] is None
+    assert captured["nl2cypher_provider"] == "gemini"
+    assert captured["nl2cypher_model"] == "gemini-3-pro-preview"
+    assert captured["query_engine"] == "graph_chain"
+
+
 def test_chat_general_uses_shared_llm_client(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_chat_general_uses_shared_llm_client` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
         logic.llm_client,
         "chat_text",

@@ -6,8 +6,14 @@ from backend.llm_kg import kg_builder
 
 
 def _builder_without_driver() -> kg_builder.KnowledgeGraphBuilder:
-    """執行 `_builder_without_driver` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_builder_without_driver` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return kg_builder.KnowledgeGraphBuilder.__new__(kg_builder.KnowledgeGraphBuilder)
 
@@ -16,6 +22,9 @@ def test_gemini_two_pass_prefills_missing_entities(monkeypatch: pytest.MonkeyPat
     """驗證 `test_gemini_two_pass_prefills_missing_entities` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     builder = _builder_without_driver()
     monkeypatch.setattr(kg_builder, "GEMINI_TWO_PASS_EXTRACTION", True)
 
@@ -85,6 +94,9 @@ def test_non_gemini_provider_keeps_single_pass(monkeypatch: pytest.MonkeyPatch) 
     """驗證 `test_non_gemini_provider_keeps_single_pass` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     builder = _builder_without_driver()
     monkeypatch.setattr(kg_builder, "GEMINI_TWO_PASS_EXTRACTION", True)
 
@@ -100,8 +112,14 @@ def test_non_gemini_provider_keeps_single_pass(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(builder, "_extract_json_with_retry", fake_extract_json_with_retry)
 
     def _unexpected_fetch(_entities):
-        """執行 `_unexpected_fetch` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_unexpected_fetch` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         raise AssertionError("two-pass entity prefill should not run for non-gemini providers")
 

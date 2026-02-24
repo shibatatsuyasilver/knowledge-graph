@@ -20,16 +20,28 @@ except Exception:  # pragma: no cover - optional dependency in lightweight envir
 
 
 def _reset_graph(builder: KnowledgeGraphBuilder) -> None:
-    """執行 `_reset_graph` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_reset_graph` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     with builder.driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
 
 
 def _bool_env(name: str, default: bool = False) -> bool:
-    """執行 `_bool_env` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_bool_env` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     value = os.getenv(name)
     if value is None:
@@ -44,9 +56,18 @@ def _fallback_qa_template(
     user: str,
     password: str,
 ) -> Dict[str, Any]:
-    """執行 `_fallback_qa_template` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_fallback_qa_template` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if GraphDatabase is None:
         raise RuntimeError("neo4j driver not available for fallback QA")
 
@@ -79,9 +100,18 @@ def _fallback_qa_template(
 
 
 def run() -> Dict[str, Any]:
-    """執行 `run` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`run` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     neo4j_user = os.getenv("NEO4J_USER", "neo4j")
     neo4j_password = os.getenv("NEO4J_PASSWORD", "password")

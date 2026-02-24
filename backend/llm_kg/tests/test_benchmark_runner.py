@@ -23,16 +23,28 @@ class _DummySession:
         return False
 
     def run(self, _query: str):
-        """執行 `run` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`run` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return []
 
 
 class _DummyDriver:
     def session(self):
-        """執行 `session` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`session` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return _DummySession()
 
@@ -45,14 +57,26 @@ class _FakeBuilder:
         self.driver = _DummyDriver()
 
     def close(self) -> None:
-        """執行 `close` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`close` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return None
 
     def extract_entities_relations(self, _text: str):
-        """執行 `extract_entities_relations` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`extract_entities_relations` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return {
             "entities": [{"name": "台積電", "type": "Organization"}, {"name": "Apple", "type": "Organization"}],
@@ -60,8 +84,14 @@ class _FakeBuilder:
         }
 
     def populate_graph(self, extracted):
-        """執行 `populate_graph` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`populate_graph` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return SimpleNamespace(
             entities=len(extracted.get("entities", [])),
@@ -73,8 +103,14 @@ class _FakeBuilder:
 
 
 def _build_dataset(path: Path) -> None:
-    """執行 `_build_dataset` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_build_dataset` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     rows = []
     for idx in range(1, 11):
@@ -107,6 +143,9 @@ def test_runner_outputs_artifacts_for_two_models_three_runs(monkeypatch, tmp_pat
     """驗證 `test_runner_outputs_artifacts_for_two_models_three_runs` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     dataset_path = tmp_path / "dataset.jsonl"
     _build_dataset(dataset_path)
 

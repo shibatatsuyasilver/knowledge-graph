@@ -9,6 +9,9 @@ def test_gemini_labeler_retries_on_bad_json(monkeypatch: pytest.MonkeyPatch) -> 
     """驗證 `test_gemini_labeler_retries_on_bad_json` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     labeler = GeminiLabeler(
         config=GeminiLabelerConfig(
@@ -49,6 +52,9 @@ def test_gemini_labeler_raises_after_retries(monkeypatch: pytest.MonkeyPatch) ->
     """驗證 `test_gemini_labeler_raises_after_retries` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     labeler = GeminiLabeler(
         config=GeminiLabelerConfig(max_retries=2, retry_backoff_seconds=0, rate_limit_seconds=0)

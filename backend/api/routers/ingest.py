@@ -18,17 +18,29 @@ router = APIRouter()
 
 
 def _neo4j_credentials() -> tuple[str, str, str]:
-    """執行 `_neo4j_credentials` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """從設定檔提取 Neo4j 圖形資料庫的連線憑證。
+    
+    回傳值:
+        tuple[str, str, str]: 包含 (URI, 帳號, 密碼) 的 Tuple，例如 ("bolt://localhost:7687", "neo4j", "password")
     """
     cfg = get_neo4j_settings()
     return cfg.uri, cfg.user, cfg.password
 
 
 def _build_initial_keyword_progress(req: KeywordRequest) -> Dict[str, Any]:
-    """執行 `_build_initial_keyword_progress` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """建構關鍵字爬取任務 (Keyword Ingestion) 的初始狀態結構。
+    
+    當發起背景關鍵字任務時，系統需要一個空白的進度表以供後續填寫與前端輪詢。
+    
+    參數:
+        req (KeywordRequest): 包含使用者搜尋參數的請求物件。
+        
+    回傳值:
+        Dict[str, Any]: 初始的 progress 狀態字典，包含空陣列與歸零的計數器。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     return {
         "status": "running",
         "searched_keyword": req.keyword.strip(),
@@ -50,9 +62,18 @@ def _build_initial_keyword_progress(req: KeywordRequest) -> Dict[str, Any]:
 
 
 def _build_initial_ingest_progress(chunk_limit: Optional[int], *, current_url: Optional[str] = None) -> Dict[str, Any]:
-    """執行 `_build_initial_ingest_progress` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """建構純文本或單一 URL 爬取任務的初始狀態結構。
+    
+    參數:
+        chunk_limit: 本次允許處理的最大 Chunk 數量。
+        current_url: (可選) 正在處理的目標網址。
+        
+    回傳值:
+        Dict[str, Any]: 初始的 progress 狀態字典。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     payload: Dict[str, Any] = {
         "status": "running",
         "stats": {
@@ -74,8 +95,12 @@ def _build_initial_ingest_progress(chunk_limit: Optional[int], *, current_url: O
 
 
 def _ingest_job_status(job_id: str) -> Dict[str, Any]:
-    """執行 `_ingest_job_status` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """查詢非同步 Ingest Job 的當前狀態。
+    
+    透過 `job_id` 從記憶體中的 `ingest_job_store` 讀取最新進度。
+    
+    回傳值:
+        Dict[str, Any]: 包含 "running"、"completed" 或 "failed" 等狀態與資料。
     """
     job = ingest_job_store.get(job_id)
     if not job:
@@ -95,9 +120,22 @@ def _create_ingest_job(
     run_job: Any,
     name_prefix: str,
 ) -> Dict[str, str]:
-    """執行 `_create_ingest_job` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """共用的建立非同步任務工廠函式。
+    
+    為不同的 Ingest 操作 (如 URL 解析、純文字解析) 提供一個標準化的背景執行緒封裝，
+    並處理任務建立、完成、與例外錯誤的狀態更新。
+    
+    參數:
+        initial_progress: 任務的初始狀態字典。
+        run_job: 實際要在背景執行的處理函式 (需接受 job_id)。
+        name_prefix: 用來命名執行緒的前綴字串 (例如 "url-job" 或 "text-job")。
+        
+    回傳值:
+        Dict[str, str]: 包含任務 ID 與初始狀態的字典。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     job_id = ingest_job_store.create(
         {
             "status": "running",
@@ -108,16 +146,15 @@ def _create_ingest_job(
     )
 
     def _wrapped() -> None:
-        """執行 `_wrapped` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-        """
+        """包裝在背景執行緒中執行的函式，負責捕捉任務成功與失敗的狀態。"""
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         try:
             result = run_job(job_id)
 
             def _mark_completed(job: Dict[str, Any]) -> None:
-                """執行 `_mark_completed` 的內部輔助流程。
-                此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                """
+                """任務成功完成，更新最終結果到 Store 中。"""
                 job["status"] = "completed"
                 job["result"] = result
                 progress = dict(job.get("progress") or {})
@@ -128,9 +165,7 @@ def _create_ingest_job(
             ingest_job_store.update(job_id, _mark_completed)
         except Exception as exc:  # pragma: no cover - integration path
             def _mark_failed(job: Dict[str, Any]) -> None:
-                """執行 `_mark_failed` 的內部輔助流程。
-                此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                """
+                """任務執行失敗，記錄錯誤到 Store 中供前端查詢。"""
                 job["status"] = "failed"
                 job["error"] = str(exc)
                 progress = dict(job.get("progress") or {})
@@ -147,9 +182,14 @@ def _create_ingest_job(
 
 @router.post("/api/process_url")
 def process_url_sync(req: UrlRequest):
-    """處理 `POST /api/process_url` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
+    """處理指定的單一 URL，將內容轉換為知識圖譜 (同步 API)。
+    
+    此 API 會阻塞連線，直到目標網址的內容完全抓取、清洗並交由 LLM 萃取出圖譜為止。
+    適用於小規模網頁測試或沒有非同步需求的情境。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         uri, user, pwd = _neo4j_credentials()
         return logic.process_url_to_kg(
@@ -167,8 +207,9 @@ def process_url_sync(req: UrlRequest):
 
 @router.post("/api/process_text")
 def process_text_sync(req: TextRequest):
-    """處理 `POST /api/process_text` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
+    """將一段指定的純文字內容轉換為知識圖譜 (同步 API)。
+    
+    與 URL 不同，這是直接把文字餵入，不需要爬蟲處理。
     """
     try:
         uri, user, pwd = _neo4j_credentials()
@@ -187,38 +228,48 @@ def process_text_sync(req: TextRequest):
 
 @router.post("/api/process_text_async/start")
 def process_text_async_start(req: TextRequest):
-    """處理 `POST /api/process_text_async/start` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
+    """發起處理指定純文字為知識圖譜的非同步任務。
+    
+    將長時間的 LLM 萃取與資料庫寫入放在背景執行緒，並立即回傳 `job_id` 供前端後續查詢。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         initial_progress = _build_initial_ingest_progress(req.chunk_limit)
 
         def _run(job_id: str) -> Dict[str, Any]:
-            """執行 `_run` 的內部輔助流程。
-            此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-            """
+            """背景任務的實際執行函式。"""
+            # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+            # ─── 階段 2：核心處理流程 ─────────────────────────────────
+            # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+            
             def _update_progress(event: Dict[str, Any]) -> None:
-                """執行 `_update_progress` 的內部輔助流程。
-                此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                """
+                """當處理每個 Chunk 完成時的回呼，用來更新記憶體中該 Job 的進度。"""
+                # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+                # ─── 階段 2：核心處理流程 ─────────────────────────────────
+                # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
                 if event.get("type") != "chunk_update":
                     return
 
                 def _mutate(job: Dict[str, Any]) -> None:
-                    """執行 `_mutate` 的內部輔助流程。
-                    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                    """
+                    """安全的在鎖定範圍內更新 Job 狀態。"""
+                    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+                    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+                    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
                     progress = dict(job.get("progress") or {})
                     chunk_row = event.get("chunk")
                     if isinstance(chunk_row, dict):
                         existing_rows = [dict(item) for item in progress.get("chunk_progress", [])]
                         chunk_id = str(chunk_row.get("chunk_id", ""))
                         found = False
+                        # 若已有相同的 chunk_id，就更新它
                         for idx, row in enumerate(existing_rows):
                             if str(row.get("chunk_id", "")) == chunk_id:
                                 existing_rows[idx] = {**row, **chunk_row}
                                 found = True
                                 break
+                        # 沒有則新增一筆
                         if not found:
                             existing_rows.append(dict(chunk_row))
                         progress["chunk_progress"] = existing_rows
@@ -256,35 +307,37 @@ def process_text_async_start(req: TextRequest):
 
 @router.get("/api/process_text_async/{job_id}")
 def process_text_async_status(job_id: str):
-    """處理 `GET /api/process_text_async/{job_id}` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
-    """
+    """查詢由 `/api/process_text_async/start` 發起的任務狀態。"""
     return _ingest_job_status(job_id)
 
 
 @router.post("/api/process_url_async/start")
 def process_url_async_start(req: UrlRequest):
-    """處理 `POST /api/process_url_async/start` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
-    """
+    """發起處理單一網址為知識圖譜的非同步任務。"""
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         initial_progress = _build_initial_ingest_progress(req.chunk_limit, current_url=req.url.strip())
 
         def _run(job_id: str) -> Dict[str, Any]:
-            """執行 `_run` 的內部輔助流程。
-            此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-            """
+            """背景任務的實際執行函式。"""
+            # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+            # ─── 階段 2：核心處理流程 ─────────────────────────────────
+            # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+            
             def _update_progress(event: Dict[str, Any]) -> None:
-                """執行 `_update_progress` 的內部輔助流程。
-                此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                """
+                """攔截進度更新並寫回 Store 中。"""
+                # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+                # ─── 階段 2：核心處理流程 ─────────────────────────────────
+                # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
                 if event.get("type") != "chunk_update":
                     return
 
                 def _mutate(job: Dict[str, Any]) -> None:
-                    """執行 `_mutate` 的內部輔助流程。
-                    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                    """
+                    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+                    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+                    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
                     progress = dict(job.get("progress") or {})
                     chunk_row = event.get("chunk")
                     if isinstance(chunk_row, dict):
@@ -334,17 +387,20 @@ def process_url_async_start(req: UrlRequest):
 
 @router.get("/api/process_url_async/{job_id}")
 def process_url_async_status(job_id: str):
-    """處理 `GET /api/process_url_async/{job_id}` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
-    """
+    """查詢由 `/api/process_url_async/start` 發起的任務狀態。"""
     return _ingest_job_status(job_id)
 
 
 @router.post("/api/process_keyword")
 def process_keyword_sync(req: KeywordRequest):
-    """處理 `POST /api/process_keyword` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
+    """將給定關鍵字自動搜尋、爬取多個網頁並建立知識圖譜 (同步 API)。
+    
+    這個流程可能會花費數分鐘，因為包含爬蟲、多次呼叫 LLM 以及寫入資料庫。
+    對於正式環境，建議使用 `/api/process_keyword_async/start`。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         uri, user, pwd = _neo4j_credentials()
         return logic.process_keyword_to_kg(
@@ -365,9 +421,14 @@ def process_keyword_sync(req: KeywordRequest):
 
 @router.post("/api/process_keyword_async/start")
 def process_keyword_async_start(req: KeywordRequest):
-    """處理 `POST /api/process_keyword_async/start` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
+    """發起將關鍵字轉知識圖譜的複雜非同步任務。
+    
+    由於這個任務會跨越多個不同的網址，並擁有自己的 Store (`keyword_job_store`)，
+    它會在背景收集來自 `logic.process_keyword_to_kg` 中每個網址的執行進度並更新狀態。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         job_id = keyword_job_store.create(
             {
@@ -379,21 +440,17 @@ def process_keyword_async_start(req: KeywordRequest):
         )
 
         def _update_progress(payload: Dict[str, Any]) -> None:
-            """執行 `_update_progress` 的內部輔助流程。
-            此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-            """
+            """將底層回傳的整體進度直接覆寫掉 Job 中的 progress。"""
             def _mutate(job: Dict[str, Any]) -> None:
-                """執行 `_mutate` 的內部輔助流程。
-                此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                """
                 job["progress"] = payload
 
             keyword_job_store.update(job_id, _mutate)
 
         def _run_job() -> None:
-            """執行 `_run_job` 的內部輔助流程。
-            此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-            """
+            """在背景執行緒中執行關鍵字爬取與圖譜建立。"""
+            # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+            # ─── 階段 2：核心處理流程 ─────────────────────────────────
+            # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
             try:
                 uri, user, pwd = _neo4j_credentials()
                 result = logic.process_keyword_to_kg(
@@ -411,9 +468,6 @@ def process_keyword_async_start(req: KeywordRequest):
                 )
 
                 def _mark_completed(job: Dict[str, Any]) -> None:
-                    """執行 `_mark_completed` 的內部輔助流程。
-                    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                    """
                     job["status"] = "completed"
                     job["result"] = result
                     job["progress"] = result
@@ -421,9 +475,6 @@ def process_keyword_async_start(req: KeywordRequest):
                 keyword_job_store.update(job_id, _mark_completed)
             except Exception as exc:  # pragma: no cover - integration path
                 def _mark_failed(job: Dict[str, Any]) -> None:
-                    """執行 `_mark_failed` 的內部輔助流程。
-                    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-                    """
                     job["status"] = "failed"
                     job["error"] = str(exc)
                     progress = dict(job.get("progress") or {})
@@ -442,9 +493,7 @@ def process_keyword_async_start(req: KeywordRequest):
 
 @router.get("/api/process_keyword_async/{job_id}")
 def process_keyword_async_status(job_id: str):
-    """處理 `GET /api/process_keyword_async/{job_id}` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
-    """
+    """查詢由 `/api/process_keyword_async/start` 發起的關鍵字任務狀態。"""
     job = keyword_job_store.get(job_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found or expired")

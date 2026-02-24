@@ -156,8 +156,14 @@ class DatasetItem:
     metadata: ItemMetadata
 
     def to_dict(self) -> Dict[str, Any]:
-        """執行 `to_dict` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`to_dict` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return asdict(self)
 
@@ -183,15 +189,27 @@ class RunRecord:
 
 
 def _validator(schema: Dict[str, Any]) -> Draft202012Validator:
-    """執行 `_validator` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_validator` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return Draft202012Validator(schema)
 
 
 def validate_dataset_item(payload: Dict[str, Any]) -> None:
-    """執行 `validate_dataset_item` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`validate_dataset_item` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     errors = sorted(_validator(DATASET_ITEM_SCHEMA).iter_errors(payload), key=lambda e: e.path)
     if errors:
@@ -200,8 +218,14 @@ def validate_dataset_item(payload: Dict[str, Any]) -> None:
 
 
 def validate_dataset(items: Iterable[Dict[str, Any]]) -> None:
-    """執行 `validate_dataset` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`validate_dataset` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     seen_ids = set()
     for item in items:
@@ -213,8 +237,14 @@ def validate_dataset(items: Iterable[Dict[str, Any]]) -> None:
 
 
 def validate_summary(payload: Dict[str, Any]) -> None:
-    """執行 `validate_summary` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`validate_summary` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     errors = sorted(_validator(SUMMARY_SCHEMA).iter_errors(payload), key=lambda e: e.path)
     if errors:
@@ -223,8 +253,14 @@ def validate_summary(payload: Dict[str, Any]) -> None:
 
 
 def load_jsonl(path: Path) -> List[Dict[str, Any]]:
-    """執行 `load_jsonl` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`load_jsonl` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     rows: List[Dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as fh:
@@ -237,8 +273,14 @@ def load_jsonl(path: Path) -> List[Dict[str, Any]]:
 
 
 def dump_jsonl(path: Path, rows: Iterable[Dict[str, Any]]) -> None:
-    """執行 `dump_jsonl` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`dump_jsonl` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fh:

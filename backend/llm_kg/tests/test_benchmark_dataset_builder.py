@@ -10,6 +10,9 @@ def test_dataset_builder_generates_100_items_with_fixed_ratio(tmp_path: Path) ->
     """驗證 `test_dataset_builder_generates_100_items_with_fixed_ratio` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     cfg = BuilderConfig(
         dataset_path=tmp_path / "kgqa_zh_tw_100_v1.jsonl",
         random_seed=42,

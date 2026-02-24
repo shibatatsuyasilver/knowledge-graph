@@ -62,21 +62,6 @@ ALLOWED_RELATION_TYPES = {
     "HAS_FINANCIAL_METRIC",
     "FOR_PERIOD",
 }
-FINANCIAL_METRIC_CANONICAL_TYPES = {"REVENUE", "OPERATING_MARGIN"}
-FINANCIAL_METRIC_TYPE_ALIASES = {
-    "revenue": "REVENUE",
-    "sales": "REVENUE",
-    "營收": "REVENUE",
-    "營業收入": "REVENUE",
-    "operatingmargin": "OPERATING_MARGIN",
-    "operatingprofitmargin": "OPERATING_MARGIN",
-    "operatingprofitratio": "OPERATING_MARGIN",
-    "operatingmarginrate": "OPERATING_MARGIN",
-    "operating_margin": "OPERATING_MARGIN",
-    "營益率": "OPERATING_MARGIN",
-    "營業利益率": "OPERATING_MARGIN",
-    "營運利潤率": "OPERATING_MARGIN",
-}
 ENTITY_EXTRA_PROPERTY_ALLOWLIST = {
     "description",
     "metric_type",
@@ -108,8 +93,14 @@ SAMPLE_TEXT = """
 
 
 def _trim_raw_error(raw: str) -> str:
-    """執行 `_trim_raw_error` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_trim_raw_error` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     text = str(raw or "").strip()
     limit = max(0, EXTRACTION_ERROR_RAW_MAX_CHARS)
@@ -124,22 +115,40 @@ def _resolve_extraction_model(
     *,
     provider: str | None = None,
 ) -> str | None:
-    """執行 `_resolve_extraction_model` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_extraction_model` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return resolve_extraction_model_from_settings(provider=provider, explicit_model=model)
 
 
 def _resolve_extraction_provider(provider: str | None = None) -> str | None:
-    """執行 `_resolve_extraction_provider` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_extraction_provider` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return resolve_extraction_provider_from_settings(provider)
 
 
 def _resolve_extraction_num_predict(provider: str | None = None) -> int:
-    """執行 `_resolve_extraction_num_predict` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_resolve_extraction_num_predict` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return resolve_extraction_num_predict_from_settings(provider, llm_client.DEFAULT_GEMINI_OUTPUT_TOKEN_LIMIT)
 
@@ -154,8 +163,14 @@ class GraphBuildStats:
 
 
 def strip_markdown_fence(content: str) -> str:
-    """執行 `strip_markdown_fence` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`strip_markdown_fence` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     text = content.strip()
     m = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, flags=re.DOTALL | re.IGNORECASE)
@@ -163,17 +178,32 @@ def strip_markdown_fence(content: str) -> str:
 
 
 def _normalize_name(name: str) -> str:
-    """執行 `_normalize_name` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_normalize_name` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     lowered = name.strip().lower()
     return re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", lowered)
 
 
 def _name_variants(name: str) -> List[str]:
-    """執行 `_name_variants` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_name_variants` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     variants = {name.strip()}
     compact = re.sub(r"[（(].*?[）)]", "", name).strip()
     if compact:
@@ -189,8 +219,14 @@ def _name_variants(name: str) -> List[str]:
 
 
 def _best_match(name: str, candidates: Iterable[str]) -> Tuple[str, float]:
-    """執行 `_best_match` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_best_match` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     best = ""
     best_score = 0.0
@@ -202,8 +238,14 @@ def _best_match(name: str, candidates: Iterable[str]) -> Tuple[str, float]:
 
 
 def _safe_type(value: str) -> str:
-    """執行 `_safe_type` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_safe_type` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value not in ALLOWED_ENTITY_TYPES:
         raise ValueError(f"Unsupported entity type: {value}")
@@ -211,53 +253,29 @@ def _safe_type(value: str) -> str:
 
 
 def _safe_relation(value: str) -> str:
-    """執行 `_safe_relation` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_safe_relation` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value not in ALLOWED_RELATION_TYPES:
         raise ValueError(f"Unsupported relation type: {value}")
     return value
 
 
-def _canonicalize_period(value: str) -> str:
-    """執行 `_canonicalize_period` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-    """
-    raw = str(value or "").strip()
-    if not raw:
-        return ""
-    normalized = raw.upper().replace(" ", "")
-    direct = re.search(r"(20\d{2})Q([1-4])", normalized)
-    if direct:
-        return f"{direct.group(1)}Q{direct.group(2)}"
-
-    zh = re.search(r"(20\d{2})\s*年?\s*第?\s*([1-4])\s*季", raw)
-    if zh:
-        return f"{zh.group(1)}Q{zh.group(2)}"
-    return ""
-
-
-def _canonicalize_metric_type(entity: Dict[str, Any], entity_name: str) -> str:
-    """執行 `_canonicalize_metric_type` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
-    """
-    candidate = str(entity.get("metric_type", "")).strip()
-    if not candidate:
-        candidate = entity_name
-    key = re.sub(r"[^0-9a-zA-Z_\u4e00-\u9fff]+", "", candidate).lower()
-    mapped = FINANCIAL_METRIC_TYPE_ALIASES.get(key)
-    if mapped:
-        return mapped
-
-    upper_candidate = candidate.upper().strip()
-    if upper_candidate in FINANCIAL_METRIC_CANONICAL_TYPES:
-        return upper_candidate
-    return ""
-
-
 def _to_optional_text(value: Any) -> Optional[str]:
-    """執行 `_to_optional_text` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_to_optional_text` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if value is None:
         return None
@@ -266,16 +284,25 @@ def _to_optional_text(value: Any) -> Optional[str]:
 
 
 def _extract_entity_extra_props(entity: Dict[str, Any], entity_type: str, canonical_name: str) -> Dict[str, str]:
-    """執行 `_extract_entity_extra_props` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_extract_entity_extra_props` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     extra: Dict[str, str] = {}
     description = _to_optional_text(entity.get("description"))
     if description:
         extra["description"] = description
 
-    if entity_type == "FinancialMetric":
-        metric_type = _canonicalize_metric_type(entity, canonical_name)
+    if entity_type in {"FinancialMetric", "FiscalPeriod"}:
+        metric_type = _to_optional_text(entity.get("metric_type"))
         if metric_type:
             extra["metric_type"] = metric_type
         value = _to_optional_text(entity.get("value"))
@@ -287,12 +314,7 @@ def _extract_entity_extra_props(entity: Dict[str, Any], entity_type: str, canoni
         currency = _to_optional_text(entity.get("currency"))
         if currency:
             extra["currency"] = currency
-        period = _canonicalize_period(str(entity.get("period", "")))
-        if period:
-            extra["period"] = period
-
-    if entity_type == "FiscalPeriod":
-        period = _canonicalize_period(canonical_name) or _canonicalize_period(str(entity.get("period", "")))
+        period = _to_optional_text(entity.get("period"))
         if period:
             extra["period"] = period
 
@@ -307,15 +329,30 @@ class KnowledgeGraphBuilder:
         self.driver: Driver = GraphDatabase.driver(uri, auth=(user, password))
 
     def close(self) -> None:
-        """執行 `close` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`close` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         self.driver.close()
 
     def _should_use_two_pass_extraction(self, provider: str | None) -> bool:
-        """執行 `_should_use_two_pass_extraction` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_should_use_two_pass_extraction` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         if not GEMINI_TWO_PASS_EXTRACTION:
             return False
         if provider == "gemini":
@@ -329,9 +366,18 @@ class KnowledgeGraphBuilder:
 
     @staticmethod
     def _build_phase1_entity_inventory_prompt(text: str) -> str:
-        """執行 `_build_phase1_entity_inventory_prompt` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_build_phase1_entity_inventory_prompt` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         return f"""
 -Goal-
 Given a text document and fixed ontology constraints, identify all entities only.
@@ -344,14 +390,12 @@ Return JSON only.
 - type: One of [{", ".join(sorted(ALLOWED_ENTITY_TYPES))}]
 - description: Grounded short description from text
 
-2. Financial normalization:
-- For FiscalPeriod, normalize quarter as YYYYQ1..YYYYQ4 (example: 2025Q2).
-- For FinancialMetric, include:
-  - metric_type: REVENUE or OPERATING_MARGIN
-  - value: raw numeric value text from source
-  - unit: e.g. 億元, %, basis points
-  - currency: e.g. TWD, USD
-  - period: YYYYQ1..YYYYQ4 if available
+2. If grounded in source text, include optional text fields when available:
+- metric_type
+- value
+- unit
+- currency
+- period
 
 3. Return exactly this JSON shape:
 {{
@@ -376,9 +420,18 @@ Output:
 
     @staticmethod
     def _render_seed_entities_for_prompt(seed_entities: List[Dict[str, Any]], limit: int = 120) -> str:
-        """執行 `_render_seed_entities_for_prompt` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_render_seed_entities_for_prompt` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         if not seed_entities:
             return "[]"
         lines: List[str] = []
@@ -393,9 +446,18 @@ Output:
         return "\n".join(lines) if lines else "[]"
 
     def _build_phase2_relation_prompt(self, text: str, seed_entities: List[Dict[str, Any]]) -> str:
-        """執行 `_build_phase2_relation_prompt` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_build_phase2_relation_prompt` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         seed_block = self._render_seed_entities_for_prompt(seed_entities)
         # Use GraphRAG's Goal/Steps prompt style, adapted to this project's strict enum-based schema.
         return f"""
@@ -412,14 +474,7 @@ Return JSON only.
 - type: One of [{", ".join(sorted(ALLOWED_ENTITY_TYPES))}]
 - description: Comprehensive description grounded in the text
 
-Financial entity notes:
-- For FiscalPeriod, normalize quarter as YYYYQ1..YYYYQ4 (example: 2025Q2).
-- For FinancialMetric, include:
-  - metric_type: REVENUE or OPERATING_MARGIN
-  - value: raw numeric value text from source
-  - unit: e.g. 億元, %, basis points
-  - currency: e.g. TWD, USD
-  - period: YYYYQ1..YYYYQ4 if available
+Optional entity text fields (when available): metric_type, value, unit, currency, period.
 
 2. From entities in step 1, identify all clearly related pairs. For each relationship, extract:
 - source: source entity name
@@ -442,8 +497,6 @@ Financial entity notes:
 Semantic mapping note:
 - 董事長 / 主席 / 執行長 / CEO / President -> CHAIRED_BY
 - 創辦人 / 創立者 / founded by -> FOUNDED_BY
-- 營收 / revenue / sales -> FinancialMetric.metric_type=REVENUE
-- 營益率 / 營業利益率 / operating margin -> FinancialMetric.metric_type=OPERATING_MARGIN
 
 4. Return exactly this JSON shape:
 {{
@@ -454,20 +507,14 @@ Semantic mapping note:
       "description": "..."
     }},
     {{
-      "name": "2025Q2",
-      "type": "FiscalPeriod",
-      "description": "2025 年第二季",
-      "period": "2025Q2"
+      "name": "張忠謀",
+      "type": "Person",
+      "description": "..."
     }},
     {{
-      "name": "鴻海 2025Q2 營收",
-      "type": "FinancialMetric",
-      "description": "鴻海 2025Q2 營收指標",
-      "metric_type": "REVENUE",
-      "value": "1.23 兆",
-      "unit": "兆",
-      "currency": "TWD",
-      "period": "2025Q2"
+      "name": "新竹",
+      "type": "Location",
+      "description": "..."
     }}
   ],
   "relations": [
@@ -479,17 +526,10 @@ Semantic mapping note:
       "relationship_strength": 9
     }},
     {{
-      "source": "鴻海",
-      "target": "鴻海 2025Q2 營收",
-      "relation": "HAS_FINANCIAL_METRIC",
-      "description": "鴻海擁有營收指標",
-      "relationship_strength": 9
-    }},
-    {{
-      "source": "鴻海 2025Q2 營收",
-      "target": "2025Q2",
-      "relation": "FOR_PERIOD",
-      "description": "該指標對應季度",
+      "source": "台積電",
+      "target": "新竹",
+      "relation": "HEADQUARTERED_IN",
+      "description": "...",
       "relationship_strength": 9
     }}
   ]
@@ -509,9 +549,18 @@ Output:
 """.strip()
 
     def _fetch_existing_entity_keys(self, entities: List[Dict[str, Any]]) -> set[Tuple[str, str]]:
-        """執行 `_fetch_existing_entity_keys` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_fetch_existing_entity_keys` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         probes: List[Dict[str, Any]] = []
         for entity in entities:
             name = str(entity.get("name", "")).strip()
@@ -552,9 +601,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return existing
 
     def _prefill_missing_entities(self, entities: List[Dict[str, Any]]) -> int:
-        """執行 `_prefill_missing_entities` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_prefill_missing_entities` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         inserted = 0
         for entity in entities:
             self._create_entity(
@@ -573,9 +631,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Dict[str, Any]:
-        """執行 `_extract_entities_relations_two_pass` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_extract_entities_relations_two_pass` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         phase1_prompt = self._build_phase1_entity_inventory_prompt(text)
         phase1_payload, phase1_retries = self._extract_json_with_retry(
             phase1_prompt,
@@ -616,9 +683,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Dict[str, Any]:
-        """執行 `extract_entities_relations` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`extract_entities_relations` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         use_provider = _resolve_extraction_provider(provider)
         if self._should_use_two_pass_extraction(use_provider):
             return self._extract_entities_relations_two_pass(
@@ -642,9 +718,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Tuple[Dict[str, Any], int]:
-        """執行 `_extract_json_with_retry` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_extract_json_with_retry` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         last_error: Exception | None = None
         raw = ""
         current_prompt = prompt
@@ -719,8 +804,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
 
     @staticmethod
     def _validate_extraction_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
-        """執行 `_validate_extraction_payload` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_validate_extraction_payload` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         if not isinstance(payload, dict):
             raise ValueError("Extraction payload must be a JSON object")
@@ -731,9 +822,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return payload
 
     def _sanitize_extraction(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """執行 `_sanitize_extraction` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_sanitize_extraction` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         entities: List[Dict[str, Any]] = []
         relations: List[Dict[str, str]] = []
         merged_entities = 0
@@ -749,17 +849,6 @@ RETURN item.name AS name, item.type AS type, exists AS exists
                 continue
             if entity_type not in ALLOWED_ENTITY_TYPES:
                 continue
-
-            if entity_type == "FiscalPeriod":
-                period_name = _canonicalize_period(name) or _canonicalize_period(str(entity.get("period", "")))
-                if not period_name:
-                    continue
-                name = period_name
-
-            if entity_type == "FinancialMetric":
-                metric_type = _canonicalize_metric_type(entity, name)
-                if not metric_type:
-                    continue
 
             variants = _name_variants(name)
             normalized_variants = [_normalize_name(v) for v in variants if _normalize_name(v)]
@@ -808,20 +897,6 @@ RETURN item.name AS name, item.type AS type, exists AS exists
             entities.append(entity_row)
 
         entity_type_by_name = {entity["name"]: entity["type"] for entity in entities}
-        entity_by_name = {entity["name"]: entity for entity in entities}
-        financial_period_by_name: Dict[str, str] = {}
-        fiscal_period_by_name: Dict[str, str] = {}
-        for entity in entities:
-            entity_name = entity["name"]
-            entity_type = entity["type"]
-            if entity_type == "FinancialMetric":
-                metric_period = _canonicalize_period(str(entity.get("period", "")))
-                if metric_period:
-                    financial_period_by_name[entity_name] = metric_period
-            elif entity_type == "FiscalPeriod":
-                period_value = _canonicalize_period(str(entity.get("period", ""))) or _canonicalize_period(entity_name)
-                if period_value:
-                    fiscal_period_by_name[entity_name] = period_value
         canonical_lookup: Dict[str, str] = {}
         for entity in entities:
             canonical_lookup[_normalize_name(entity["name"])] = entity["name"]
@@ -860,19 +935,6 @@ RETURN item.name AS name, item.type AS type, exists AS exists
                     dropped_relations += 1
                     continue
 
-            # Keep quarter links coherent: a FinancialMetric can only connect to one period.
-            if rel_type == "FOR_PERIOD" and source_type == "FinancialMetric" and target_type == "FiscalPeriod":
-                metric_period = financial_period_by_name.get(source, "")
-                target_period = fiscal_period_by_name.get(target, "") or _canonicalize_period(target)
-                if target_period and metric_period and target_period != metric_period:
-                    dropped_relations += 1
-                    continue
-                if target_period and not metric_period:
-                    financial_period_by_name[source] = target_period
-                    metric_entity = entity_by_name.get(source)
-                    if isinstance(metric_entity, dict):
-                        metric_entity["period"] = target_period
-
             key = (source.lower(), rel_type, target.lower())
             if key in seen_relations:
                 continue
@@ -886,8 +948,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         }
 
     def _resolve_entity_reference(self, name: str, canonical_lookup: Dict[str, str]) -> str:
-        """執行 `_resolve_entity_reference` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_resolve_entity_reference` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         normalized = _normalize_name(name)
         if normalized in canonical_lookup:
@@ -899,8 +967,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return name
 
     def _ensure_constraints(self) -> None:
-        """執行 `_ensure_constraints` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_ensure_constraints` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         with self.driver.session() as session:
             session.run("CREATE CONSTRAINT entity_name_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.name IS UNIQUE")
@@ -913,9 +987,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         aliases: Iterable[str] | None = None,
         extra_props: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """執行 `_create_entity` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_create_entity` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         label = _safe_type(entity_type)
         alias_values = sorted({a.strip() for a in (aliases or []) if a and a.strip()})
         if name not in alias_values:
@@ -947,8 +1030,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
             session.run(" ".join(query), **params)
 
     def _create_relation(self, source: str, relation: str, target: str) -> None:
-        """執行 `_create_relation` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_create_relation` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         rel = _safe_relation(relation)
         query = (
@@ -960,9 +1049,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
             session.run(query, source=source, target=target)
 
     def populate_graph(self, data: Dict[str, Any]) -> GraphBuildStats:
-        """執行 `populate_graph` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`populate_graph` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         self._ensure_constraints()
         meta = data.get("meta", {})
         stats = GraphBuildStats(
@@ -987,8 +1085,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return stats
 
     def build_from_text(self, text: str) -> Tuple[Dict[str, Any], GraphBuildStats]:
-        """執行 `build_from_text` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`build_from_text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         extracted = self.extract_entities_relations(text)
         stats = self.populate_graph(extracted)
@@ -996,9 +1100,18 @@ RETURN item.name AS name, item.type AS type, exists AS exists
 
 
 def _fallback_data() -> Dict[str, Any]:
-    """執行 `_fallback_data` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_fallback_data` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     return {
         "entities": [
             {"name": "台積電", "type": "Organization"},
@@ -1007,16 +1120,6 @@ def _fallback_data() -> Dict[str, Any]:
             {"name": "Apple", "type": "Organization"},
             {"name": "NVIDIA", "type": "Organization"},
             {"name": "3奈米", "type": "Technology"},
-            {"name": "2025Q2", "type": "FiscalPeriod", "period": "2025Q2"},
-            {
-                "name": "台積電 2025Q2 營收",
-                "type": "FinancialMetric",
-                "metric_type": "REVENUE",
-                "value": "8,390 億元",
-                "unit": "億元",
-                "currency": "TWD",
-                "period": "2025Q2",
-            },
         ],
         "relations": [
             {"source": "台積電", "relation": "FOUNDED_BY", "target": "張忠謀"},
@@ -1024,15 +1127,19 @@ def _fallback_data() -> Dict[str, Any]:
             {"source": "台積電", "relation": "SUPPLIES_TO", "target": "Apple"},
             {"source": "台積電", "relation": "SUPPLIES_TO", "target": "NVIDIA"},
             {"source": "台積電", "relation": "PRODUCES", "target": "3奈米"},
-            {"source": "台積電", "relation": "HAS_FINANCIAL_METRIC", "target": "台積電 2025Q2 營收"},
-            {"source": "台積電 2025Q2 營收", "relation": "FOR_PERIOD", "target": "2025Q2"},
         ],
     }
 
 
 def deterministic_fallback_payload() -> Dict[str, Any]:
-    """執行 `deterministic_fallback_payload` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`deterministic_fallback_payload` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return _fallback_data()
 
@@ -1041,6 +1148,9 @@ def main() -> None:
     """作為模組執行入口，串接並啟動既有主流程。
     此函式會依目前設定呼叫核心邏輯，並維持原本輸入輸出與錯誤行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     builder = KnowledgeGraphBuilder(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
     try:
         model = llm_client.get_runtime_config().model

@@ -31,16 +31,28 @@ class _FakeSession:
         return False
 
     def run(self, _query: str):
-        """執行 `run` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`run` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return None
 
 
 class _FakeDriver:
     def session(self):
-        """執行 `session` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`session` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return _FakeSession()
 
@@ -53,20 +65,38 @@ class _BuilderExtractionFails:
         self.driver = _FakeDriver()
 
     def close(self) -> None:
-        """執行 `close` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`close` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return None
 
     def extract_entities_relations(self, _text: str):
-        """執行 `extract_entities_relations` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`extract_entities_relations` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         raise RuntimeError("boom")
 
     def populate_graph(self, payload):
-        """執行 `populate_graph` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`populate_graph` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
         return _FakeStats(
             entities=len(payload.get("entities", [])),
@@ -78,6 +108,9 @@ def test_run_uses_fallback_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None
     """驗證 `test_run_uses_fallback_when_enabled` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_EXTRACT", "1")
     monkeypatch.setattr(e2e_runner, "KnowledgeGraphBuilder", _BuilderExtractionFails)
     monkeypatch.setattr(
@@ -106,6 +139,9 @@ def test_run_uses_qa_fallback_template(monkeypatch: pytest.MonkeyPatch) -> None:
     """驗證 `test_run_uses_qa_fallback_template` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_EXTRACT", "1")
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_QA", "1")
     monkeypatch.setattr(e2e_runner, "KnowledgeGraphBuilder", _BuilderExtractionFails)
@@ -145,6 +181,9 @@ def test_run_raises_when_fallback_disabled(monkeypatch: pytest.MonkeyPatch) -> N
     """驗證 `test_run_raises_when_fallback_disabled` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_EXTRACT", "0")
     monkeypatch.setattr(e2e_runner, "KnowledgeGraphBuilder", _BuilderExtractionFails)
 
@@ -156,6 +195,9 @@ def test_run_raises_when_qa_fallback_disabled(monkeypatch: pytest.MonkeyPatch) -
     """驗證 `test_run_raises_when_qa_fallback_disabled` 所描述情境是否符合預期行為。
     此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
     """
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_EXTRACT", "1")
     monkeypatch.setenv("E2E_ALLOW_FALLBACK_QA", "0")
     monkeypatch.setattr(e2e_runner, "KnowledgeGraphBuilder", _BuilderExtractionFails)

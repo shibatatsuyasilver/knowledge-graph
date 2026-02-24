@@ -48,8 +48,14 @@ class GeminiLabeler:
 
     @staticmethod
     def _strip_code_fence(text: str) -> str:
-        """執行 `_strip_code_fence` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_strip_code_fence` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         stripped = text.strip()
         match = re.match(r"^```(?:json)?\\s*(.*?)\\s*```$", stripped, flags=re.DOTALL | re.IGNORECASE)
@@ -57,9 +63,18 @@ class GeminiLabeler:
 
     @staticmethod
     def _validate_label_payload(payload: Dict[str, Any], answer_type: str) -> Dict[str, Any]:
-        """執行 `_validate_label_payload` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_validate_label_payload` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         if answer_type not in ANSWER_TYPES:
             raise GeminiLabelError(f"Unsupported answer_type: {answer_type}")
         if not isinstance(payload, dict):
@@ -113,8 +128,14 @@ class GeminiLabeler:
         }
 
     def _rate_limit(self) -> None:
-        """執行 `_rate_limit` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_rate_limit` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
         now = time.time()
         elapsed = now - self._last_request_ts
@@ -123,9 +144,18 @@ class GeminiLabeler:
             time.sleep(target - elapsed)
 
     def _request_gemini(self, prompt: str) -> str:
-        """執行 `_request_gemini` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_request_gemini` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         self._rate_limit()
         url = f"{DEFAULT_GEMINI_ENDPOINT}/models/{self.config.model}:generateContent"
         payload = {
@@ -171,9 +201,18 @@ class GeminiLabeler:
         context_text: str,
         answer_type: str,
     ) -> str:
-        """執行 `_build_prompt` 的內部輔助流程。
-        此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+        """`_build_prompt` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         return f"""
 你是知識圖譜標註器。請根據問題與上下文，輸出 JSON（不可有其他文字）。
 
@@ -207,9 +246,18 @@ class GeminiLabeler:
         context_text: str,
         answer_type: str,
     ) -> Dict[str, Any]:
-        """執行 `label_candidate` 的主要流程。
-        函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+        """`label_candidate` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
         """
+        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+        # ─── 階段 2：核心處理流程 ─────────────────────────────────
+        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         prompt = self._build_prompt(
             question_zh_tw=question_zh_tw,
             context_text=context_text,

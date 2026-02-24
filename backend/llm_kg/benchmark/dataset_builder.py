@@ -177,9 +177,18 @@ class CandidateItem:
 
 
 def _set_canonical(values: Sequence[str]) -> str:
-    """執行 `_set_canonical` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_set_canonical` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     unique = []
     seen = set()
     for value in values:
@@ -192,9 +201,18 @@ def _set_canonical(values: Sequence[str]) -> str:
 
 
 def _set_aliases(values: Sequence[str]) -> List[str]:
-    """執行 `_set_aliases` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_set_aliases` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cleaned = [v for v in values if str(v).strip()]
     canonical = _set_canonical(cleaned)
     reverse = _set_canonical(list(reversed(cleaned)))
@@ -208,9 +226,18 @@ def _set_aliases(values: Sequence[str]) -> List[str]:
 
 
 def _number_aliases(number: int) -> List[str]:
-    """執行 `_number_aliases` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_number_aliases` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     aliases = [str(number)]
     if number in ZH_NUM:
         aliases.extend([ZH_NUM[number], f"{ZH_NUM[number]}個", f"{ZH_NUM[number]}家"])
@@ -223,16 +250,31 @@ def _number_aliases(number: int) -> List[str]:
 
 
 def _triple(subject: str, relation: str, object_: str) -> Dict[str, str]:
-    """執行 `_triple` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_triple` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     return {"subject": subject, "relation": relation, "object": object_}
 
 
 def _fact_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_fact_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_fact_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     items: List[CandidateItem] = []
     for org, profile in ORG_PROFILES.items():
         founder = profile["founder"]
@@ -293,9 +335,18 @@ def _fact_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _relation_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_relation_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_relation_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     items: List[CandidateItem] = []
     for org, profile in ORG_PROFILES.items():
         customers = profile["supplies_to"]
@@ -361,9 +412,18 @@ def _relation_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _multi_hop_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_multi_hop_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_multi_hop_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     items: List[CandidateItem] = []
     for org, profile in ORG_PROFILES.items():
         founder = profile["founder"]
@@ -450,9 +510,18 @@ def _multi_hop_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _comparison_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_comparison_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_comparison_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     pairs = [
         ("台積電", "英特爾"),
         ("台積電", "三星電子"),
@@ -503,9 +572,18 @@ def _comparison_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _count_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_count_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_count_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     items: List[CandidateItem] = []
     for org, profile in ORG_PROFILES.items():
         customers = profile["supplies_to"]
@@ -549,9 +627,18 @@ def _count_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _boolean_candidates(source_type: str) -> List[CandidateItem]:
-    """執行 `_boolean_candidates` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_boolean_candidates` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     items: List[CandidateItem] = []
 
     for org, profile in ORG_PROFILES.items():
@@ -603,9 +690,18 @@ def _boolean_candidates(source_type: str) -> List[CandidateItem]:
 
 
 def _candidate_pool_for_source(source_type: str) -> Dict[str, List[CandidateItem]]:
-    """執行 `_candidate_pool_for_source` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_candidate_pool_for_source` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     pool = {
         "fact": _fact_candidates(source_type),
         "relation": _relation_candidates(source_type),
@@ -628,9 +724,18 @@ def _sample_from_pool(
     quota: Dict[str, int],
     rng: random.Random,
 ) -> List[CandidateItem]:
-    """執行 `_sample_from_pool` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_sample_from_pool` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     out: List[CandidateItem] = []
     for qtype in QUESTION_TYPES:
         needed = int(quota.get(qtype, 0))
@@ -649,9 +754,18 @@ def _with_gemini_labels(
     *,
     allow_fallback: bool,
 ) -> List[CandidateItem]:
-    """執行 `_with_gemini_labels` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_with_gemini_labels` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     out: List[CandidateItem] = []
     for item in items:
         try:
@@ -687,9 +801,18 @@ def _with_gemini_labels(
 
 
 def _candidate_to_dataset_dict(item: CandidateItem, index: int) -> Dict[str, Any]:
-    """執行 `_candidate_to_dataset_dict` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_candidate_to_dataset_dict` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     return {
         "id": f"Q{index:04d}",
         "source_type": item.source_type,
@@ -705,9 +828,18 @@ def _candidate_to_dataset_dict(item: CandidateItem, index: int) -> Dict[str, Any
 
 
 def _load_builder_config(path: Path) -> BuilderConfig:
-    """執行 `_load_builder_config` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_load_builder_config` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     dataset_cfg = payload.get("dataset", {})
     builder_cfg = payload.get("builder", {})
@@ -728,8 +860,14 @@ def _load_builder_config(path: Path) -> BuilderConfig:
 
 
 def _print_summary(items: Sequence[Dict[str, Any]], dataset_path: Path) -> None:
-    """執行 `_print_summary` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_print_summary` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     source_counts = Counter(item["source_type"] for item in items)
     qtype_counts = Counter(item["metadata"]["question_type"] for item in items)
@@ -741,9 +879,18 @@ def _print_summary(items: Sequence[Dict[str, Any]], dataset_path: Path) -> None:
 
 
 def build_dataset(config: BuilderConfig) -> List[Dict[str, Any]]:
-    """執行 `build_dataset` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`build_dataset` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     rng = random.Random(config.random_seed)
 
     graph_pool = _candidate_pool_for_source("graph_seed")

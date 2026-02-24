@@ -5,8 +5,11 @@ import Chat from './components/Chat'
 type PageTab = 'ingest' | 'chat'
 
 function App() {
+  // ─── 階段 1：建立頁面主狀態 ─────────────────────────────
+  // `activeTab` 決定主畫面顯示 `BuildKG` 或 `Chat`。
   const [activeTab, setActiveTab] = useState<PageTab>('ingest')
 
+  // ─── 階段 2：依狀態渲染對應區塊 ─────────────────────────
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -35,6 +38,8 @@ function App() {
         </button>
       </div>
 
+      {/* ─── 階段 3：切換主內容面板 ───────────────────────── */}
+      {/* 不保留兩個元件同時掛載，避免無效渲染與狀態干擾。 */}
       <main className="main-panel">{activeTab === 'ingest' ? <BuildKG /> : <Chat />}</main>
     </div>
   )

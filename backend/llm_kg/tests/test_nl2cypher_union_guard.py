@@ -6,6 +6,9 @@ from backend.llm_kg import nl2cypher
 
 
 def test_normalize_union_aliases_aligns_mismatch_when_counts_match() -> None:
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     cypher = """
     MATCH (o:Organization)-[:HAS_FINANCIAL_METRIC]->(m:FinancialMetric)-[:FOR_PERIOD]->(p:FiscalPeriod)
     RETURN o.name AS company, p.period AS quarter
@@ -24,6 +27,9 @@ def test_normalize_union_aliases_aligns_mismatch_when_counts_match() -> None:
 
 
 def test_normalize_union_aliases_raises_when_projection_count_differs() -> None:
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     cypher = """
     MATCH (o:Organization)
     RETURN o.name AS company, o.code AS ticker
@@ -37,6 +43,9 @@ def test_normalize_union_aliases_raises_when_projection_count_differs() -> None:
 
 
 def test_normalize_union_aliases_raises_when_missing_as_alias() -> None:
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     cypher = """
     MATCH (o:Organization)
     RETURN o.name AS company, o.code AS ticker
@@ -50,11 +59,17 @@ def test_normalize_union_aliases_raises_when_missing_as_alias() -> None:
 
 
 def test_normalize_union_aliases_noop_for_non_union() -> None:
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     cypher = "MATCH (o:Organization) RETURN o.name AS company"
     assert nl2cypher._normalize_union_return_aliases(cypher) == cypher
 
 
 def test_prompt_includes_union_alias_rule(monkeypatch: pytest.MonkeyPatch) -> None:
+    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
+    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
+    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     captured: dict[str, object] = {}
 
     def fake_chat_text(**kwargs):

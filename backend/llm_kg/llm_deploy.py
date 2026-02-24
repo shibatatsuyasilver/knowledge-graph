@@ -49,6 +49,9 @@ def chat_endpoint(req: ChatRequest) -> ChatResponse:
     """處理 `POST /api/chat` 請求並回傳既有服務結果。
     函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     try:
         cfg = llm_client.get_runtime_config()
         model = req.model or cfg.model

@@ -10,8 +10,14 @@ from typing import Any, Dict, Iterable, List, Sequence, Set, Tuple
 
 
 def normalize_text(value: Any) -> str:
-    """執行 `normalize_text` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`normalize_text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     text = unicodedata.normalize("NFKC", str(value or "")).lower().strip()
     text = re.sub(r"[\s\u3000]+", "", text)
@@ -20,16 +26,31 @@ def normalize_text(value: Any) -> str:
 
 
 def normalize_entity(value: Any) -> str:
-    """執行 `normalize_entity` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`normalize_entity` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return normalize_text(value)
 
 
 def _flatten_values(value: Any) -> List[str]:
-    """執行 `_flatten_values` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_flatten_values` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if value is None:
         return []
     if isinstance(value, (str, int, float, bool)):
@@ -48,8 +69,14 @@ def _flatten_values(value: Any) -> List[str]:
 
 
 def extract_entities_from_rows(rows: Sequence[Dict[str, Any]]) -> Set[str]:
-    """執行 `extract_entities_from_rows` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`extract_entities_from_rows` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     entities: Set[str] = set()
     for row in rows:
@@ -61,9 +88,18 @@ def extract_entities_from_rows(rows: Sequence[Dict[str, Any]]) -> Set[str]:
 
 
 def rows_to_answer_text(rows: Sequence[Dict[str, Any]]) -> str:
-    """執行 `rows_to_answer_text` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`rows_to_answer_text` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     values: List[str] = []
     seen: Set[str] = set()
     for row in rows:
@@ -78,8 +114,14 @@ def rows_to_answer_text(rows: Sequence[Dict[str, Any]]) -> str:
 
 
 def _bool_from_text(text: str) -> bool | None:
-    """執行 `_bool_from_text` 的內部輔助流程。
-    此函式封裝局部邏輯以提升可讀性，並維持既有輸入輸出與邊界行為。
+    """`_bool_from_text` 的內部輔助函式。
+
+主要用途：
+- 封裝局部步驟，讓主流程維持可讀性。
+- 集中處理細節與邊界條件，避免重複邏輯分散。
+
+回傳約定：
+- 保持既有輸入/輸出契約，不改變對外行為。
     """
     if any(token in text for token in ("是", "正確", "true", "yes")):
         return True
@@ -94,9 +136,18 @@ def score_qa_accuracy(
     predicted_rows: Sequence[Dict[str, Any]],
     predicted_answer: str,
 ) -> Tuple[int, str]:
-    """執行 `score_qa_accuracy` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`score_qa_accuracy` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     required = {normalize_entity(x) for x in gold_answer.get("required_entities", []) if normalize_entity(x)}
     row_entities = extract_entities_from_rows(predicted_rows)
 
@@ -134,8 +185,14 @@ def score_qa_accuracy(
 
 
 def normalize_triple(subject: str, relation: str, object_: str) -> Tuple[str, str, str]:
-    """執行 `normalize_triple` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`normalize_triple` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     return (
         normalize_entity(subject),
@@ -145,9 +202,18 @@ def normalize_triple(subject: str, relation: str, object_: str) -> Tuple[str, st
 
 
 def extract_triples(payload: Dict[str, Any]) -> Set[Tuple[str, str, str]]:
-    """執行 `extract_triples` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`extract_triples` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     triples: Set[Tuple[str, str, str]] = set()
     for relation in payload.get("relations", []):
         source = relation.get("source")
@@ -160,9 +226,18 @@ def extract_triples(payload: Dict[str, Any]) -> Set[Tuple[str, str, str]]:
 
 
 def gold_triples_set(gold_triples: Iterable[Dict[str, Any]]) -> Set[Tuple[str, str, str]]:
-    """執行 `gold_triples_set` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`gold_triples_set` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     triples: Set[Tuple[str, str, str]] = set()
     for triple in gold_triples:
         triples.add(
@@ -180,9 +255,18 @@ def triple_prf(
     predicted: Set[Tuple[str, str, str]],
     gold: Set[Tuple[str, str, str]],
 ) -> Tuple[float, float, float]:
-    """執行 `triple_prf` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`triple_prf` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not predicted and not gold:
         return 1.0, 1.0, 1.0
     if not predicted:
@@ -211,9 +295,18 @@ def triple_count(
     predicted: Set[Tuple[str, str, str]],
     gold: Set[Tuple[str, str, str]],
 ) -> TripleCount:
-    """執行 `triple_count` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`triple_count` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     return TripleCount(
         true_positive=len(predicted.intersection(gold)),
         predicted_total=len(predicted),
@@ -222,9 +315,18 @@ def triple_count(
 
 
 def micro_prf(counts: Sequence[TripleCount]) -> Tuple[float, float, float]:
-    """執行 `micro_prf` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`micro_prf` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
+    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
+    # ─── 階段 2：核心處理流程 ─────────────────────────────────
+    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not counts:
         return 0.0, 0.0, 0.0
     tp = sum(c.true_positive for c in counts)
@@ -242,8 +344,14 @@ def micro_prf(counts: Sequence[TripleCount]) -> Tuple[float, float, float]:
 
 
 def mean(values: Sequence[float]) -> float:
-    """執行 `mean` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`mean` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     if not values:
         return 0.0
@@ -251,8 +359,14 @@ def mean(values: Sequence[float]) -> float:
 
 
 def stddev(values: Sequence[float]) -> float:
-    """執行 `stddev` 的主要流程。
-    函式會依參數完成資料處理並回傳結果，必要時沿用目前例外處理機制。
+    """`stddev` 的主要流程入口。
+
+主要用途：
+- 串接此函式負責的核心步驟並回傳既有格式。
+- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
+
+維護重點：
+- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
     if not values:
         return 0.0
