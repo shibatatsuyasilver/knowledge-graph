@@ -46,3 +46,12 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: integration tests requiring Neo4j and an LLM endpoint (skip with -m 'not e2e')",
+]
+testpaths = [
+    "backend/tests",
+    "backend/llm_kg/tests",
+]
