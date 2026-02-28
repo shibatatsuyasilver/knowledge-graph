@@ -34,7 +34,7 @@ def health() -> Dict[str, Any]:
     upstream = llm_client.health_check(timeout_seconds=3.0)
     return {
         "status": "ok",
-        "service": "llm_deploy",
+        "service": "llm_api",
         "provider": upstream["provider"],
         "model": upstream["model"],
         "upstream": {"type": upstream["upstream"], "status": upstream["status"], "reachable": upstream["reachable"]},
@@ -75,4 +75,4 @@ def chat_endpoint(req: ChatRequest) -> ChatResponse:
 if __name__ == "__main__":  # pragma: no cover
     import uvicorn
 
-    uvicorn.run("llm_deploy:app", host="0.0.0.0", port=8000, reload=False)
+    uvicorn.run("llm_api:app", host="0.0.0.0", port=8000, reload=False)

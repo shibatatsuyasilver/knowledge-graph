@@ -184,7 +184,7 @@ echo "[3/4] Running end-to-end validation..."
   export EXTRACTION_MAX_JSON_RETRIES
   export EXTRACTION_MODEL
   export NL2CYPHER_MODEL
-  uv run python -m backend.llm_kg.e2e_runner
+  uv run pytest -m e2e -v
 )
 
 echo "[4/4] E2E completed successfully."

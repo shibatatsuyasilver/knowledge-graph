@@ -62,61 +62,6 @@ class LLMRuntimeConfig:
     ollama_think_json: bool
 
 
-def _safe_float(value: Optional[str], default: float) -> float:
-    """`_safe_float` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    if value is None:
-        return default
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _safe_int(value: Optional[str], default: int) -> int:
-    """`_safe_int` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    if value is None:
-        return default
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _safe_bool(value: Optional[str], default: bool) -> bool:
-    """`_safe_bool` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    if value is None:
-        return default
-    normalized = value.strip().lower()
-    if normalized in {"1", "true", "yes", "on"}:
-        return True
-    if normalized in {"0", "false", "no", "off"}:
-        return False
-    return default
-
 
 def _error_detail_max_chars() -> int:
     """`_error_detail_max_chars` 的內部輔助函式。
@@ -148,18 +93,6 @@ def _trim_error_detail(text: str) -> str:
     omitted = len(cleaned) - limit
     return f"{cleaned[:limit]}... [truncated {omitted} chars]"
 
-
-def _resolve_provider() -> str:
-    """`_resolve_provider` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    return app_settings.resolve_llm_provider()
 
 
 def get_runtime_config() -> LLMRuntimeConfig:

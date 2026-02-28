@@ -14,4 +14,4 @@ ENV PYTHONPATH=/app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "backend.llm_kg.llm_deploy:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "backend.llm_kg.llm_api:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -79,7 +79,7 @@ services:
       [
         "sh",
         "-lc",
-        "pip install --no-cache-dir -r backend/llm_kg/requirements.txt && python -m backend.llm_kg.e2e_runner",
+        "pip install --no-cache-dir -r backend/llm_kg/requirements.txt pytest && python -m pytest -m e2e -v",
       ]
 
 volumes:

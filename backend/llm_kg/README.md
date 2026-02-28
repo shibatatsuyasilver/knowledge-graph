@@ -14,7 +14,7 @@ Ollama is still supported as a fallback provider.
 - `backend/llm_kg/llm_client.py`: shared provider-aware LLM client (`openai` / `ollama`)
 - `backend/llm_kg/kg_builder.py`: entity/relation extraction + Neo4j upsert
 - `backend/llm_kg/nl2cypher.py`: schema-grounded Text-to-Cypher generation
-- `backend/llm_kg/llm_deploy.py`: FastAPI wrapper (`/api/chat`, `/health`)
+- `backend/llm_kg/llm_api.py`: FastAPI wrapper (`/api/chat`, `/health`)
 - `backend/llm_kg/run_e2e_mlx_local.sh`: local one-command E2E runner (Neo4j + MLX + QA)
 
 ## 1) Install dependencies with uv
@@ -66,7 +66,7 @@ cd /Users/silver/Documents/鴻海
 export LLM_PROVIDER=openai
 export OPENAI_BASE_URL=http://localhost:8080/v1
 export LLM_MODEL=mlx-community/Qwen3-8B-4bit-DWQ-053125
-uv run uvicorn backend.llm_kg.llm_deploy:app --host 0.0.0.0 --port 8000
+uv run uvicorn backend.llm_kg.llm_api:app --host 0.0.0.0 --port 8000
 ```
 
 Quick test:
