@@ -3,7 +3,9 @@ import time
 from fastapi.testclient import TestClient
 
 import backend.main as main_module
-from backend import logic
+from backend.llm_kg import llm_client
+from backend.services.ingest import ingest_service
+from backend.services.qa import qa_service
 
 
 client = TestClient(main_module.app)
@@ -32,7 +34,7 @@ def test_process_url_endpoint_success(monkeypatch) -> None:
     # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
-        main_module.logic,
+        ingest_service,
         "process_url_to_kg",
         lambda url, uri, user, pwd, chunk_limit=None, extraction_provider=None, extraction_model=None: {
             "stats": {
@@ -82,7 +84,7 @@ def test_process_url_endpoint_forwards_chunk_limit(monkeypatch) -> None:
             "summary": [],
         }
 
-    monkeypatch.setattr(main_module.logic, "process_url_to_kg", fake_process_url_to_kg)
+    monkeypatch.setattr(ingest_service, "process_url_to_kg", fake_process_url_to_kg)
 
     response = client.post(
         "/api/process_url",
@@ -119,7 +121,7 @@ def test_chat_general_timeout_returns_504(monkeypatch) -> None:
         """
         raise requests.Timeout("timeout")
 
-    monkeypatch.setattr(main_module.logic, "chat_general", timeout_chat)
+    monkeypatch.setattr(qa_service, "chat_general", timeout_chat)
 
     response = client.post("/api/chat_general", json={"message": "睡不著"})
     assert response.status_code == 504
@@ -133,7 +135,7 @@ def test_query_endpoint_keeps_compat_fields_and_optional_agentic_trace(monkeypat
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
 
     monkeypatch.setattr(
-        main_module.logic,
+        qa_service,
         "query_kg",
         lambda question, **_kwargs: {
             "question": question,
@@ -191,7 +193,7 @@ def test_query_endpoint_forwards_nl2cypher_overrides(monkeypatch) -> None:
             "attempt": 1,
         }
 
-    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+    monkeypatch.setattr(qa_service, "query_kg", fake_query_kg)
 
     response = client.post(
         "/api/query",
@@ -217,7 +219,7 @@ def test_query_endpoint_graph_chain_keeps_compat_fields(monkeypatch) -> None:
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
 
     monkeypatch.setattr(
-        main_module.logic,
+        qa_service,
         "query_kg",
         lambda question, **_kwargs: {
             "question": question,
@@ -316,7 +318,7 @@ def test_query_async_start_forwards_nl2cypher_overrides(monkeypatch) -> None:
             },
         }
 
-    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+    monkeypatch.setattr(qa_service, "query_kg", fake_query_kg)
 
     start_resp = client.post(
         "/api/query_async/start",
@@ -409,7 +411,7 @@ def test_query_async_failed_job_keeps_agentic_trace(monkeypatch) -> None:
             )
         raise RuntimeError("Cypher generation failed after retries: bad query")
 
-    monkeypatch.setattr(main_module.logic, "query_kg", fake_query_kg)
+    monkeypatch.setattr(qa_service, "query_kg", fake_query_kg)
 
     start_resp = client.post(
         "/api/query_async/start",
@@ -523,7 +525,7 @@ def test_process_keyword_async_job_flow(monkeypatch) -> None:
             ],
         }
 
-    monkeypatch.setattr(main_module.logic, "process_keyword_to_kg", fake_process_keyword_to_kg)
+    monkeypatch.setattr(ingest_service, "process_keyword_to_kg", fake_process_keyword_to_kg)
 
     start_resp = client.post(
         "/api/process_keyword_async/start",
@@ -614,7 +616,7 @@ def test_process_text_async_job_flow(monkeypatch) -> None:
             ],
         }
 
-    monkeypatch.setattr(main_module.logic, "process_text_to_kg", fake_process_text_to_kg)
+    monkeypatch.setattr(ingest_service, "process_text_to_kg", fake_process_text_to_kg)
 
     start_resp = client.post(
         "/api/process_text_async/start",
@@ -705,7 +707,7 @@ def test_process_url_async_job_flow(monkeypatch) -> None:
             ],
         }
 
-    monkeypatch.setattr(main_module.logic, "process_url_to_kg", fake_process_url_to_kg)
+    monkeypatch.setattr(ingest_service, "process_url_to_kg", fake_process_url_to_kg)
 
     start_resp = client.post(
         "/api/process_url_async/start",
@@ -736,12 +738,12 @@ def test_health_compat_endpoint(monkeypatch) -> None:
     # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
-        main_module.logic.llm_client,
+        llm_client,
         "get_runtime_config",
         lambda: type("Cfg", (), {"provider": "openai", "model": "mlx-community/Qwen3-8B-4bit-DWQ-053125"})(),
     )
     monkeypatch.setattr(
-        main_module.logic.llm_client,
+        llm_client,
         "health_check",
         lambda timeout_seconds=3.0: {
             "provider": "openai",
@@ -768,11 +770,11 @@ def test_chat_compat_endpoint(monkeypatch) -> None:
     # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     monkeypatch.setattr(
-        main_module.logic.llm_client,
+        llm_client,
         "get_runtime_config",
         lambda: type("Cfg", (), {"provider": "openai", "model": "mlx-community/Qwen3-8B-4bit-DWQ-053125"})(),
     )
-    monkeypatch.setattr(main_module.logic.llm_client, "chat_text", lambda **kwargs: "這是相容端點測試回覆")
+    monkeypatch.setattr(llm_client, "chat_text", lambda **kwargs: "這是相容端點測試回覆")
 
     response = client.post("/api/chat", json={"question": "請介紹知識圖譜"})
     assert response.status_code == 200

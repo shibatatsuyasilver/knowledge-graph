@@ -9,8 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 # Load env first so imported modules can read runtime settings.
 load_dotenv()
 
-# Backward compatibility for tests monkeypatching main_module.logic.
-import backend.logic as logic  # noqa: F401
 from backend.api.routers.ingest import router as ingest_router
 from backend.api.routers.llm_compat import router as llm_compat_router
 from backend.api.routers.qa import router as qa_router

@@ -8,7 +8,7 @@ from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
 
-import backend.logic as logic
+from backend.services.qa import qa_service
 from backend.api.errors import raise_http_error
 from backend.api.models import GeneralChatRequest, QueryRequest
 from backend.jobs.runtime import query_job_store
@@ -24,9 +24,9 @@ def _query_with_overrides(
     query_engine: str | None = None,
     progress_callback: Any = None,
 ):
-    """呼叫邏輯層 `logic.query_kg` 執行問答查詢，並自動處理參數相容性。
+    """呼叫邏輯層 `qa_service.query_kg` 執行問答查詢，並自動處理參數相容性。
     
-    由於 `logic.query_kg` 的簽名在不同版本或測試環境下（Monkeypatch）可能會有所不同，
+    由於 `qa_service.query_kg` 的簽名在不同版本或測試環境下（Monkeypatch）可能會有所不同，
     這個函式會先利用 `inspect.signature` 檢查目的端支援哪些參數。
     只有當目的端支援時，才會把 `nl2cypher_provider` 等參數傳進去，避免拋出 TypeError。
     
@@ -54,17 +54,17 @@ def _query_with_overrides(
         kwargs["query_engine"] = query_engine
 
     try:
-        signature = inspect.signature(logic.query_kg)
+        signature = inspect.signature(qa_service.query_kg)
     except (TypeError, ValueError):
-        return logic.query_kg(question, **kwargs)
+        return qa_service.query_kg(question, **kwargs)
 
     params = signature.parameters
     supports_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values())
     if supports_kwargs:
-        return logic.query_kg(question, **kwargs)
+        return qa_service.query_kg(question, **kwargs)
 
     filtered_kwargs = {key: value for key, value in kwargs.items() if key in params}
-    return logic.query_kg(question, **filtered_kwargs)
+    return qa_service.query_kg(question, **filtered_kwargs)
 
 
 @router.post("/api/query")
@@ -311,10 +311,10 @@ def chat_general_sync(req: GeneralChatRequest):
     """無關知識圖譜的純文字通用聊天。
     
     讓使用者可以直接把大語言模型當作一般的心理陪伴機器人對話。
-    會將前端傳來的歷史紀錄 `history` 和當下訊息 `message` 餵給 `logic.chat_general` 處理。
+    會將前端傳來的歷史紀錄 `history` 和當下訊息 `message` 餵給 `qa_service.chat_general` 處理。
     """
     try:
         history = [{"role": msg.role, "content": msg.content} for msg in (req.history or [])]
-        return logic.chat_general(req.message, history=history)
+        return qa_service.chat_general(req.message, history=history)
     except Exception as exc:
         raise_http_error(exc)
