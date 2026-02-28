@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, HTTPException
 
-import backend.logic as logic
+from backend.services.ingest import ingest_service
 from backend.api.errors import raise_http_error
 from backend.api.models import KeywordRequest, TextRequest, UrlRequest
 from backend.config.settings import get_neo4j_settings
@@ -180,52 +180,6 @@ def _create_ingest_job(
     return {"job_id": job_id, "status": "running"}
 
 
-@router.post("/api/process_url")
-def process_url_sync(req: UrlRequest):
-    """處理指定的單一 URL，將內容轉換為知識圖譜 (同步 API)。
-    
-    此 API 會阻塞連線，直到目標網址的內容完全抓取、清洗並交由 LLM 萃取出圖譜為止。
-    適用於小規模網頁測試或沒有非同步需求的情境。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    try:
-        uri, user, pwd = _neo4j_credentials()
-        return logic.process_url_to_kg(
-            req.url,
-            uri,
-            user,
-            pwd,
-            chunk_limit=req.chunk_limit,
-            extraction_provider=req.extraction_provider,
-            extraction_model=req.extraction_model,
-        )
-    except Exception as exc:
-        raise_http_error(exc)
-
-
-@router.post("/api/process_text")
-def process_text_sync(req: TextRequest):
-    """將一段指定的純文字內容轉換為知識圖譜 (同步 API)。
-    
-    與 URL 不同，這是直接把文字餵入，不需要爬蟲處理。
-    """
-    try:
-        uri, user, pwd = _neo4j_credentials()
-        return logic.process_text_to_kg(
-            req.text,
-            uri,
-            user,
-            pwd,
-            chunk_limit=req.chunk_limit,
-            extraction_provider=req.extraction_provider,
-            extraction_model=req.extraction_model,
-        )
-    except Exception as exc:
-        raise_http_error(exc)
-
-
 @router.post("/api/process_text_async/start")
 def process_text_async_start(req: TextRequest):
     """發起處理指定純文字為知識圖譜的非同步任務。
@@ -285,7 +239,7 @@ def process_text_async_start(req: TextRequest):
                 ingest_job_store.update(job_id, _mutate)
 
             uri, user, pwd = _neo4j_credentials()
-            return logic.process_text_to_kg(
+            return ingest_service.process_text_to_kg(
                 req.text,
                 uri,
                 user,
@@ -365,7 +319,7 @@ def process_url_async_start(req: UrlRequest):
                 ingest_job_store.update(job_id, _mutate)
 
             uri, user, pwd = _neo4j_credentials()
-            return logic.process_url_to_kg(
+            return ingest_service.process_url_to_kg(
                 req.url,
                 uri,
                 user,
@@ -391,40 +345,12 @@ def process_url_async_status(job_id: str):
     return _ingest_job_status(job_id)
 
 
-@router.post("/api/process_keyword")
-def process_keyword_sync(req: KeywordRequest):
-    """將給定關鍵字自動搜尋、爬取多個網頁並建立知識圖譜 (同步 API)。
-    
-    這個流程可能會花費數分鐘，因為包含爬蟲、多次呼叫 LLM 以及寫入資料庫。
-    對於正式環境，建議使用 `/api/process_keyword_async/start`。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    try:
-        uri, user, pwd = _neo4j_credentials()
-        return logic.process_keyword_to_kg(
-            keyword=req.keyword,
-            uri=uri,
-            user=user,
-            pwd=pwd,
-            max_results=req.max_results,
-            language=req.language,
-            site_allowlist=req.site_allowlist,
-            chunk_limit=req.chunk_limit,
-            extraction_provider=req.extraction_provider,
-            extraction_model=req.extraction_model,
-        )
-    except Exception as exc:
-        raise_http_error(exc)
-
-
 @router.post("/api/process_keyword_async/start")
 def process_keyword_async_start(req: KeywordRequest):
     """發起將關鍵字轉知識圖譜的複雜非同步任務。
     
     由於這個任務會跨越多個不同的網址，並擁有自己的 Store (`keyword_job_store`)，
-    它會在背景收集來自 `logic.process_keyword_to_kg` 中每個網址的執行進度並更新狀態。
+    它會在背景收集來自 `ingest_service.process_keyword_to_kg` 中每個網址的執行進度並更新狀態。
     """
     # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
     # ─── 階段 2：核心處理流程 ─────────────────────────────────
@@ -453,7 +379,7 @@ def process_keyword_async_start(req: KeywordRequest):
             # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
             try:
                 uri, user, pwd = _neo4j_credentials()
-                result = logic.process_keyword_to_kg(
+                result = ingest_service.process_keyword_to_kg(
                     keyword=req.keyword,
                     uri=uri,
                     user=user,

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class UrlRequest(BaseModel):
@@ -46,16 +46,6 @@ class ChatHistoryMessage(BaseModel):
 class GeneralChatRequest(BaseModel):
     message: str
     history: Optional[List[ChatHistoryMessage]] = None
-
-
-class LlmCompatChatRequest(BaseModel):
-    question: str = Field(min_length=1, description="User question")
-    model: Optional[str] = Field(default=None, description="Override model name")
-
-
-class LlmCompatChatResponse(BaseModel):
-    answer: str
-    model: str
 
 
 class JobStateResponse(BaseModel):

@@ -1,13 +1,11 @@
-"""Compatibility routes migrated from legacy llm_deploy API."""
+"""Compatibility routes migrated from legacy llm_api (llm_kg standalone service)."""
 
 from __future__ import annotations
 
 from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
-from backend.api.models import LlmCompatChatRequest, LlmCompatChatResponse
-from backend.config.settings import get_general_chat_settings
 from backend.llm_kg import llm_client
 
 router = APIRouter()
@@ -37,33 +35,3 @@ def health() -> Dict[str, Any]:
         "ollama": upstream["status"] if cfg.provider == "ollama" else "legacy-n/a",
         "defaultModel": cfg.model,
     }
-
-
-@router.post("/api/chat", response_model=LlmCompatChatResponse)
-def chat_endpoint(req: LlmCompatChatRequest) -> LlmCompatChatResponse:
-    """處理 `POST /api/chat` 請求並回傳既有服務結果。
-    函式會沿用目前驗證與例外處理策略，維持 API 契約與回應格式一致。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    try:
-        cfg = llm_client.get_runtime_config()
-        chat_settings = get_general_chat_settings()
-        model = req.model or cfg.model
-        answer = llm_client.chat_text(
-            messages=[
-                {
-                    "role": "system",
-                    "content": "你是一個知識圖譜專家助手。請使用繁體中文回答，內容要精確且簡潔。",
-                },
-                {"role": "user", "content": req.question},
-            ],
-            model=model,
-            timeout_seconds=chat_settings.timeout_seconds,
-        )
-        return LlmCompatChatResponse(answer=answer, model=model)
-    except llm_client.LLMTimeoutError as exc:  # pragma: no cover - network dependent
-        raise HTTPException(status_code=504, detail="LLM response timed out") from exc
-    except llm_client.LLMError as exc:  # pragma: no cover - network dependent
-        raise HTTPException(status_code=502, detail=f"LLM request failed: {exc}") from exc

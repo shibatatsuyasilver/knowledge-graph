@@ -1,6 +1,5 @@
 import axios from 'axios'
 import type {
-  BuildKgResponse,
   ChatHistoryMessage,
   GeneralChatResponse,
   IngestJobStartResponse,
@@ -8,7 +7,6 @@ import type {
   KeywordJobStartResponse,
   KeywordJobStateResponse,
   KeywordRequest,
-  KeywordProcessResponse,
   QueryRequest,
   QueryJobStartResponse,
   QueryJobStateResponse,
@@ -42,26 +40,6 @@ export function toApiError(error: unknown): string {
   }
   // ─── 階段 3：最後保底錯誤字串 ───────────────────────────
   return 'Unknown error'
-}
-
-export async function processText(payload: TextIngestRequest): Promise<BuildKgResponse> {
-  // ─── 階段 1：等待 IO ──────────────────────────────────
-  const response = await apiClient.post<BuildKgResponse>('/api/process_text', payload)
-  //  ↑ 呼叫後端 API，傳送文本以建立圖譜
-  
-  // ─── 階段 2：await 之後（解析結果）────────────────────
-  return response.data
-  //  ↑ 回傳解析後的圖譜建立結果
-}
-
-export async function processUrl(payload: UrlIngestRequest): Promise<BuildKgResponse> {
-  // ─── 階段 1：等待 IO ──────────────────────────────────
-  const response = await apiClient.post<BuildKgResponse>('/api/process_url', payload)
-  //  ↑ 呼叫後端 API，傳送網址以建立圖譜
-
-  // ─── 階段 2：await 之後（解析結果）────────────────────
-  return response.data
-  //  ↑ 回傳解析後的圖譜建立結果
 }
 
 export async function startTextProcessAsync(payload: TextIngestRequest): Promise<IngestJobStartResponse> {
@@ -102,16 +80,6 @@ export async function getUrlProcessJob(jobId: string): Promise<IngestJobStateRes
   // ─── 階段 2：await 之後（解析結果）────────────────────
   return response.data
   //  ↑ 回傳最新的任務進度或完成結果
-}
-
-export async function processKeyword(payload: KeywordRequest): Promise<KeywordProcessResponse> {
-  // ─── 階段 1：等待 IO ──────────────────────────────────
-  const response = await apiClient.post<KeywordProcessResponse>('/api/process_keyword', payload)
-  //  ↑ 發送實體/關鍵字至後端建立節點
-
-  // ─── 階段 2：await 之後（解析結果）────────────────────
-  return response.data
-  //  ↑ 回傳建立結果
 }
 
 export async function startKeywordProcessAsync(payload: KeywordRequest): Promise<KeywordJobStartResponse> {
