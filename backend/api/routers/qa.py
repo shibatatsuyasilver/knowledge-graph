@@ -11,55 +11,21 @@ from backend.api.errors import raise_http_error
 from backend.api.models import GeneralChatRequest, QueryRequest
 from backend.api.utils.job_runner import create_async_job
 from backend.api.utils.router_utils import get_job_status
-from backend.api.utils.signature_utils import call_with_compatible_kwargs
 from backend.jobs.runtime import query_job_store
 
 router = APIRouter()
 
-
-def _query_with_overrides(
-    *,
-    question: str,
-    nl2cypher_provider: str | None = None,
-    nl2cypher_model: str | None = None,
-    query_engine: str | None = None,
-    progress_callback: Any = None,
-):
-    """呼叫邏輯層 `qa_service.query_kg` 執行問答查詢，並自動處理參數相容性。
-
-    由於 `qa_service.query_kg` 的簽名在不同版本或測試環境下（Monkeypatch）可能會有所不同，
-    這個函式會先利用 `inspect.signature` 檢查目的端支援哪些參數。
-    只有當目的端支援時，才會把 `nl2cypher_provider` 等參數傳進去，避免拋出 TypeError。
-
-    參數:
-        question: 使用者的自然語言問題。
-        nl2cypher_provider: 可覆寫的 LLM Provider (例如 'openai')。
-        nl2cypher_model: 可覆寫的 LLM 模型 (例如 'gpt-4o')。
-        query_engine: 指定要用手動提示 ('manual') 還是 LangChain GraphQA ('graph_chain') 處理。
-        progress_callback: 用來傳送非同步進度的回呼函式。
-
-    回傳值:
-        Dict[str, Any]: 圖譜查詢與 LLM 總結的結果。
-    """
-    return call_with_compatible_kwargs(
-        qa_service.query_kg,
-        question,
-        progress_callback=progress_callback,
-        nl2cypher_provider=nl2cypher_provider or None,
-        nl2cypher_model=nl2cypher_model or None,
-        query_engine=query_engine or None,
-    )
 
 
 @router.post("/api/query")
 def query_sync(req: QueryRequest):
     """知識圖譜問答 (同步 API)。"""
     try:
-        return _query_with_overrides(
-            question=req.question,
-            nl2cypher_provider=req.nl2cypher_provider,
-            nl2cypher_model=req.nl2cypher_model,
-            query_engine=req.query_engine,
+        return qa_service.query_kg(
+            req.question,
+            nl2cypher_provider=req.nl2cypher_provider or None,
+            nl2cypher_model=req.nl2cypher_model or None,
+            query_engine=req.query_engine or None,
         )
     except Exception as exc:
         raise_http_error(exc)
@@ -150,12 +116,12 @@ def query_async_start(req: QueryRequest):
 
                 query_job_store.update(job_id, _mutate)
 
-            return _query_with_overrides(
-                question=question,
-                nl2cypher_provider=req.nl2cypher_provider,
-                nl2cypher_model=req.nl2cypher_model,
-                query_engine=req.query_engine,
+            return qa_service.query_kg(
+                question,
                 progress_callback=_update_progress,
+                nl2cypher_provider=req.nl2cypher_provider or None,
+                nl2cypher_model=req.nl2cypher_model or None,
+                query_engine=req.query_engine or None,
             )
 
         def _on_complete(result: Dict[str, Any], progress: Dict[str, Any]) -> Dict[str, Any]:
