@@ -16,7 +16,7 @@ User (Browser)
   └── frontend/                    React + TypeScript UI
         └── /api proxy
               └── backend/         FastAPI (port 8000)
-                    ├── api layer       routers: ingest, qa, llm_compat
+                    ├── api layer       routers: ingest, qa, health_check
                     ├── services layer  chunking, URL fetch, QA execution
                     └── llm_kg layer    entity extraction, NL→Cypher, LLM client
                           └── Neo4j     graph database (port 7687)
@@ -27,11 +27,10 @@ User (Browser)
 ```
 backend/
 ├── main.py                  FastAPI app assembly and router registration
-├── logic.py                 Thin facade over services (backward-compat shim)
 ├── api/routers/
 │   ├── ingest.py            Async endpoints: process_text / process_url / process_keyword
 │   ├── qa.py                NL2Cypher query + general chat endpoints
-│   └── llm_compat.py        OpenAI-compatible /v1/chat/completions passthrough
+│   └── health_check.py      Root (GET /) and LLM health check (GET /health)
 ├── config/settings.py       Centralized env-var parsing (LLM, Neo4j, chunking, timeouts)
 ├── jobs/store.py            In-memory async job store with TTL
 ├── services/
@@ -43,7 +42,6 @@ backend/
 │   ├── nl2cypher.py         Natural language → Cypher with repair loops and agentic mode
 │   ├── e2e_runner.py        End-to-end pipeline: extract → Neo4j write → QA validation
 │   ├── llm_api.py        Standalone lightweight HTTP service (GET /health, POST /api/chat)
-│   ├── benchmark/           Evaluation framework (dataset builder, runner, scorer, reporter)
 │   └── tests/               Unit tests for llm_kg module (mock Ollama + OpenAI servers)
 ├── tests/                   API and integration tests (test_main, test_logic, test_e2e_integration)
 └── Dockerfile
@@ -56,7 +54,6 @@ frontend/src/
 ├── api.ts                   HTTP client + async job polling helpers
 └── types.ts                 TypeScript interfaces matching all API contracts
 
-demo/                        Standalone demo apps (kg_pipeline, llm_api)
 scripts/                     start_local_with_gemini.sh — one-command local stack
 docker-compose.yml           Services: backend :8000, frontend :8081, neo4j :7687
 ```
@@ -202,7 +199,7 @@ Chunk cap example (process only first 5 chunks per URL):
 前端 `Build Knowledge Graph` 已支援 Extraction Provider/Model 選擇：
 
 - `Ollama`：例如 `sam860/deepseek-r1-0528-qwen3:8b`
-- `Gemini`：例如 `gemini-3-pro-preview`
+- `Gemini` : 例如 `gemini-3-pro-preview`
 
 `Build Knowledge Graph` 的 `Text / File / URL / Keyword Crawl` 目前都使用非同步任務（backend background job + 前端輪詢），處理中即可看到 chunk 狀態：
 
@@ -263,39 +260,3 @@ ollama run deepseek-r1:8b
 # 進入互動後輸入
 /set think true
 ```
-
-## Benchmark (100 題 DeepSeek R1 vs Gemma3)
-
-Benchmark config:
-
-- `/Users/silver/Documents/鴻海/backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml`
-
-Dataset build (30 graph seed + 70 gemini synth):
-
-```bash
-export GEMINI_API_KEY=...
-uv run python -m backend.llm_kg.benchmark.dataset_builder \
-  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
-```
-
-Benchmark run (2 models x 3 runs):
-
-```bash
-uv run python -m backend.llm_kg.benchmark.runner \
-  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
-```
-
-Generate report for a run:
-
-```bash
-uv run python -m backend.llm_kg.benchmark.reporter \
-  --run-dir backend/llm_kg/benchmark/runs/<timestamp>
-```
-
-Artifacts per run:
-
-- `run_manifest.json`
-- `per_question_scores.csv`
-- `model_summary.csv`
-- `summary.json`
-- `report.md`

@@ -60,19 +60,6 @@ docker compose up -d neo4j
 # or use the start script above
 ```
 
-### Benchmarks
-
-```bash
-uv run python -m backend.llm_kg.benchmark.dataset_builder \
-  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
-
-uv run python -m backend.llm_kg.benchmark.runner \
-  --config backend/llm_kg/benchmark/configs/benchmark_zh_tw_100.yaml
-
-uv run python -m backend.llm_kg.benchmark.reporter \
-  --run-dir backend/llm_kg/benchmark/runs/<timestamp>
-```
-
 ## Architecture
 
 ### Backend (`backend/`)
