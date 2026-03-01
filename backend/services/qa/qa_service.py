@@ -97,9 +97,6 @@ def _stringify_query_value(value: Any) -> str:
     回傳值:
         str: 格式化後的字串表示。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if value is None:
         return "N/A"
     if isinstance(value, (str, int, float, bool)):
@@ -162,9 +159,6 @@ def _display_query_key(key: str) -> str:
 
 def _is_metadata_key(key: str) -> bool:
     """判斷欄位是否屬於不適合直接回覆給使用者的技術性欄位。"""
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     raw = _display_query_key(key).strip()
     normalized = raw.replace("_", "").replace(" ", "").lower()
     hidden_exact = {
@@ -222,7 +216,7 @@ def _summarize_query_rows(question: str, rows: List[Dict[str, Any]]) -> str:
     1. 如果完全沒有回傳結果，直接回答「找不到相關資料」。
     2. 如果有結果，會先過濾掉 UUID 等隱藏欄位，只留下有效欄位 (user_rows)。
     3. 如果結果包含名為 "name" 的欄位（例如 {"name": "劉德華"}），會把這些名字抽出來組合。
-       - 例如：查到 3 筆，輸出：「使用者詢問的問題：張學友、劉德華、黎明。」
+       - 例如：問題為「有哪些藝人？」，查到 3 筆，輸出：「有哪些藝人？：張學友、劉德華、黎明。」
     4. 否則，就把前 5 筆資料的每個欄位都用冒號連起來。
        - 例如：「類型：員工；年齡：30。另有其他結果...」
     
@@ -233,9 +227,6 @@ def _summarize_query_rows(question: str, rows: List[Dict[str, Any]]) -> str:
     回傳值:
         str: 組裝好的人類可讀總結文字。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not rows:
         return f"目前在知識圖譜中找不到與「{question}」直接相關的資料。"
 
@@ -360,9 +351,6 @@ def _generate_kg_answer_with_llm(*, question: str, cypher: str, rows: List[Dict[
     回傳值:
         str: LLM 產生的人類閱讀友好回答。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not _kg_qa_use_llm():
         raise RuntimeError("KG_QA_USE_LLM disabled")
 
@@ -441,9 +429,6 @@ def query_kg(
     回傳值:
         Dict[str, Any]: 查詢與回答結果組合字典，包含 answer, rows, cypher 等。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cleaned = question.strip()
     if not cleaned:
         raise ValueError("Question cannot be empty")
@@ -545,9 +530,6 @@ def _normalize_chat_history(history: Optional[List[Dict[str, str]]]) -> List[Dic
     回傳值:
         List[Dict]: 乾淨的對話列表。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     if not history:
         return []
 
@@ -575,9 +557,6 @@ def chat_general(message: str, history: Optional[List[Dict[str, str]]] = None) -
     回傳值:
         Dict[str, Any]: 包含 "answer" (回覆) 以及所使用的 "model" 等資訊。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
     cleaned_message = message.strip()
     if not cleaned_message:
         raise ValueError("Message cannot be empty")

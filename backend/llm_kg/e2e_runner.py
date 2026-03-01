@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import os
 from typing import Any, Dict, List
 
@@ -20,29 +19,13 @@ except Exception:  # pragma: no cover - optional dependency in lightweight envir
 
 
 def _reset_graph(builder: KnowledgeGraphBuilder) -> None:
-    """`_reset_graph` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """清空 Neo4j 中所有節點與關係。"""
     with builder.driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
 
 
 def _bool_env(name: str, default: bool = False) -> bool:
-    """`_bool_env` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """讀取環境變數並轉換為布林值；不存在時回傳 default。"""
     value = os.getenv(name)
     if value is None:
         return default
@@ -56,18 +39,7 @@ def _fallback_qa_template(
     user: str,
     password: str,
 ) -> Dict[str, Any]:
-    """`_fallback_qa_template` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """依問題關鍵字選擇硬編碼 Cypher 模板，直接查詢 Neo4j 並回傳結果。"""
     if GraphDatabase is None:
         raise RuntimeError("neo4j driver not available for fallback QA")
 
@@ -100,18 +72,7 @@ def _fallback_qa_template(
 
 
 def run() -> Dict[str, Any]:
-    """`run` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """執行完整 E2E 流程：重設圖、提取實體關係、寫入 Neo4j、執行 QA 驗證。"""
     neo4j_uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
     neo4j_user = os.getenv("NEO4J_USER", "neo4j")
     neo4j_password = os.getenv("NEO4J_PASSWORD", "password")
@@ -210,15 +171,3 @@ def run() -> Dict[str, Any]:
         "qa_total": len(questions),
         "qa": qa_results,
     }
-
-
-def main() -> None:
-    """作為模組執行入口，串接並啟動既有主流程。
-    此函式會依目前設定呼叫核心邏輯，並維持原本輸入輸出與錯誤行為。
-    """
-    result = run()
-    print(json.dumps(result, ensure_ascii=False, indent=2))
-
-
-if __name__ == "__main__":
-    main()

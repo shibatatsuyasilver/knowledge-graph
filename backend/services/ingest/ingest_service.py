@@ -568,14 +568,7 @@ def build_kg_from_chunks(
     extracted_data_summary = []
 
     def _emit_chunk_progress(index: int, stats_delta: Optional[Dict[str, int]] = None) -> None:
-        """協助推播目前的 Chunk 處理進度給上層的回呼函式 (progress_callback)。
-        
-        會把當前的整體統計 (total_stats)、單次增加量 (stats_delta) 以及當下 Chunk 的狀態
-        包裝成 dict 傳遞出去，就算回傳失敗也不會中斷主流程。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """推播當前 Chunk 的整體統計與增量（stats_delta）至外層進度回呼，失敗不中斷主流程。"""
         if not progress_callback:
             return
         payload = {

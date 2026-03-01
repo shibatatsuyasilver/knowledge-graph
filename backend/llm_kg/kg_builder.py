@@ -93,15 +93,7 @@ SAMPLE_TEXT = """
 
 
 def _trim_raw_error(raw: str) -> str:
-    """`_trim_raw_error` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """截斷原始錯誤訊息至 EXTRACTION_ERROR_RAW_MAX_CHARS 字元限制。"""
     text = str(raw or "").strip()
     limit = max(0, EXTRACTION_ERROR_RAW_MAX_CHARS)
     if limit == 0 or len(text) <= limit:
@@ -115,41 +107,17 @@ def _resolve_extraction_model(
     *,
     provider: str | None = None,
 ) -> str | None:
-    """`_resolve_extraction_model` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """根據提供者或明確模型名稱解析實體抽取所用的模型，委派給 settings。"""
     return resolve_extraction_model_from_settings(provider=provider, explicit_model=model)
 
 
 def _resolve_extraction_provider(provider: str | None = None) -> str | None:
-    """`_resolve_extraction_provider` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """解析實體抽取的 LLM 提供者，委派給 settings。"""
     return resolve_extraction_provider_from_settings(provider)
 
 
 def _resolve_extraction_num_predict(provider: str | None = None) -> int:
-    """`_resolve_extraction_num_predict` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """解析實體抽取的預測 token 上限，委派給 settings。"""
     return resolve_extraction_num_predict_from_settings(provider, llm_client.DEFAULT_GEMINI_OUTPUT_TOKEN_LIMIT)
 
 
@@ -163,47 +131,20 @@ class GraphBuildStats:
 
 
 def strip_markdown_fence(content: str) -> str:
-    """`strip_markdown_fence` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """移除 Markdown 代碼欄標記（```json ... ```），取出其中的純文字內容。"""
     text = content.strip()
     m = re.match(r"^```(?:json)?\s*(.*?)\s*```$", text, flags=re.DOTALL | re.IGNORECASE)
     return (m.group(1) if m else text).strip()
 
 
 def _normalize_name(name: str) -> str:
-    """`_normalize_name` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """將名稱轉換為小寫並移除所有非字母數字及非中文字元。"""
     lowered = name.strip().lower()
     return re.sub(r"[^0-9a-z\u4e00-\u9fff]+", "", lowered)
 
 
 def _name_variants(name: str) -> List[str]:
-    """`_name_variants` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """從名稱中提取所有變體：去除括號內容、分割別名（簡稱、aka 等）。"""
     variants = {name.strip()}
     compact = re.sub(r"[（(].*?[）)]", "", name).strip()
     if compact:
@@ -219,15 +160,7 @@ def _name_variants(name: str) -> List[str]:
 
 
 def _best_match(name: str, candidates: Iterable[str]) -> Tuple[str, float]:
-    """`_best_match` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """以字串相似度從候選清單中找出最佳匹配名稱，回傳（名稱, 分數）。"""
     best = ""
     best_score = 0.0
     for candidate in candidates:
@@ -238,45 +171,21 @@ def _best_match(name: str, candidates: Iterable[str]) -> Tuple[str, float]:
 
 
 def _safe_type(value: str) -> str:
-    """`_safe_type` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """驗證實體類型是否在允許清單中，不合法時拋出 ValueError。"""
     if value not in ALLOWED_ENTITY_TYPES:
         raise ValueError(f"Unsupported entity type: {value}")
     return value
 
 
 def _safe_relation(value: str) -> str:
-    """`_safe_relation` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """驗證關係類型是否在允許清單中，不合法時拋出 ValueError。"""
     if value not in ALLOWED_RELATION_TYPES:
         raise ValueError(f"Unsupported relation type: {value}")
     return value
 
 
 def _to_optional_text(value: Any) -> Optional[str]:
-    """`_to_optional_text` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
+    """將值轉換為可選字串：None 或空字串時回傳 None，否則回傳去頭尾空白的字串。"""
     if value is None:
         return None
     text = str(value).strip()
@@ -284,18 +193,7 @@ def _to_optional_text(value: Any) -> Optional[str]:
 
 
 def _extract_entity_extra_props(entity: Dict[str, Any], entity_type: str, canonical_name: str) -> Dict[str, str]:
-    """`_extract_entity_extra_props` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """從實體字典中提取允許清單內的額外屬性（description、metric_type 等）。"""
     extra: Dict[str, str] = {}
     description = _to_optional_text(entity.get("description"))
     if description:
@@ -323,36 +221,19 @@ def _extract_entity_extra_props(entity: Dict[str, Any], entity_type: str, canoni
 
 class KnowledgeGraphBuilder:
     def __init__(self, uri: str, user: str, password: str):
-        """初始化物件狀態並保存後續流程所需依賴。
-        此方法會依目前參數設定實例欄位，供其他方法在生命週期內重複使用。
-        """
+        """初始化 Neo4j Driver 連線。"""
         self.driver: Driver = GraphDatabase.driver(uri, auth=(user, password))
 
     def close(self) -> None:
-        """`close` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-        """
+        """關閉 Neo4j Driver 連線。"""
         self.driver.close()
 
     def _should_use_two_pass_extraction(self, provider: str | None) -> bool:
-        """`_should_use_two_pass_extraction` 的內部輔助函式。
+        """判斷是否應使用 Gemini 雙階段提取模式。
 
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
+        需先確認環境變數 GEMINI_TWO_PASS_EXTRACTION 為 True；若未啟用，
+        無論 provider 為何皆回傳 False。啟用後，再依 provider 決定是否為 gemini。
         """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
         if not GEMINI_TWO_PASS_EXTRACTION:
             return False
         if provider == "gemini":
@@ -366,18 +247,7 @@ class KnowledgeGraphBuilder:
 
     @staticmethod
     def _build_phase1_entity_inventory_prompt(text: str) -> str:
-        """`_build_phase1_entity_inventory_prompt` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """建構第一階段提示：要求 LLM 僅識別實體（不提取關係），回傳 JSON。"""
         return f"""
 -Goal-
 Given a text document and fixed ontology constraints, identify all entities only.
@@ -420,18 +290,7 @@ Output:
 
     @staticmethod
     def _render_seed_entities_for_prompt(seed_entities: List[Dict[str, Any]], limit: int = 120) -> str:
-        """`_render_seed_entities_for_prompt` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """將種子實體清單格式化為提示用的可讀文字（每行一個實體），超出上限時附加省略提示。"""
         if not seed_entities:
             return "[]"
         lines: List[str] = []
@@ -446,18 +305,7 @@ Output:
         return "\n".join(lines) if lines else "[]"
 
     def _build_phase2_relation_prompt(self, text: str, seed_entities: List[Dict[str, Any]]) -> str:
-        """`_build_phase2_relation_prompt` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """建構第二階段提示：給定種子實體清單，要求 LLM 提取實體與關係，回傳 JSON。"""
         seed_block = self._render_seed_entities_for_prompt(seed_entities)
         # Use GraphRAG's Goal/Steps prompt style, adapted to this project's strict enum-based schema.
         return f"""
@@ -549,18 +397,7 @@ Output:
 """.strip()
 
     def _fetch_existing_entity_keys(self, entities: List[Dict[str, Any]]) -> set[Tuple[str, str]]:
-        """`_fetch_existing_entity_keys` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """從 Neo4j 查詢哪些實體已存在（以名稱、規範化名稱或別名比對），回傳（名稱, 類型）集合。"""
         probes: List[Dict[str, Any]] = []
         for entity in entities:
             name = str(entity.get("name", "")).strip()
@@ -601,18 +438,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return existing
 
     def _prefill_missing_entities(self, entities: List[Dict[str, Any]]) -> int:
-        """`_prefill_missing_entities` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """批量建立 Phase 1 中發現但在 Neo4j 中尚不存在的實體，回傳建立數量。"""
         inserted = 0
         for entity in entities:
             self._create_entity(
@@ -631,18 +457,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Dict[str, Any]:
-        """`_extract_entities_relations_two_pass` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """執行雙階段提取：Phase 1 識別實體庫並預填 Neo4j，Phase 2 提取關係。"""
         phase1_prompt = self._build_phase1_entity_inventory_prompt(text)
         phase1_payload, phase1_retries = self._extract_json_with_retry(
             phase1_prompt,
@@ -683,18 +498,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Dict[str, Any]:
-        """`extract_entities_relations` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """主流程：根據設定決定使用雙階段或單階段提取實體與關係，回傳正規化結果。"""
         use_provider = _resolve_extraction_provider(provider)
         if self._should_use_two_pass_extraction(use_provider):
             return self._extract_entities_relations_two_pass(
@@ -718,18 +522,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         provider: str | None = None,
         model: str | None = None,
     ) -> Tuple[Dict[str, Any], int]:
-        """`_extract_json_with_retry` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """以重試機制呼叫 LLM 進行 JSON 提取，解析失敗時送修復提示重試，回傳（結果, 重試次數）。"""
         last_error: Exception | None = None
         raw = ""
         current_prompt = prompt
@@ -804,15 +597,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
 
     @staticmethod
     def _validate_extraction_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
-        """`_validate_extraction_payload` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
+        """驗證 LLM 提取的 JSON 是否為包含 entities 和 relations 清單的字典。"""
         if not isinstance(payload, dict):
             raise ValueError("Extraction payload must be a JSON object")
         entities = payload.get("entities")
@@ -822,18 +607,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return payload
 
     def _sanitize_extraction(self, payload: Dict[str, Any]) -> Dict[str, Any]:
-        """`_sanitize_extraction` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """正規化提取結果：合併重複實體、驗證關係方向、丟棄不符 schema 的記錄。"""
         entities: List[Dict[str, Any]] = []
         relations: List[Dict[str, str]] = []
         merged_entities = 0
@@ -948,15 +722,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         }
 
     def _resolve_entity_reference(self, name: str, canonical_lookup: Dict[str, str]) -> str:
-        """`_resolve_entity_reference` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
+        """將實體名稱或別名解析為規範名稱，先精確比對，再以相似度比對。"""
         normalized = _normalize_name(name)
         if normalized in canonical_lookup:
             return canonical_lookup[normalized]
@@ -967,15 +733,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return name
 
     def _ensure_constraints(self) -> None:
-        """`_ensure_constraints` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
+        """在 Neo4j 中建立 Entity 節點的唯一性約束與規範化名稱索引。"""
         with self.driver.session() as session:
             session.run("CREATE CONSTRAINT entity_name_unique IF NOT EXISTS FOR (e:Entity) REQUIRE e.name IS UNIQUE")
             session.run("CREATE INDEX entity_normalized_name_idx IF NOT EXISTS FOR (e:Entity) ON (e.normalizedName)")
@@ -987,18 +745,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         aliases: Iterable[str] | None = None,
         extra_props: Optional[Dict[str, Any]] = None,
     ) -> None:
-        """`_create_entity` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """在 Neo4j 中 upsert 實體節點，包含名稱、類型、規範化名稱、別名與額外屬性。"""
         label = _safe_type(entity_type)
         alias_values = sorted({a.strip() for a in (aliases or []) if a and a.strip()})
         if name not in alias_values:
@@ -1030,15 +777,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
             session.run(" ".join(query), **params)
 
     def _create_relation(self, source: str, relation: str, target: str) -> None:
-        """`_create_relation` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-        """
+        """在 Neo4j 中建立或更新兩個實體節點之間的關係邊。"""
         rel = _safe_relation(relation)
         query = (
             "MATCH (a:Entity {name:$source}), (b:Entity {name:$target}) "
@@ -1049,18 +788,7 @@ RETURN item.name AS name, item.type AS type, exists AS exists
             session.run(query, source=source, target=target)
 
     def populate_graph(self, data: Dict[str, Any]) -> GraphBuildStats:
-        """`populate_graph` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-        """
-        # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-        # ─── 階段 2：核心處理流程 ─────────────────────────────────
-        # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+        """批量將實體與關係寫入 Neo4j，回傳建立/更新的統計資訊。"""
         self._ensure_constraints()
         meta = data.get("meta", {})
         stats = GraphBuildStats(
@@ -1085,33 +813,14 @@ RETURN item.name AS name, item.type AS type, exists AS exists
         return stats
 
     def build_from_text(self, text: str) -> Tuple[Dict[str, Any], GraphBuildStats]:
-        """`build_from_text` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-        """
+        """端到端流程：提取文字中的實體與關係後寫入知識圖譜，回傳提取結果與統計。"""
         extracted = self.extract_entities_relations(text)
         stats = self.populate_graph(extracted)
         return extracted, stats
 
 
 def _fallback_data() -> Dict[str, Any]:
-    """`_fallback_data` 的內部輔助函式。
-
-主要用途：
-- 封裝局部步驟，讓主流程維持可讀性。
-- 集中處理細節與邊界條件，避免重複邏輯分散。
-
-回傳約定：
-- 保持既有輸入/輸出契約，不改變對外行為。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """回傳台積電示範資料，作為 LLM 提取失敗時的後備結果。"""
     return {
         "entities": [
             {"name": "台積電", "type": "Organization"},
@@ -1132,25 +841,12 @@ def _fallback_data() -> Dict[str, Any]:
 
 
 def deterministic_fallback_payload() -> Dict[str, Any]:
-    """`deterministic_fallback_payload` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """回傳固定的示範提取結果（供測試與 fallback 使用）。"""
     return _fallback_data()
 
 
 def main() -> None:
-    """作為模組執行入口，串接並啟動既有主流程。
-    此函式會依目前設定呼叫核心邏輯，並維持原本輸入輸出與錯誤行為。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """以台積電示範文字執行端到端 KG 建構流程（CLI 入口）。"""
     builder = KnowledgeGraphBuilder(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD)
     try:
         model = llm_client.get_runtime_config().model

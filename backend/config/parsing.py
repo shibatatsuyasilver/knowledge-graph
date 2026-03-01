@@ -7,28 +7,12 @@ from typing import Optional
 
 
 def get_env(name: str, default: Optional[str] = None) -> Optional[str]:
-    """`get_env` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """從環境變數讀取字串值，若不存在回傳預設值。"""
     return os.getenv(name, default)
 
 
 def get_env_str(name: str, default: str = "") -> str:
-    """`get_env_str` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """從環境變數讀取字串值，值為 None 時回傳預設值。"""
     value = os.getenv(name)
     if value is None:
         return default
@@ -36,15 +20,7 @@ def get_env_str(name: str, default: str = "") -> str:
 
 
 def get_env_int(name: str, default: int) -> int:
-    """`get_env_int` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """從環境變數讀取整數值，格式錯誤時回傳預設值。"""
     value = os.getenv(name)
     if value is None:
         return default
@@ -55,15 +31,7 @@ def get_env_int(name: str, default: int) -> int:
 
 
 def get_env_float(name: str, default: float) -> float:
-    """`get_env_float` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
+    """從環境變數讀取浮點數值，格式錯誤時回傳預設值。"""
     value = os.getenv(name)
     if value is None:
         return default
@@ -74,18 +42,7 @@ def get_env_float(name: str, default: float) -> float:
 
 
 def get_env_bool(name: str, default: bool) -> bool:
-    """`get_env_bool` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
+    """從環境變數讀取布林值，支援 1/true/yes/on（真）與 0/false/no/off（假）。"""
     value = os.getenv(name)
     if value is None:
         return default

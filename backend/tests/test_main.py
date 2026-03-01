@@ -30,15 +30,7 @@ def test_chat_general_timeout_returns_504(monkeypatch) -> None:
     # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
     # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
     def timeout_chat(message, history=None):
-        """`timeout_chat` 的主要流程入口。
-
-主要用途：
-- 串接此函式負責的核心步驟並回傳既有格式。
-- 例外沿用現行錯誤處理策略，避免破壞呼叫端契約。
-
-維護重點：
-- 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
-        """
+        """測試用 stub，固定拋出 requests.Timeout 以模擬上游服務超時。"""
         raise requests.Timeout("timeout")
 
     monkeypatch.setattr(qa_service, "chat_general", timeout_chat)

@@ -78,8 +78,11 @@ def _merge_chunk_progress(
 ) -> None:
     """Handle a ``chunk_update`` event by merging it into the job's progress.
 
+    If ``event["type"]`` is not ``"chunk_update"``, returns immediately without
+    modifying the job.
+
     Args:
-        event: The progress event dict (must have ``type == "chunk_update"``).
+        event: The progress event dict (should have ``type == "chunk_update"``).
         job_id: The ingest job to update.
         extra_fields: Optional extra key/value pairs written into progress
             (e.g. ``{"current_url": ...}`` for URL jobs).
