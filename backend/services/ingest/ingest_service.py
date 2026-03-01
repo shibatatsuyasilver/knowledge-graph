@@ -667,47 +667,6 @@ def build_kg_from_chunks(
     }
 
 
-def build_kg_from_text_content(
-    text: str,
-    uri: str,
-    user: str,
-    pwd: str,
-    chunk_limit: Optional[int] = None,
-    extraction_provider: Optional[str] = None,
-    extraction_model: Optional[str] = None,
-) -> Dict[str, Any]:
-    """將純文字轉換為知識圖譜 (簡易版)。
-    
-    這是 `process_text_to_kg` 的簡易版本，不處理 progress callback 狀態。
-    它主要用在腳本或是 CLI 這些不需要與前端互動更新進度的情境下。
-    
-    參數:
-        text (str): 準備輸入建構的字串。
-        
-    回傳值:
-        Dict[str, Any]: 處理完的圖譜統計與分析資料。
-    """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    # 把它視為 "User Input" 來切割
-    chunks = chunk_text(
-        text,
-        "user_input",
-        "User Input",
-        extraction_provider=extraction_provider,
-    )
-    # 直接交給圖譜建立函式
-    return build_kg_from_chunks(
-        chunks,
-        uri,
-        user,
-        pwd,
-        chunk_limit=chunk_limit,
-        extraction_provider=extraction_provider,
-        extraction_model=extraction_model,
-    )
-
 
 def process_text_to_kg(
     text: str,

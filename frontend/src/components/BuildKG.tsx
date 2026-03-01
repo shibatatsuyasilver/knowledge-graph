@@ -1,8 +1,8 @@
 import { type ChangeEvent, useMemo, useState } from 'react'
 import {
+  getKeywordProcessJob,
   getTextProcessJob,
   getUrlProcessJob,
-  getKeywordProcessJob,
   startKeywordProcessAsync,
   startTextProcessAsync,
   startUrlProcessAsync,
@@ -65,77 +65,28 @@ const BuildKG = () => {
     [siteAllowlistText],
   )
 
-  const waitForKeywordJob = async (jobId: string): Promise<KeywordProcessResponse> => {
-    // ─── 階段 1：持續 polling 任務狀態 ─────────────────────
+  const waitForJob = async <TResult extends IngestResult>(
+    getJob: (id: string) => Promise<{ status: string; result?: TResult; progress?: any; error?: string }>,
+    jobId: string,
+    label: string,
+  ): Promise<TResult> => {
     for (;;) {
-      const job = await getKeywordProcessJob(jobId)
+      const job = await getJob(jobId)
       if (job.progress) {
         setLiveProgress(job.progress)
       }
-      // ─── 階段 2：完成/失敗分流 ───────────────────────────
       if (job.status === 'completed') {
         if (job.result) {
           return job.result
         }
         if (job.progress) {
-          return job.progress
+          return job.progress as TResult
         }
-        throw new Error('Keyword job completed without result')
+        throw new Error(`${label} job completed without result`)
       }
       if (job.status === 'failed') {
-        throw new Error(job.error || job.progress?.error || 'Keyword job failed')
+        throw new Error(job.error || job.progress?.error || `${label} job failed`)
       }
-      // ─── 階段 3：尚未完成時，延遲後繼續輪詢 ─────────────────
-      await sleep(1000)
-    }
-  }
-
-  const waitForTextJob = async (jobId: string): Promise<BuildKgResponse> => {
-    // ─── 階段 1：持續 polling 任務狀態 ─────────────────────
-    for (;;) {
-      const job = await getTextProcessJob(jobId)
-      if (job.progress) {
-        setLiveProgress(job.progress)
-      }
-      // ─── 階段 2：完成/失敗分流 ───────────────────────────
-      if (job.status === 'completed') {
-        if (job.result) {
-          return job.result
-        }
-        if (job.progress) {
-          return job.progress
-        }
-        throw new Error('Text job completed without result')
-      }
-      if (job.status === 'failed') {
-        throw new Error(job.error || job.progress?.error || 'Text job failed')
-      }
-      // ─── 階段 3：尚未完成時，延遲後繼續輪詢 ─────────────────
-      await sleep(1000)
-    }
-  }
-
-  const waitForUrlJob = async (jobId: string): Promise<BuildKgResponse> => {
-    // ─── 階段 1：持續 polling 任務狀態 ─────────────────────
-    for (;;) {
-      const job = await getUrlProcessJob(jobId)
-      if (job.progress) {
-        setLiveProgress(job.progress)
-      }
-      // ─── 階段 2：完成/失敗分流 ───────────────────────────
-      if (job.status === 'completed') {
-        if (job.result) {
-          return job.result
-        }
-        if (job.progress) {
-          return job.progress
-        }
-        throw new Error('URL job completed without result')
-      }
-      if (job.status === 'failed') {
-        throw new Error(job.error || job.progress?.error || 'URL job failed')
-      }
-      // ─── 階段 3：尚未完成時，延遲後繼續輪詢 ─────────────────
       await sleep(1000)
     }
   }
@@ -184,73 +135,40 @@ const BuildKG = () => {
     // ─── 階段 2：等待 IO ──────────────────────────────────
     try {
       let response: IngestResult
-      if (mode === 'text') {
-        if (!textInput.trim()) {
-          throw new Error('請輸入文本內容')
+      const basePayload = {
+        chunk_limit: chunkLimit,
+        extraction_provider: extractionProvider,
+        extraction_model: extractionModel.trim() || undefined,
+      }
+
+      if (mode === 'text' || mode === 'file') {
+        const inputText = mode === 'text' ? textInput : uploadedText
+        if (!inputText.trim()) {
+          throw new Error(mode === 'text' ? '請輸入文本內容' : '請先上傳 .txt 或 .md 文字檔')
         }
-        const payload = {
-          text: textInput.trim(),
-          chunk_limit: chunkLimit,
-          extraction_provider: extractionProvider,
-          extraction_model: extractionModel.trim() || undefined,
-        }
-        const job = await startTextProcessAsync(payload)
-        //  ↑ 發送非同步任務建立請求
+        const job = await startTextProcessAsync({ text: inputText.trim(), ...basePayload })
         setActiveJobId(job.job_id)
-        //  ↑ 更新畫面上顯示的 Job ID
-        response = await waitForTextJob(job.job_id)
-        //  ↑ 進入輪詢，等待圖譜建立完成
-      } else if (mode === 'file') {
-        if (!uploadedText.trim()) {
-          throw new Error('請先上傳 .txt 或 .md 文字檔')
-        }
-        const payload = {
-          text: uploadedText.trim(),
-          chunk_limit: chunkLimit,
-          extraction_provider: extractionProvider,
-          extraction_model: extractionModel.trim() || undefined,
-        }
-        const job = await startTextProcessAsync(payload)
-        //  ↑ 發送非同步任務建立請求
-        setActiveJobId(job.job_id)
-        //  ↑ 更新畫面上顯示的 Job ID
-        response = await waitForTextJob(job.job_id)
-        //  ↑ 進入輪詢，等待圖譜建立完成
+        response = await waitForJob(getTextProcessJob, job.job_id, 'Text')
       } else if (mode === 'url') {
         if (!urlInput.trim()) {
           throw new Error('請輸入網址')
         }
-        const payload = {
-          url: urlInput.trim(),
-          chunk_limit: chunkLimit,
-          extraction_provider: extractionProvider,
-          extraction_model: extractionModel.trim() || undefined,
-        }
-        const job = await startUrlProcessAsync(payload)
-        //  ↑ 發送非同步任務建立請求
+        const job = await startUrlProcessAsync({ url: urlInput.trim(), ...basePayload })
         setActiveJobId(job.job_id)
-        //  ↑ 更新畫面上顯示的 Job ID
-        response = await waitForUrlJob(job.job_id)
-        //  ↑ 進入輪詢，等待圖譜建立完成
+        response = await waitForJob(getUrlProcessJob, job.job_id, 'URL')
       } else {
         if (!keywordInput.trim()) {
           throw new Error('請輸入關鍵字')
         }
-        const payload = {
+        const job = await startKeywordProcessAsync({
           keyword: keywordInput.trim(),
           max_results: maxResults,
           language,
           site_allowlist: siteAllowlist.length > 0 ? siteAllowlist : undefined,
-          chunk_limit: chunkLimit,
-          extraction_provider: extractionProvider,
-          extraction_model: extractionModel.trim() || undefined,
-        }
-        const job = await startKeywordProcessAsync(payload)
-        //  ↑ 發送非同步任務建立請求
+          ...basePayload,
+        })
         setActiveJobId(job.job_id)
-        //  ↑ 更新畫面上顯示的 Job ID
-        response = await waitForKeywordJob(job.job_id)
-        //  ↑ 進入輪詢，等待圖譜建立完成
+        response = await waitForJob(getKeywordProcessJob, job.job_id, 'Keyword')
       }
 
       // ─── 階段 3：await 之後（React 19 自動標記 Transition）─

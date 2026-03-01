@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import inspect
 import json
 from collections.abc import Mapping
 from typing import Any, Callable, Dict, List, Optional
 
+from backend.api.utils.signature_utils import call_with_compatible_kwargs
 from backend.config.settings import get_general_chat_settings, get_kg_qa_settings
 from backend.llm_kg import llm_client
 
@@ -56,29 +56,13 @@ def _invoke_kg_query_executor(
     nl2cypher_model: Optional[str],
 ) -> Dict[str, Any]:
     """以相容方式呼叫 KG query executor，支援舊版與新版函式簽名。"""
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    kwargs: Dict[str, Any] = {}
-    if progress_callback is not None:
-        kwargs["progress_callback"] = progress_callback
-    if nl2cypher_provider:
-        kwargs["nl2cypher_provider"] = nl2cypher_provider
-    if nl2cypher_model:
-        kwargs["nl2cypher_model"] = nl2cypher_model
-
-    try:
-        signature = inspect.signature(executor)
-    except (TypeError, ValueError):
-        return executor(question, **kwargs)
-
-    params = signature.parameters
-    supports_kwargs = any(param.kind == inspect.Parameter.VAR_KEYWORD for param in params.values())
-    if supports_kwargs:
-        return executor(question, **kwargs)
-
-    filtered_kwargs = {key: value for key, value in kwargs.items() if key in params}
-    return executor(question, **filtered_kwargs)
+    return call_with_compatible_kwargs(
+        executor,
+        question,
+        progress_callback=progress_callback,
+        nl2cypher_provider=nl2cypher_provider or None,
+        nl2cypher_model=nl2cypher_model or None,
+    )
 
 
 def _normalize_query_rows(rows_value: Any) -> List[Dict[str, Any]]:

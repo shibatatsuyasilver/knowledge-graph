@@ -441,6 +441,16 @@ def resolve_extraction_model(provider: Optional[str], explicit_model: Optional[s
     return value or None
 
 
+def _resolve_optional_provider(env_key: str, label: str, provider: Optional[str]) -> Optional[str]:
+    """共用的 provider 字串驗證，供 nl2cypher 與 extraction 兩個 resolver 使用。"""
+    value = (provider or get_env_str(env_key, "")).strip().lower()
+    if not value:
+        return None
+    if value not in {"openai", "ollama", "gemini"}:
+        raise ValueError(f"Unsupported {label} provider: {value}")
+    return value
+
+
 def resolve_nl2cypher_provider(provider: Optional[str]) -> Optional[str]:
     """`resolve_nl2cypher_provider` 的主要流程入口。
 
@@ -451,12 +461,7 @@ def resolve_nl2cypher_provider(provider: Optional[str]) -> Optional[str]:
 維護重點：
 - 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
-    value = (provider or get_env_str("NL2CYPHER_PROVIDER", "")).strip().lower()
-    if not value:
-        return None
-    if value not in {"openai", "ollama", "gemini"}:
-        raise ValueError(f"Unsupported NL2CYPHER provider: {value}")
-    return value
+    return _resolve_optional_provider("NL2CYPHER_PROVIDER", "NL2CYPHER", provider)
 
 
 def resolve_nl2cypher_model(provider: Optional[str] = None, explicit_model: Optional[str] = None) -> Optional[str]:
@@ -496,12 +501,7 @@ def resolve_extraction_provider(provider: Optional[str]) -> Optional[str]:
 維護重點：
 - 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
-    value = (provider or get_env_str("EXTRACTION_PROVIDER", "")).strip().lower()
-    if not value:
-        return None
-    if value not in {"openai", "ollama", "gemini"}:
-        raise ValueError(f"Unsupported extraction provider: {value}")
-    return value
+    return _resolve_optional_provider("EXTRACTION_PROVIDER", "extraction", provider)
 
 
 def resolve_extraction_num_predict(provider: Optional[str], gemini_output_default: int) -> int:

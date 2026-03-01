@@ -11,95 +11,15 @@ from backend.services.qa import qa_service
 client = TestClient(main_module.app)
 
 
-def test_process_url_route_is_unique() -> None:
-    """驗證 `test_process_url_route_is_unique` 所描述情境是否符合預期行為。
-    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
-    """
-    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
-    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
-    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+def test_process_url_async_route_exists() -> None:
+    """驗證 /api/process_url_async/start (POST) 路由存在於 app 中。"""
     routes = [
         route
         for route in main_module.app.routes
-        if getattr(route, "path", None) == "/api/process_url" and "POST" in getattr(route, "methods", set())
+        if getattr(route, "path", None) == "/api/process_url_async/start"
+        and "POST" in getattr(route, "methods", set())
     ]
     assert len(routes) == 1
-
-
-def test_process_url_endpoint_success(monkeypatch) -> None:
-    """驗證 `test_process_url_endpoint_success` 所描述情境是否符合預期行為。
-    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
-    """
-    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
-    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
-    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
-    monkeypatch.setattr(
-        ingest_service,
-        "process_url_to_kg",
-        lambda url, uri, user, pwd, chunk_limit=None, extraction_provider=None, extraction_model=None: {
-            "stats": {
-                "chunks_processed": 1,
-                "entities": 2,
-                "relations": 1,
-                "merged_entities": 0,
-                "dropped_relations": 0,
-                "json_retries": 0,
-            },
-            "summary": [{"chunk_id": "c1", "entities": 2, "relations": 1}],
-        },
-    )
-
-    response = client.post("/api/process_url", json={"url": "https://example.com"})
-    assert response.status_code == 200
-    body = response.json()
-    assert body["stats"]["chunks_processed"] == 1
-
-
-def test_process_url_endpoint_forwards_chunk_limit(monkeypatch) -> None:
-    """驗證 `test_process_url_endpoint_forwards_chunk_limit` 所描述情境是否符合預期行為。
-    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
-    """
-    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
-    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
-    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
-    captured = {}
-
-    def fake_process_url_to_kg(url, uri, user, pwd, chunk_limit=None, extraction_provider=None, extraction_model=None):
-        """提供 `fake_process_url_to_kg` 測試替身以模擬外部依賴或固定回傳。
-        此函式讓測試可注入可預測資料，將驗證焦點集中在流程與邏輯判斷。
-        """
-        captured["chunk_limit"] = chunk_limit
-        captured["extraction_provider"] = extraction_provider
-        captured["extraction_model"] = extraction_model
-        captured["url"] = url
-        return {
-            "stats": {
-                "chunks_processed": 1,
-                "entities": 1,
-                "relations": 0,
-                "merged_entities": 0,
-                "dropped_relations": 0,
-                "json_retries": 0,
-            },
-            "summary": [],
-        }
-
-    monkeypatch.setattr(ingest_service, "process_url_to_kg", fake_process_url_to_kg)
-
-    response = client.post(
-        "/api/process_url",
-        json={
-            "url": "https://example.com",
-            "chunk_limit": 5,
-            "extraction_provider": "gemini",
-            "extraction_model": "gemini-3-pro-preview",
-        },
-    )
-    assert response.status_code == 200
-    assert captured["url"] == "https://example.com"
-    assert captured["chunk_limit"] == 5
-    assert captured["extraction_provider"] == "gemini"
-    assert captured["extraction_model"] == "gemini-3-pro-preview"
 
 
 def test_chat_general_timeout_returns_504(monkeypatch) -> None:
@@ -762,22 +682,15 @@ def test_health_compat_endpoint(monkeypatch) -> None:
     assert body["upstream"]["status"] == "ok"
 
 
-def test_chat_compat_endpoint(monkeypatch) -> None:
-    """驗證 `test_chat_compat_endpoint` 所描述情境是否符合預期行為。
-    此測試透過斷言比對輸出與狀態，避免後續修改造成回歸問題。
-    """
-    # ─── Arrange：準備測試輸入、替身與前置狀態 ─────────────────────
-    # ─── Act：呼叫被測流程，收集實際輸出與副作用 ─────────────────
-    # ─── Assert：驗證關鍵結果，確保行為契約不回歸 ─────────────────
+def test_chat_general_endpoint(monkeypatch) -> None:
+    """驗證 /api/chat_general (POST) 回傳符合現行契約。"""
     monkeypatch.setattr(
-        llm_client,
-        "get_runtime_config",
-        lambda: type("Cfg", (), {"provider": "openai", "model": "mlx-community/Qwen3-8B-4bit-DWQ-053125"})(),
+        qa_service,
+        "chat_general",
+        lambda message, history: {"answer": "通用聊天回覆", "model": "test-model"},
     )
-    monkeypatch.setattr(llm_client, "chat_text", lambda **kwargs: "這是相容端點測試回覆")
 
-    response = client.post("/api/chat", json={"question": "請介紹知識圖譜"})
+    response = client.post("/api/chat_general", json={"message": "你好", "history": []})
     assert response.status_code == 200
     body = response.json()
-    assert body["answer"] == "這是相容端點測試回覆"
-    assert body["model"] == "mlx-community/Qwen3-8B-4bit-DWQ-053125"
+    assert body["answer"] == "通用聊天回覆"

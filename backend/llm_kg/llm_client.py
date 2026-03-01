@@ -6,7 +6,7 @@ import json
 import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 
 import requests
 from backend.config import settings as app_settings
@@ -710,6 +710,32 @@ def _extract_gemini_content(body: Dict[str, Any]) -> str:
     return content_text
 
 
+class _CallParams(NamedTuple):
+    cfg: Any
+    provider: str
+    model: str
+    temp: float
+    max_tokens: int
+    timeout: float
+
+
+def _resolve_call_params(
+    provider: Optional[str],
+    model: Optional[str],
+    temperature: Optional[float],
+    max_tokens: Optional[int],
+    timeout_seconds: Optional[float],
+) -> _CallParams:
+    """Resolve the five shared call parameters used by both chat_text and chat_json."""
+    cfg = get_runtime_config()
+    use_provider = _resolve_provider_override(provider, cfg.provider)
+    use_model = _resolve_model_for_provider(provider=use_provider, model=model, default_cfg_model=cfg.model)
+    use_temp = cfg.temperature if temperature is None else temperature
+    use_max_tokens = _resolve_effective_max_tokens(cfg=cfg, provider=use_provider, requested_max_tokens=max_tokens)
+    use_timeout = cfg.timeout_seconds if timeout_seconds is None else max(1.0, float(timeout_seconds))
+    return _CallParams(cfg, use_provider, use_model, use_temp, use_max_tokens, use_timeout)
+
+
 def chat_text(
     *,
     messages: List[Dict[str, str]],
@@ -728,19 +754,8 @@ def chat_text(
 維護重點：
 - 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    cfg = get_runtime_config()
-    use_provider = _resolve_provider_override(provider, cfg.provider)
-    use_model = _resolve_model_for_provider(provider=use_provider, model=model, default_cfg_model=cfg.model)
-    use_temp = cfg.temperature if temperature is None else temperature
-    use_max_tokens = _resolve_effective_max_tokens(
-        cfg=cfg,
-        provider=use_provider,
-        requested_max_tokens=max_tokens,
-    )
-    use_timeout = cfg.timeout_seconds if timeout_seconds is None else max(1.0, float(timeout_seconds))
+    p = _resolve_call_params(provider, model, temperature, max_tokens, timeout_seconds)
+    cfg, use_provider, use_model, use_temp, use_max_tokens, use_timeout = p
 
     if use_provider == "openai":
         body = _request_json(
@@ -825,19 +840,8 @@ def chat_json(
 維護重點：
 - 調整流程時需保持 API 欄位、狀態轉移與錯誤語意一致。
     """
-    # ─── 階段 1：輸入正規化與前置檢查 ─────────────────────────
-    # ─── 階段 2：核心處理流程 ─────────────────────────────────
-    # ─── 階段 3：整理回傳與錯誤傳遞 ───────────────────────────
-    cfg = get_runtime_config()
-    use_provider = _resolve_provider_override(provider, cfg.provider)
-    use_model = _resolve_model_for_provider(provider=use_provider, model=model, default_cfg_model=cfg.model)
-    use_temp = cfg.temperature if temperature is None else temperature
-    use_max_tokens = _resolve_effective_max_tokens(
-        cfg=cfg,
-        provider=use_provider,
-        requested_max_tokens=max_tokens,
-    )
-    use_timeout = cfg.timeout_seconds if timeout_seconds is None else max(1.0, float(timeout_seconds))
+    p = _resolve_call_params(provider, model, temperature, max_tokens, timeout_seconds)
+    cfg, use_provider, use_model, use_temp, use_max_tokens, use_timeout = p
 
     if use_provider == "ollama":
         payload = {
